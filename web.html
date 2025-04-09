@@ -1,20 +1,482 @@
-<html>
-  <div id="container">
-  <div class="divider" aria-hidden="true"></div>
-  <p class="loading-text" aria-label="Loading">
-    <span class="letter" aria-hidden="true">L</span>
-    <span class="letter" aria-hidden="true">o</span>
-    <span class="letter" aria-hidden="true">a</span>
-    <span class="letter" aria-hidden="true">d</span>
-    <span class="letter" aria-hidden="true">i</span>
-    <span class="letter" aria-hidden="true">n</span>
-    <span class="letter" aria-hidden="true">g</span>
-  </p>
+<body>
+    
+    <div class="main">
+        <a href="/" aria-label="Home">
+            <img src="/images/logo/main-vector.min.svg" onerror="this.src='/images/logo/main-low.png';" loading="eager" class="logo" alt="">
+        </a>
+        <div class="nav">
+            
+
+<ul class="nav-list">
+    <li class="nav-element">
+        <a href="/">Home</a>
+    </li>
+    <li class="nav-element">
+        <a href="/download/">Download</a>
+    </li>
+    <li class="nav-element nav-element-dropdown">
+        <a href="/beatmapsets/">
+            Beatmaps
+            <img class="dropdown-indicator" src="/images/arrow-white-highlight.png" alt="»">
+        </a>
+        <ul class="nav-dropdown">
+            <li>
+                <a href="/beatmapsets/?category=2">Ranked</a>
+                <a href="/beatmapsets/?category=5">Approved</a>
+                <a href="/beatmapsets/?category=4">Loved</a>
+                <a href="/beatmapsets/packs">Beatmap Packs</a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-element nav-element-dropdown">
+        <a href="/rankings/osu/performance">
+            Rankings
+            <img class="dropdown-indicator" src="/images/arrow-white-highlight.png" alt="»">
+        </a>
+        <ul class="nav-dropdown">
+            <li>
+                <a href="/rankings/osu/performance">Performance</a>
+                <a href="/rankings/osu/country">Countries</a>
+                <a href="/rankings/osu/rscore">Ranked Score</a>
+                <a href="/rankings/osu/tscore">Total Score</a>
+                <a href="/rankings/osu/ppv1">PPv1</a>
+                <a href="/rankings/osu/clears">Clears</a>
+            </li>
+        </ul>
+    </li>
+    <li class="nav-element nav-element-dropdown">
+        <a href="/forum/">
+            Community
+            <img class="dropdown-indicator" src="/images/arrow-white-highlight.png" alt="»">
+        </a>
+        <ul class="nav-dropdown">
+            <li>
+                <a href="/forum/">Forums</a>
+                <a href="https://discord.gg/qupv72e7YH">Discord</a>
+            </li>
+        </ul>
+    </li>
+</ul>
+        </div>
+        <div class="bancho-stats">
+            <b>1849</b> users, <b>5</b> online now.<br>
+            A total of <b>433322</b> plays!
+        </div>
+        <div class="content">
+            <div class="top">
+                <div class="search-container">
+                    <form class="search-form" onsubmit="return userSearch()">
+                        <input class="nav-search" type="text" id="user-search" name="users" placeholder="User" autocomplete="off">
+                    </form>
+                    <form class="search-form" onsubmit="return beatmapSearch()">
+                        <input class="nav-search" type="text" id="beatmap-search" name="beatmaps" placeholder="Beatmap" autocomplete="off">
+                    </form>
+                </div>
+                <div class="login-container">
+                
+                    <span class="nav-login" id="welcome-text">
+                        Welcome, <a href="/u/2286">susFries</a>
+                    </span>
+                    <a href="/account/settings/profile#avatar" style="height: 25px">
+                        <img class="small-avatar" src="/a/2286?s=25" alt="">
+                    </a>
+                    <a href="/account/settings"><i class="fa-solid fa-gear" style="color: #808080;"></i> Settings</a>
+                    <a href="/account/settings#notifications">
+                        <i class="fa-solid fa-bell" style="color: #808080;"></i>
+                        
+                        2 notifications
+                        
+                    </a>
+                    
+                    <a href="/account/logout">
+                        <i class="fa-solid fa-power-off" style="color: #808080;"></i> Logout
+                    </a>
+                    
+                
+                </div>
+            </div>
+            <div class="login-dropdown" style="display: none;">
+                <form action="/account/login" method="post">
+                    
+                        <input type="hidden" name="redirect" value="/">
+                    
+                    Please enter your credentials:
+                    <br>
+                    <input id="username-field" class="post" type="text" name="username" placeholder="Username" maxlength="30" value="" tabindex="0" autocomplete="off">
+                    <br>
+                    <input id="password-field" class="post" type="password" name="password" placeholder="Password" tabindex="0" autocomplete="off">
+                    <br>
+                    <div>
+                        <input id="remember" class="radio" type="checkbox" name="remember"><label for="remember">Remember Me</label>
+                        <input class="login-button" type="submit" name="login" value="Login" tabindex="5">
+                    </div>
+                    <div class="login-bottom-text">
+                        <a id="forgot-password-text" href="/account/reset">
+                            Forgot your password?
+                        </a>
+                    </div>
+                    <div class="login-bottom-text">
+                        <a id="register-text" href="/account/register">
+                            Create new account!
+                        </a>
+                    </div>
+                    <input type="hidden" name="csrf_token" value="IjU2NGM3ZWE0YTEyZGExZWVkZmYzNzFhNGFiMjFjZTZmODc4NjU5MjEi.Z_ZqnA.dWee7WIT0XoQBpeSJdieZhHyv-k">
+                </form>
+            </div>
+            
+            <script src="/lib/jquery.min.js"></script>
+            <script src="/lib/jquery.timeago.js"></script>
+            <script src="/lib/jquery.marquee.js"></script>
+            <script src="/js/main.js"></script>
+            <div class="page">
+                
+                
+<!-- CSS fixes for Internet Explorer -->
+<!--[if IE 6]>
+<style>
+    .right-side {
+        margin-right: -60px;
+    }
+    .most-played {
+        width: 81.8%;
+    }
+    .chat-wrapper {
+        width: 182%;
+    }
+</style>
+<![endif]-->
+<div class="content-wrapper">
+    <div class="left-side">
+        <div class="about-wrapper">
+            <div class="blurb-box">
+                <h1 class="blurb-text" id="about-header">
+                    Welcome to <b>Titanic!</b>
+                </h1>
+                <div class="blurb-text">
+                    Titanic is a private server for <a href="https://osu.ppy.sh">osu!</a>, dedicated to preserving the nostalgia of osu!'s earlier days, offering players the opportunity to experience the game using client versions from 2008 to 2015.
+                    It's also a community-driven project that is fully open source and open to all kinds of contribution. Even just a simple suggestion can make a big change.
+                    So, welcome on board, and enjoy your stay!
+                </div>
+            </div>
+        </div>
+
+        <div class="news-wrapper">
+            <h2 class="headers">News</h2>
+            
+            
+                <div class="news">
+                    <div class="blurb-heading">
+                        10.2.2025 <a href="/forum/20/t/1108"><b>Beatmap of the Year</b></a> (Levi)
+                    </div>
+                    <div class="blurb-box">
+                        <div class="blurb-text">
+                            Hello everyone! <a href="https://osu.titanic.sh/u/810">Satori</a> has managed to compile a list of all beatmaps that were submitted in 2024 to Titanic.  You are now able to vote for them <a href="https://docs.google.com/forms/d/e/1FAIpQLSdZ_wwozSjI4WTkNk_tjDnhUgNnJ7ElOoyadp_dSoM0ylHSEQ/viewform?usp=sharing" target="_blank">here</a>.
+                        </div>
+                    </div>
+                    <div class="blurb-readmore">
+                        <a href="/forum/20/t/1108">Read More / Comment...</a>
+                    </div>
+                </div>
+            
+                <div class="news">
+                    <div class="blurb-heading">
+                        25.12.2024 <a href="/forum/3/t/980"><b>Today is a great day for score farmers!</b></a> (Levi)
+                    </div>
+                    <div class="blurb-box">
+                        <div class="blurb-text">
+                            You read the title right. A thing that I always was too afraid to implement, but have now finished developing and deploying…
+                        </div>
+                    </div>
+                    <div class="blurb-readmore">
+                        <a href="/forum/3/t/980">Read More / Comment...</a>
+                    </div>
+                </div>
+            
+                <div class="news">
+                    <div class="blurb-heading">
+                        24.11.2024 <a href="/forum/3/t/875"><b>Beatmap Submission Updates</b></a> (Levi)
+                    </div>
+                    <div class="blurb-box">
+                        <div class="blurb-text">
+                            Hi everyone! I am happy to announce that you are now able to submit beatmaps from b1815 up to b595b.
+                        </div>
+                    </div>
+                    <div class="blurb-readmore">
+                        <a href="/forum/3/t/875">Read More / Comment...</a>
+                    </div>
+                </div>
+            
+                <div class="news">
+                    <div class="blurb-heading">
+                        16.11.2024 <a href="/forum/3/t/829"><b>Beatmap Packs</b></a> (Levi)
+                    </div>
+                    <div class="blurb-box">
+                        <div class="blurb-text">
+                            A new important feature has now finally been implemented: Beatmap Packs! You can find it on the navigation bar under "Beatmaps" -&gt; "<a href="https://osu.titanic.sh/beatmapsets/packs/" target="_blank">Beatmap Packs</a>".
+                        </div>
+                    </div>
+                    <div class="blurb-readmore">
+                        <a href="/forum/3/t/829">Read More / Comment...</a>
+                    </div>
+                </div>
+            
+            
+            <div style="margin-bottom: 350px"></div>
+            
+        </div>
+
+        <div class="bottom-stats">
+            <div class="stats-wrapper">
+                <h2 class="headers">Online Users<span>Over the last 24 hours</span></h2>
+                <img src="/api/activity/image" alt="">
+            </div>
+
+            <div class="chat-wrapper">
+                <h2 class="headers">Chat</h2>
+                
+                <table class="styled-table">
+                    <tbody>
+                    
+                        
+                            <tr class="dark-row">
+                        
+                            <td style="color: grey; width: 10%">20:25:34
+                            </td><td>
+                                Axarious: finally
+                            </td>
+                        </tr>
+                    
+                        
+                            <tr class="light-row">
+                        
+                            <td style="color: grey; width: 10%">20:26:25
+                            </td><td>
+                                Satori: HELLO
+                            </td>
+                        </tr>
+                    
+                        
+                            <tr class="dark-row">
+                        
+                            <td style="color: grey; width: 10%">20:26:30
+                            </td><td>
+                                Satori: i'm so tired =w=
+                            </td>
+                        </tr>
+                    
+                        
+                            <tr class="light-row">
+                        
+                            <td style="color: grey; width: 10%">20:26:39
+                            </td><td>
+                                Cookiezi: hello
+                            </td>
+                        </tr>
+                    
+                        
+                            <tr class="dark-row">
+                        
+                            <td style="color: grey; width: 10%">20:26:50
+                            </td><td>
+                                Cookiezi: thanks aquarious
+                            </td>
+                        </tr>
+                    
+                        
+                            <tr class="light-row">
+                        
+                            <td style="color: grey; width: 10%">20:28:58
+                            </td><td>
+                                Axarious: yw\
+                            </td>
+                        </tr>
+                    
+                        
+                            <tr class="dark-row">
+                        
+                            <td style="color: grey; width: 10%">20:29:02
+                            </td><td>
+                                Axarious: i love maple leaf
+                            </td>
+                        </tr>
+                    
+                        
+                            <tr class="light-row">
+                        
+                            <td style="color: grey; width: 10%">05:05:03
+                            </td><td>
+                                Hatate Himekaidou: !client 
+                            </td>
+                        </tr>
+                    
+                        
+                            <tr class="dark-row">
+                        
+                            <td style="color: grey; width: 10%">05:05:03
+                            </td><td>
+                                BanchoBot: Hatate Himekaidou is playing on b1816retrogecko
+                            </td>
+                        </tr>
+                    
+                        
+                            <tr class="light-row">
+                        
+                            <td style="color: grey; width: 10%">11:11:20
+                            </td><td>
+                                Cookiezi: welcome to osu
+                            </td>
+                        </tr>
+                    
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="right-side">
+        <a href="/download">
+            <img height="55px" src="/images/buttons/download-button.png" alt="Download">
+        </a>
+        <a href="https://github.com/osuTitanic/">
+            <img height="55px" src="/images/buttons/contribute-button.png" alt="Contribute">
+        </a>
+        <a href="https://ko-fi.com/lekuru">
+            <img height="55px" src="/images/buttons/support-button.png" alt="Support">
+        </a>
+        <div class="featured">
+            <h2 class="headers">Featured Video</h2>
+            <!-- YouTube iframe will be lazy loaded in here -->
+        <iframe title="Featured" width="356" height="278" src="https://www.youtube.com/embed?listType=playlist&amp;list=UUir7A_JJa1Vhg_84ejh6Ung&amp;mute=1&amp;autoplay=1&amp;controls=0&amp;rel=0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" loading="lazy" allowfullscreen="" style="border: 0px;"></iframe></div>
+        <div class="most-played">
+            <h2 class="headers">
+                Most Played Beatmaps
+                
+                
+            </h2>
+            <table class="styled-table">
+                <thead>
+                    <tr>
+                      <th scope="col">Plays</th>
+                      <th scope="col" style="text-align: center;">Artist / Title</th>
+                      <th scope="col">Creator</th>
+                    </tr>
+                </thead>
+                <tbody>
+                
+                    
+                        <tr class="dark-row">
+                    
+                        <td>3313
+                        </td><td>
+                            <a href="/b/47152">
+                                <img src="/mt/12483" loading="lazy" alt="image">
+                                Hommarju feat. Latte - masterpiece [Insane]
+                            </a>
+                        </td>
+                    
+                        <td><a href="https://osu.ppy.sh/u/simplistiC">simplistiC</a></td>
+                    
+                    </tr>
+                
+                    
+                        <tr class="light-row">
+                    
+                        <td>2468
+                        </td><td>
+                            <a href="/b/131891">
+                                <img src="/mt/41823" loading="lazy" alt="image">
+                                The Quick Brown Fox - The Big Black [WHO'S AFRAID OF THE BIG BLACK]
+                            </a>
+                        </td>
+                    
+                        <td><a href="https://osu.ppy.sh/u/Blue Dragon">Blue Dragon</a></td>
+                    
+                    </tr>
+                
+                    
+                        <tr class="dark-row">
+                    
+                        <td>2109
+                        </td><td>
+                            <a href="/b/93842">
+                                <img src="/mt/28107" loading="lazy" alt="image">
+                                DJ Fresh - Gold Dust [Insane]
+                            </a>
+                        </td>
+                    
+                        <td><a href="https://osu.ppy.sh/u/galvenize">galvenize</a></td>
+                    
+                    </tr>
+                
+                    
+                        <tr class="light-row">
+                    
+                        <td>2004
+                        </td><td>
+                            <a href="/b/40017">
+                                <img src="/mt/10112" loading="lazy" alt="image">
+                                Niko - Made of Fire [Oni]
+                            </a>
+                        </td>
+                    
+                        <td><a href="https://osu.ppy.sh/u/lesjuh">lesjuh</a></td>
+                    
+                    </tr>
+                
+                    
+                        <tr class="dark-row">
+                    
+                        <td>2003
+                        </td><td>
+                            <a href="/b/164020">
+                                <img src="/mt/53857" loading="lazy" alt="image">
+                                Saiya - Remote Control [Insane]
+                            </a>
+                        </td>
+                    
+                        <td><a href="https://osu.ppy.sh/u/Garven">Garven</a></td>
+                    
+                    </tr>
+                
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
-  <head>
-    <center><font size="7"><font face="Arial"><font color="#ACD6FF"><b>susFries的個人網站 from GitHub</b></font></font></font></center>
-  </head>
-  <body>
-   <center><font size="4"><font face="標楷體">此為測試網站</font></font></center>
-  </body>
-</html>
+<script>
+    function loadYoutubeIframe() {
+        var featuredVideo = document.querySelector('.featured');
+        var iframe = document.createElement('iframe');
+        iframe.title = "Featured";
+        iframe.width = "356";
+        iframe.height = "278";
+        iframe.type = "text/html";
+        iframe.style.border = "0";
+        iframe.src = "https://www.youtube.com/embed?listType=playlist&list=UUir7A_JJa1Vhg_84ejh6Ung&mute=1&autoplay=1&controls=0&rel=0";
+        iframe.allow = "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+        iframe.loading = "lazy";
+        iframe.allowFullscreen = true;
+        featuredVideo.appendChild(iframe);
+    }
+
+    addEvent('load', window, function(e) {
+        loadYoutubeIframe();
+    });
+</script>
+
+                <div style="clear: both;"></div>
+            </div>
+            <div class="gradient"></div>
+            <script src="/js/editor.js" defer=""></script>
+            <script async="" src="https://www.googletagmanager.com/gtag/js?id=G-ZMJ80V848F"></script>
+            <script>
+                window.dataLayer = window.dataLayer || [];
+                function gtag(){dataLayer.push(arguments);}
+                gtag('js', new Date());
+                gtag('config', 'G-ZMJ80V848F');
+            </script>
+        </div>
+    </div>
+<script defer="" src="https://static.cloudflareinsights.com/beacon.min.js/vcd15cbe7772f49c399c6a5babf22c1241717689176015" integrity="sha512-ZpsOmlRQV6y907TI0dKBHq9Md29nnaEIPlkf84rnaERnq6zvWvPUqr2ft8M1aS28oN72PdrCzSjY4U6VaAw1EQ==" data-cf-beacon="{&quot;rayId&quot;:&quot;92da11ee08e7cd1f&quot;,&quot;version&quot;:&quot;2025.3.0&quot;,&quot;r&quot;:1,&quot;token&quot;:&quot;594395e3fbaf41b0b6494360b666055e&quot;,&quot;serverTiming&quot;:{&quot;name&quot;:{&quot;cfExtPri&quot;:true,&quot;cfL4&quot;:true,&quot;cfSpeedBrain&quot;:true,&quot;cfCacheStatus&quot;:true}}}" crossorigin="anonymous"></script>
+
+</body>
