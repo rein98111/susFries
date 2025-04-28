@@ -1,61 +1,110 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-Hant">
 <head>
-  <style>
-    body {
-      background-color: gray;
-      text-color: white;
-    }
-  </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>薯條伺服器 - 首頁</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
 </head>
-<body>
+<body class="bg-gray-900 text-white">
 
-    <!-- 導航欄 -->
-  <nav class="bg-gray-800 p-4 flex justify-between items-center">
-    <div class="text-2xl font-bold">susFries</div>
-    <div>
-      <a href="#about" class="px-4">關於薯條</a>
-      <a href="https://docs.google.com/spreadsheets/d/11WXfCn2xIb1YP5gVWHro7WOlvSuXxDIANIaNAm48Ln0/edit?gid=0#gid=0" class="px-4">比賽紀錄</a>
+<!-- 導覽列 -->
+  <nav class="bg-gray-800 p-3 flex justify-between items-center">
+    <div class="text-2xl font-bold" style="font-family: 'Poppins', sans-serif;">
+      <img src="C:\Users\user\Documents\susFries-html-web\images\logo\susfries.png" alt="sus" class="w-8 h-8 inline-block mr-2">
+      薯條Fries
     </div>
-  </nav>
-  
-  <div style="text-align: center;">
-  <h1>
-    <img src="images/logo/susfries.png" alt="薯條" style="width: 60px; height: 60px;">
-    susFries
-  </h1>
-  <div style="position: relative; display: inline-block;">
-    <img src="images/susFries.png" style="display: block; width: 1000px;">
-      <h2 style="font-size: 16px;
-        position: absolute;
-        top: 50%;
-        left: 50%;
-        transform: translate(-50%, -50%);
-        color: white;
-        font-size: 24px;
-        text-shadow: 0 0 5px black;
-      ">
-        學習HTML ing
-      </h2>
-    </div>
+  <div>
+    <a href="#about" class="px-5 hover:underline">關於我</a>
+    <a href="https://docs.google.com/spreadsheets/d/11WXfCn2xIb1YP5gVWHro7WOlvSuXxDIANIaNAm48Ln0/edit?gid=0#gid=0" class="px-5 hover:underline">比賽紀錄</a>
+  </div>
+</nav>
 
-      <!-- YouTube -->
-    <div style="text-align: center;">
-      <a href="https://www.youtube.com/@susFries0" style="color: red; font-size: 30px; text-decoration: none;">
-        點開我的YouTube
-      </a>
-    </div>
+<!-- 大 Banner -->
+<section class="bg-cover bg-center h-96 flex items-center justify-center" style="background-image: url('https://i.ibb.co/32pw1zD/122170100-p0-master1200.png');">
+  <div class="bg-black bg-opacity-50 p-8 rounded">
+    <h1 class="text-4xl font-bold mb-4">susFries</h1>
+    <p>A #96k Taiwan osu Player (取自04.28.2025的排名)</p>
+  </div>
+</section>
+
+<!-- 關於我 -->
+<section id="news" class="p-8 text-center">
+  <h2 class="text-3xl font-bold mb-4">📰 關於我</h2>
+  <ul class="space-y-2">
+    <li>⚡學習做圖的Mapper</li>
+    <li>⚡6 Digit Taiwanese Master Tournament Custom Mapper</li>
+    <li>🎉6 Digit Asia-Pacific Cup Taiwan Tryout Seed 1🎉</li>
+  </ul>
+</section>
+
+<section id="beatmap-updates" class="p-8">
+  <h2 class="text-3xl font-bold mb-8 text-center">🆕 最新 Beatmap 更新</h2>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
     
-      <!-- 圖奇 -->
-    <div style="text-align: center;">
-      <a href="https://www.twitch.tv/sus_osu" style="color: purple; font-size: 30px; text-decoration: none;">
-        點開我的Twitch
-      </a>
+    <!-- 最新 -->
+    <div class="bg-gray-800 rounded-2xl shadow-lg p-6 hover:scale-105 hover:shadow-2xl transition">
+      <h3 class="text-xl font-bold mb-2">
+        <span class="text-pink-300 text-2xl">◉</span>
+        <a href="https://osu.ppy.sh/beatmapsets/2350019#osu/5074326" class="text-white hover:underline">
+          質問、恋って何でしょうか? (TV Size)
+        </a>
+      </h3>
+      <p class="text-gray-300">最新製作</p>
     </div>
 
-      <!-- 頁尾 -->
+    <!-- 最多 -->
+    <div class="bg-gray-800 rounded-2xl shadow-lg p-6 hover:scale-105 hover:shadow-2xl transition">
+      <h3 class="text-xl font-bold mb-2">
+        <span class="text-blue-300 text-2xl">◉</span>
+        <a href="https://osu.ppy.sh/beatmapsets/2071765#osu/4354499" class="text-white hover:underline">
+          ドラマチックに恋したい (TV Size)
+        </a>
+      </h3>
+      <p class="text-gray-300">最多遊玩</p>
+    </div>
+
+    <!-- 最愛 -->
+    <div class="bg-gray-800 rounded-2xl shadow-lg p-6 hover:scale-105 hover:shadow-2xl transition">
+      <h3 class="text-xl font-bold mb-2">
+        <span class="text-yellow-300 text-2xl">◉</span>
+        <a href="https://osu.ppy.sh/beatmapsets/2092199#osu/4454581" class="text-white hover:underline">
+          Biri-Biri
+        </a>
+      </h3>
+      <p class="text-gray-300">最多人喜愛(19) (不懂 我這張做的超爛欸xD)</p>
+    </div>
+
+  </div>
+</section>
+
+<!-- 社群媒體 -->
+<section id="join" class="p-8 text-center">
+  <h2 class="text-3xl font-bold mb-4">社群媒體</h2>
+  <div class="flex flex-wrap justify-center gap-4">
+    <!-- 推特 -->
+    <a href="https://x.com/susFries_osu" target="_blank" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-full text-xl font-bold transition transform hover:scale-105">
+      推特(X)
+    </a>
+    <!-- YouTube -->
+    <a href="https://youtube.com/@susFries" target="_blank" class="bg-red-500 hover:bg-red-600 px-6 py-3 rounded-full text-xl font-bold transition transform hover:scale-105">
+      YouTube
+    </a>
+    <!-- Twitch -->
+    <a href="https://twitch.tv/sus_osu" target="_blank" class="bg-purple-500 hover:bg-purple-600 px-6 py-3 rounded-full text-xl font-bold transition transform hover:scale-105">
+      Twitch
+    </a>
+    <!-- osu! -->
+    <a href="https://osu.ppy.sh/users/28993856" target="_blank" class="bg-pink-500 hover:bg-pink-600 px-6 py-3 rounded-full text-xl font-bold transition transform hover:scale-105">
+      osu!
+    </a>
+  </div>
+</section>
+
+  <!-- 頁尾 -->
   <footer class="bg-gray-800 p-4 text-center text-sm">
-    &copy; susFries個人網頁
+    &copy; Copyright by susFries
   </footer>
 
 </body>
