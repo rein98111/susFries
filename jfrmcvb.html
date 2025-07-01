@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <title>鍵盤訓練器 - 倒數計時版</title>
+  <style>
+    body {
+      background: #222;
+      color: #fff;
+      font-family: "Arial", sans-serif;
+      text-align: center;
+      padding-top: 80px;
+    }
+
+    h1 {
+      font-size: 36px;
+    }
+
+    #letter {
+      font-size: 120px;
+      margin: 30px 0;
+      color: #0ff;
+    }
+
+    #score, #combo, #timer {
+      font-size: 24px;
+      margin: 10px;
+    }
+
+    .correct {
+      color: #0f0;
+    }
+
+    .wrong {
+      color: #f00;
+    }
+
+    #restartBtn {
+      margin-top: 30px;
+      padding: 10px 20px;
+      font-size: 18px;
+      border: none;
+      border-radius: 8px;
+      background-color: #0cf;
+      color: #000;
+      cursor: pointer;
+      display: none;
+    }
+
+    #restartBtn:hover {
+      background-color: #09f;
+    }
+  </style>
+</head>
+<body>
+  <h1>鍵盤訓練器</h1>
+  <div id="timer">剩餘時間：30 秒</div>
+  <div id="letter">A</div>
+  <div id="score">分數：0</div>
+  <div id="combo">Combo：0</div>
+  <button id="restartBtn" onclick="startGame()">重新開始</button>
+
+  <script>
+    const letterDiv = document.getElementById('letter');
+    const scoreDiv = document.getElementById('score');
+    const comboDiv = document.getElementById('combo');
+    const timerDiv = document.getElementById('timer');
+    const restartBtn = document.getElementById('restartBtn');
+
+    let score = 0;
+    let combo = 0;
+    let currentLetter = '';
+    let timeLeft = 30;
+    let gameActive = true;
+    let timerInterval;
+
+    function getRandomLetter() {
+      const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+      return letters[Math.floor(Math.random() * letters.length)];
+    }
+
+    function showNewLetter() {
+      if (!gameActive) return;
+      currentLetter = getRandomLetter();
+      letterDiv.textContent = currentLetter;
+      letterDiv.className = '';
+    }
+
+    function startTimer() {
+      timeLeft = 30;
+      timerDiv.textContent = `剩餘時間：${timeLeft} 秒`;
+
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        timerDiv.textContent = `剩餘時間：${timeLeft} 秒`;
+        if (timeLeft <= 0) {
+          endGame();
+        }
+      }, 1000);
+    }
+
+    function endGame() {
+      gameActive = false;
+      clearInterval(timerInterval);
+      timerDiv.textContent = `時間到！`;
+      restartBtn.style.display = 'inline-block';
+    }
+
+    function startGame() {
+      // Reset
+      score = 0;
+      combo = 0;
+      gameActive = true;
+      restartBtn.style.display = 'none';
+      scoreDiv.textContent = `分數：${score}`;
+      comboDiv.textContent = `Combo：${combo}`;
+      letterDiv.className = '';
+      startTimer();
+      showNewLetter();
+    }
+
+    document.addEventListener('keydown', (e) => {
+      if (!gameActive) return;
+      const key = e.key.toUpperCase();
+      if (key === currentLetter) {
+        score += 100;
+        combo += 1;
+        letterDiv.className = 'correct';
+      } else {
+        combo = 0;
+        letterDiv.className = 'wrong';
+      }
+      scoreDiv.textContent = `分數：${score}`;
+      comboDiv.textContent = `Combo：${combo}`;
+      setTimeout(showNewLetter, 300);
+    });
+
+    // 初次啟動
+    startGame();
+  </script>
+</body>
+</html>
