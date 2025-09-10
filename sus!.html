@@ -1,137 +1,112 @@
+<! v1>
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>susFries - Profile</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      background: #AAAAFF;
-      margin: 0;
-      padding: 0;
-    }
-
-    /* 頂部 Logo 區 */
-    header {
-      background: #8888FF;
-      padding: 10px;
-      text-align: center;
-    }
-    .sus-logo {
-      height: 50px;
-    }
-
-    /* Profile Card */
-    .profile-card {
-      background: #ACD6FF;
-      max-width: 800px;
-      margin: 30px auto;
-      border-radius: 15px;
-      padding: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      align-items: center;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-    }
-
-    /* 頭像區 */
-    .profile-pic {
-      width: 150px;
-      border-radius: 10px;
-      margin-right: 20px;
-    }
-
-    /* 名字 + 國旗 */
-    .profile-info {
-      flex: 1;
-      min-width: 200px;
-    }
-    .profile-info h2 {
-      margin: 0;
-      font-size: 1.8em;
-    }
-    .country {
-      width: 40px;
-      vertical-align: middle;
-      margin-left: 10px;
-    }
-
-    /* 簡介 */
-    .about {
-      margin-top: 10px;
-      font-size: 1em;
-      line-height: 1.4;
-    }
-
-    /* 社群連結 */
-    .social-links {
-      margin-top: 15px;
-    }
-    .social-links a {
-      display: inline-block;
-      margin-right: 10px;
-      padding: 8px 15px;
-      border-radius: 8px;
-      background: #6666FF;
-      color: white;
-      text-decoration: none;
-      font-size: 0.9em;
-      transition: background 0.2s;
-    }
-    .social-links a:hover {
-      background: #4444CC;
-    }
-
-    /* Footer */
-    footer {
-      text-align: center;
-      padding: 15px;
-      margin-top: 30px;
-      background: rgba(0,0,0,0.1);
-    }
-
-    /* 手機響應式 */
-    @media (max-width: 600px) {
-      .profile-card {
-        flex-direction: column;
-        text-align: center;
-      }
-      .profile-pic {
-        margin: 0 0 15px 0;
-      }
-    }
-  </style>
+  <title>susFries - sus!</title>
 </head>
+
+<style>
+  body {
+    font-family: Arial, sans-serif;
+    background: #AAAAFF; 
+    margin: 0;
+    padding: 0;
+  }
+
+  .sus-logo {
+    position: absolute;  /* 絕對定位 */
+    top: 15px;           /* 距離上方 15px */
+    left: 380px;          /* 距離左邊 380px */
+    width: 180px;        /* 圖片寬度 */
+  }
+
+  .hello {
+    width: 10px;
+    margin: 80px auto;  /* 水平置中 + 上方留空 */
+    background: #FFD0FF;  
+    padding: 500px;
+    border-radius: 0px; 
+  }
+
+  .profile {
+    position: absolute;  /* 絕對定位 */
+    top: 200px;           
+    left: 500px;         
+    width: 200px;
+    background: #ACD6FF;  
+    padding: 220px 0px;
+    border-radius: 5px; 
+    z-index: 1;
+  }
+
+  .profile-bg {
+    position: absolute;  /* 絕對定位 */
+    top: 15px;           /* 距離上方 */
+    left: 20px;          /* 距離左邊 */
+    width: 160px;        /* 圖片寬度 */
+    height: 160px;
+    background: white;  
+    border-radius: 0px; 
+    z-index: 2;
+  }
+
+  .name {
+    position: absolute;  /* 絕對定位 */
+    top: 150px;           /* 距離上方 */
+    left: 55px;          /* 距離左邊 */
+    border-radius: 0px; 
+    z-index: 2;
+  }
+
+  .country {
+    position: absolute;  /* 絕對定位 */
+    top: 380px;          
+    left: 525px;         
+    width: 42px;     
+    height: 28px;
+    border-radius: 5px; 
+    z-index: 3;
+  }
+
+  .profile-pic {
+    position: absolute;  /* 絕對定位 */
+    top: 220px;           /* 距離上方 15px */
+    left: 525px;          /* 距離左邊 380px */
+    width: 150px;        /* 圖片寬度 */
+    border-radius: 0px; 
+    z-index: 3;
+  }
+
+</style>
+  
 <body>
-  <!-- 頂部 -->
-  <header>
-    <img src="images/sus.png" alt="sus! logo" class="sus-logo">
-  </header>
+  <a href="https://osu.ppy.sh/u/28993856" target="_blank">
+    <img src="C:\Users\user\Pictures\SUS PNG\sus.png"
+         alt="sus! logo"
+         class="sus-logo">
+  </a>
 
-  <!-- Profile 卡片 -->
-  <div class="profile-card">
-    <img src="images/catgirl.png" alt="avatar" class="profile-pic">
+  <a href="https://osu.titanic.sh/u/2286" target="_blank">
+    <img src="C:\Users\user\Pictures\頭像存放\catgirl.png"
+         alt="avatar"
+         class="profile-pic">
+  </a>
 
-    <div class="profile-info">
-      <h2>susFries
-        <img src="images/Flag_of_the_Republic_of_China.svg.png" alt="Taiwan" class="country">
-      </h2>
-      <p class="about">
-        Hi! I'm <b>susFries</b>. Welcome to my personal website 🎉 <br>
-        I like rhythm games, osu! mapping, and web experiments.
-      </p>
-      <div class="social-links">
-        <a href="https://osu.ppy.sh/u/28993856" target="_blank">osu!</a>
-        <a href="https://github.com/rein98111" target="_blank">GitHub</a>
-        <a href="#" target="_blank">Discord</a>
+  <img src="C:\Users\user\Pictures\Flag_of_the_Republic_of_China.svg.png" alt=tw class=country>
+
+  <div class=hello>
+    <div class=profile>
+      <div class=profile-bg>
+        <div class=name>
+          <p><font size=5><b>susFries</b></font></p>
+        </div>
       </div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer>
-    <p>© 2025 susFries website</p>
-  </footer>
+  <footer><center>
+    <p>susFries website 2025 :D</p>
+  </center></footer>
 </body>
 </html>
