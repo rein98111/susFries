@@ -1,85 +1,137 @@
-<!v1>
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>susFries - sus!</title>
+  <title>susFries - Profile</title>
   <style>
     body {
       font-family: Arial, sans-serif;
       background: #AAAAFF;
       margin: 0;
       padding: 0;
-      text-align: center; /* 預設置中 */
     }
 
+    /* 頂部 Logo 區 */
+    header {
+      background: #8888FF;
+      padding: 10px;
+      text-align: center;
+    }
     .sus-logo {
-      width: 40%;          /* 自動縮放 */
-      max-width: 180px;    /* 最大 180px */
-      margin: 20px auto;
-      display: block;
+      height: 50px;
     }
 
-    .profile {
+    /* Profile Card */
+    .profile-card {
       background: #ACD6FF;
+      max-width: 800px;
+      margin: 30px auto;
+      border-radius: 15px;
       padding: 20px;
-      border-radius: 10px;
-      max-width: 300px;
-      margin: 20px auto;
-      position: relative; /* 內部定位用 */
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
     }
 
-    .profile-bg {
-      width: 120px;
-      height: 120px;
-      background: white;
-      border-radius: 10px;
-      margin: 0 auto;
-    }
-
-    .name {
-      margin-top: 10px;
-    }
-
-    .country {
-      width: 40px;
-      height: auto;
-      margin-top: 10px;
-    }
-
+    /* 頭像區 */
     .profile-pic {
       width: 150px;
-      max-width: 80%;
       border-radius: 10px;
-      margin-top: 15px;
+      margin-right: 20px;
     }
 
+    /* 名字 + 國旗 */
+    .profile-info {
+      flex: 1;
+      min-width: 200px;
+    }
+    .profile-info h2 {
+      margin: 0;
+      font-size: 1.8em;
+    }
+    .country {
+      width: 40px;
+      vertical-align: middle;
+      margin-left: 10px;
+    }
+
+    /* 簡介 */
+    .about {
+      margin-top: 10px;
+      font-size: 1em;
+      line-height: 1.4;
+    }
+
+    /* 社群連結 */
+    .social-links {
+      margin-top: 15px;
+    }
+    .social-links a {
+      display: inline-block;
+      margin-right: 10px;
+      padding: 8px 15px;
+      border-radius: 8px;
+      background: #6666FF;
+      color: white;
+      text-decoration: none;
+      font-size: 0.9em;
+      transition: background 0.2s;
+    }
+    .social-links a:hover {
+      background: #4444CC;
+    }
+
+    /* Footer */
     footer {
+      text-align: center;
+      padding: 15px;
       margin-top: 30px;
-      padding: 10px;
       background: rgba(0,0,0,0.1);
+    }
+
+    /* 手機響應式 */
+    @media (max-width: 600px) {
+      .profile-card {
+        flex-direction: column;
+        text-align: center;
+      }
+      .profile-pic {
+        margin: 0 0 15px 0;
+      }
     }
   </style>
 </head>
 <body>
-  <a href="https://osu.ppy.sh/u/28993856" target="_blank">
+  <!-- 頂部 -->
+  <header>
     <img src="images/sus.png" alt="sus! logo" class="sus-logo">
-  </a>
+  </header>
 
-  <div class="profile">
-    <div class="profile-bg"></div>
-    <div class="name">
-      <p><b>susFries</b></p>
+  <!-- Profile 卡片 -->
+  <div class="profile-card">
+    <img src="images/catgirl.png" alt="avatar" class="profile-pic">
+
+    <div class="profile-info">
+      <h2>susFries
+        <img src="images/Flag_of_the_Republic_of_China.svg.png" alt="Taiwan" class="country">
+      </h2>
+      <p class="about">
+        Hi! I'm <b>susFries</b>. Welcome to my personal website 🎉 <br>
+        I like rhythm games, osu! mapping, and web experiments.
+      </p>
+      <div class="social-links">
+        <a href="https://osu.ppy.sh/u/28993856" target="_blank">osu!</a>
+        <a href="https://github.com/rein98111" target="_blank">GitHub</a>
+        <a href="#" target="_blank">Discord</a>
+      </div>
     </div>
-    <a href="https://osu.titanic.sh/u/2286" target="_blank">
-      <img src="images/catgirl.png" alt="avatar" class="profile-pic">
-    </a>
-    <img src="images/Flag_of_the_Republic_of_China.svg.png" alt="tw" class="country">
   </div>
 
+  <!-- Footer -->
   <footer>
-    <p>susFries website 2025 :D</p>
+    <p>© 2025 susFries website</p>
   </footer>
 </body>
 </html>
