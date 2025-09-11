@@ -18,15 +18,50 @@
     position: absolute;  /* 絕對定位 */
     top: 15px;           /* 距離上方 15px */
     left: 380px;          /* 距離左邊 380px */
-    width: 180px;        /* 圖片寬度 */
+    width: 180px;        /* 圖片寬度 */	   
+	z-index: 3;
+  }
+  
+  .first {
+    position: absolute;  /* 絕對定位 */
+    top: 80px;           /* 距離上方 */
+    left: 458px;          /* 距離左邊 */
+    width: 1000px;        /* 圖片寬度 */
+    height: 20px;
+    background: white;  
+    border-radius: 0px; 
+    z-index: 2;
+  }
+  
+  .rdol {
+    position: absolute;  /* 絕對定位 */
+    top: 65px;           /* 距離上方 */
+    left: 1226px;          /* 距離左邊 */
+    width: 1000px;        /* 圖片寬度 */
+    height: 20px;
+    border-radius: 0px; 
+    z-index: 2;
+  }
+  
+  .menu {
+    position: absolute;  /* 絕對定位 */
+    top: 65px;           /* 距離上方 */
+    left: 600px;          /* 距離左邊 */
+    width: 1000px;        /* 圖片寬度 */
+    height: 20px;
+    border-radius: 0px; 
+    z-index: 2;
   }
 
-  .hello {
-    width: 10px;
-    margin: 80px auto;  /* 水平置中 + 上方留空 */
+  .hello { 
+    position: absolute;  /* 絕對定位 */
+    top: 80px;           /* 距離上方 */
+    left: 458px;          /* 距離左邊 */
+    width: 1000px;        /* 圖片寬度 */
+    height: 1200px;
     background: #FFD0FF;  
-    padding: 500px;
     border-radius: 0px; 
+    z-index: 1;
   }
 
   .profile {
@@ -35,29 +70,38 @@
     left: 500px;         
     width: 200px;
     background: #ACD6FF;  
-    padding: 220px 0px;
+    padding: 224px 0px;
     border-radius: 5px; 
-    z-index: 1;
+    z-index: 3;
   }
 
   .profile-bg {
     position: absolute;  /* 絕對定位 */
-    top: 15px;           /* 距離上方 */
-    left: 20px;          /* 距離左邊 */
-    width: 160px;        /* 圖片寬度 */
-    height: 160px;
+    top: 217px;           /* 距離上方 */
+    left: 522px;          /* 距離左邊 */
+    width: 156px;        /* 圖片寬度 */
+    height: 156px;
     background: white;  
     border-radius: 0px; 
-    z-index: 2;
+    z-index: 4;
   }
 
   .name {
     position: absolute;  /* 絕對定位 */
-    top: 150px;           /* 距離上方 */
-    left: 55px;          /* 距離左邊 */
+    top: 364px;           /* 距離上方 */
+    left: 575px;          /* 距離左邊 */
     border-radius: 0px; 
-    z-index: 2;
+    z-index: 4;
   }
+  
+  .info {
+    position: absolute;  /* 絕對定位 */
+    top: 395px;           /* 距離上方 */
+    left: 540px;          /* 距離左邊 */
+    border-radius: 0px; 
+    z-index: 4;
+  }
+
 
   .country {
     position: absolute;  /* 絕對定位 */
@@ -66,7 +110,7 @@
     width: 42px;     
     height: 28px;
     border-radius: 5px; 
-    z-index: 3;
+    z-index: 4;
   }
 
   .profile-pic {
@@ -75,38 +119,81 @@
     left: 525px;          /* 距離左邊 380px */
     width: 150px;        /* 圖片寬度 */
     border-radius: 0px; 
-    z-index: 3;
+    z-index: 5;
+  }
+  
+  .footer {
+    position: absolute;  /* 絕對定位 */
+    top: 1300px;           
+    left: 860px;          
+    border-radius: 0px; 
+    z-index: 1;
   }
 
 </style>
   
 <body>
-  <a href="https://osu.ppy.sh/u/28993856" target="_blank">
-    <img src="images\sus.png"
+  <a href="https://rein98111.github.io/susFries/home.html" target="_blank">
+    <img src="C:\Users\user\Pictures\SUS PNG\sus.png"
          alt="sus! logo"
          class="sus-logo">
   </a>
 
-  <a href="https://osu.titanic.sh/u/2286" target="_blank">
-    <img src="images\catgirl.png"
+  <a href="https://rein98111.github.io/susFries/sus!.html" target="_blank">
+    <img src="C:\Users\user\Pictures\頭像存放\catgirl.png"
          alt="avatar"
          class="profile-pic">
   </a>
 
-  <img src="images\Flag_of_the_Republic_of_China.svg.png" alt=tw class=country>
+  <img src="C:\Users\user\Pictures\Flag_of_the_Republic_of_China.svg.png" alt=tw class=country>
 
-  <div class=hello>
-    <div class=profile>
-      <div class=profile-bg>
-        <div class=name>
-          <p><font size=5><b>susFries</b></font></p>
-        </div>
-      </div>
-    </div>
+  <div class=first>
   </div>
 
-  <footer><center>
-    <p>susFries website 2025 :D</p>
+  <div class=rdol>
+  <p><font color=gray size=2>This version of the sus! site is read-only.</font></p>
+  </div>
+
+  <div class=menu>
+  <p><b><font color=#6C3365 size=2>Home</font></b></p>
+  </div>
+
+  <div class=hello>
+  </div>
+  
+  <div class=profile>
+  </div>
+  
+  <div class=profile-bg>
+  </div>
+  
+  <div class=name>
+  <p><font size=5><b>susFries</b></font></p>
+  </div>
+  
+  <div class=info><center>
+  <p><font size=2>
+  我是薯條
+  <br>osu!最菜的100k玩家
+  <br>我最喜歡打痾使了
+  <br>我是痾使玩家
+  <br>我住在地球
+  <br>Discord: susFries
+  <br><a href="https://x.com/@susFries_osu" target="_blank" title="Twitter">Twitter</a>
+  <br><a href="https://www.youtube.com/@susfries-osu" target="_blank" title="Youtube">Youtube</a>
+  <br><a href="https://www.twitch.tv/sus_osu" target="_blank" title="Twitch">Twitch</a>
+  <br><a href="https://osu.ppy.sh/users/28993856" target="_blank" title="osu! Bancho">osu! Bancho</a>
+  <br><a href="https://osu.titanic.sh/u/2286" target="_blank" title="osu! Titanic">osu! Titanic</a>
+  <br><a href="https://akatsuki.gg/u/133765?mode=0&rx=0" target="_blank" title="osu! Akatsuki">osu! Akatsuki</a>
+  </font></p>
+  </center></div>
+
+  <div class=footer><center><font size=2>
+    <p>&copy susFries 2025 // Powered by <font color=#5A5AAD><b>ChatGPT</b></font>
+	<br><font size=2><b>參考osu!舊網站/osu!Titanic網站</b></p>
+  </font></center></div>
+</body>
+</html>
   </center></footer>
 </body>
 </html>
