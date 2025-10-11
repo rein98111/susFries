@@ -2,9 +2,7 @@ body{
 	font-family: Arial, DFKai-sb;
 	background-color: #97CBFF;
     overflow-y: auto; 
-    overflow-x: hidden;
-	max-width: 1600px;
-    max-height: 900px;
+    overflow-x: clip;
 }
 
 .game-container {
@@ -101,7 +99,7 @@ body{
 
 .newsbg1{
 	position: relative;
-	background-color: #97CBFF;
+	background-color: #FFD1A4;
 	top: -915px;
 	left: -120px;
 	width: 580px;
@@ -128,7 +126,7 @@ body{
 
 .newsbg2{
 	position: relative;
-	background-color: #97CBFF;
+	background-color: #FFD1A4;
 	top: -1125px;
 	left: -120px;
 	width: 580px;
@@ -155,7 +153,7 @@ body{
 
 .newsbg3{
 	position: relative;
-	background-color: #97CBFF;
+	background-color: #FFD1A4;
 	top: -1335px;
 	left: -120px;
 	width: 580px;
