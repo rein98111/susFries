@@ -3,8 +3,6 @@ body{
 	background-color: #97CBFF;
     overflow-y: auto; 
     overflow-x: hidden;
-	max-height: 1080;
-	max-width: 1920;
 }
 
 .game-container {
