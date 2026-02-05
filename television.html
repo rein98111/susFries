@@ -88,6 +88,56 @@
             .tv-section { height: 250px; }
             .remote-section { width: 100%; }
         }
+		
+		/* 節目表容器 */
+        .epg-container {
+            width: 100%;
+            margin-top: 10px;
+            background: #222;
+            border-radius: 10px;
+            padding: 8px;
+            border: 1px solid #444;
+			min-height: 220px; 
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .epg-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .epg-item {
+            padding: 6px 8px;
+            margin-bottom: 4px;
+            background: #333;
+            border-radius: 5px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: 0.2s;
+            border-left: 4px solid transparent;
+			white-space: nowrap; 
+            overflow: hidden;   
+            text-overflow: ellipsis; 
+        }
+
+        .epg-item:hover { background: #444; border-left: 4px solid #0f0; }
+        .epg-item.active { background: #444; border-left: 4px solid #0f0; color: #0f0; }
+
+        .epg-pagination {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .btn-page {
+                    padding: 5px 10px;
+            font-size: 12px;
+            background: #555;
+        }
     </style>
 </head>
 <body>
@@ -125,6 +175,16 @@
                 <button class="btn-mute" onclick="toggleMute()">MUTE</button>
                 <button class="btn-vol" onclick="adjustVolume(-10)">VOL -</button>
             </div>
+			
+			<div class="epg-container">
+                <div style="font-size: 12px; color: #888; margin-bottom: 5px;">節目表 (EPG)</div>
+                <ul id="epg-list" class="epg-list">
+                </ul>
+            <div class="epg-pagination">
+                <button class="btn-page" onclick="changePage(-1)">◀ 上一頁</button>
+                <span id="page-info" style="font-size: 12px;">1 / 1</span>
+                <button class="btn-page" onclick="changePage(1)">下一頁 ▶</button>
+            </div>
         </div>
     </div>
 
@@ -141,9 +201,9 @@
             { id: 'vr3XyVCR4T0', name: '三立新聞' },
             { id: 'e1gbvCkwxFE', name: '我們這一家' },
             { id: 'BjGEQyDPF0Y', name: '玉麟網路電視台' },
-			{ id: 'LzOTY4mZG00', name: '天氣資訊' }
-			{ id: 'rEKifG2XUZg', name: 'TOM and JERRY' }
-		    { id: 'H4X-DA9BMR0', name: '琅琊榜' }
+			{ id: 'LzOTY4mZG00', name: '天氣資訊' },
+			{ id: 'rEKifG2XUZg', name: 'TOM and JERRY' },
+		    { id: 'H4X-DA9BMR0', name: '琅琊榜' },
 		    { id: '6IquAgfvYmc', name: '寰宇新聞' }
         ];
         
@@ -151,6 +211,8 @@
         let player;
         let inputBuffer = "";
         let inputTimer = null;
+		let currentPage = 0;
+		const pageSize = 5;
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
@@ -167,9 +229,48 @@
                 events: { 'onReady': onPlayerReady }
             });
         }
+		
+		// 渲染節目表：負責把頻道名稱畫在遙控器下方
+        function renderEPG() {
+            const listElement = document.getElementById('epg-list');
+            const pageInfo = document.getElementById('page-info');
+            if (!listElement) return; // 安全檢查
+
+            listElement.innerHTML = ""; // 先清空舊內容
+
+            // 計算分頁範圍
+            const start = currentPage * pageSize;
+            const end = Math.min(start + pageSize, channels.length);
+            const totalPages = Math.ceil(channels.length / pageSize) || 1;
+
+            for (let i = start; i < end; i++) {
+                const item = document.createElement('li');
+                // 如果是正在播放的頻道，加上 'active' 樣式
+                item.className = `epg-item ${i === currentIndex ? 'active' : ''}`;
+                item.innerText = `${i + 1}. ${channels[i].name}`;
+        
+                // 點擊節目表項目直接轉台
+                item.onclick = () => {
+                    currentIndex = i;
+                    updateTV();
+                };
+                listElement.appendChild(item);
+            }
+
+            // 更新頁碼文字 (例如: 1 / 2)
+            pageInfo.innerText = `${currentPage + 1} / ${totalPages}`;
+        }
+
+        // 翻頁函數
+        function changePage(direction) {
+            const totalPages = Math.ceil(channels.length / pageSize);
+            currentPage = (currentPage + direction + totalPages) % totalPages;
+            renderEPG();
+        }
 
         function onPlayerReady(event) {
             showOSD(`READY - CH ${currentIndex + 1}`);
+			renderEPG();
         }
 
         // 轉台邏輯
@@ -203,6 +304,8 @@
             player.loadVideoById(channels[currentIndex].id);
             player.unMute(); // 互動後解除靜音
             showOSD(`CH ${currentIndex + 1}: ${channels[currentIndex].name}`);
+			
+			renderEPG();
 
             setTimeout(() => {
                 staticLayer.style.display = 'none';
