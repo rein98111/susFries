@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>sus - Television</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { 
+            background: #121212; color: white; 
+            font-family: "Microsoft JhengHei", sans-serif; 
+            margin: 0; display: flex; justify-content: center; align-items: center; 
+            height: 100vh; overflow: hidden;
+        }
+
+        /* 主佈局：螢幕與遙控器 3:1 */
+        .main-layout {
+            display: flex;
+            width: 95vw;
+            height: 85vh;
+            gap: 20px;
+        }
+
+        /* 左側電視區 (佔 3 份) */
+        .tv-section {
+            flex: 3;
+            position: relative;
+            background: #000;
+            border: 15px solid #282828;
+            border-radius: 12px;
+            box-shadow: 0 0 40px rgba(0,0,0,0.7);
+            overflow: hidden;
+        }
+        #player { width: 100%; height: 100%; }
+
+        /* 雪花效果 */
+        .static-noise {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: url('https://media.giphy.com/media/oEI9uWUicGLeE/giphy.gif');
+            background-size: cover; z-index: 5; display: none; opacity: 0.7; pointer-events: none;
+        }
+
+        /* OSD 顯示 */
+        #osd {
+            position: absolute; top: 30px; left: 30px;
+            color: #0f0; font-size: 36px; font-family: monospace;
+            text-shadow: 2px 2px #000; z-index: 10; display: none;
+        }
+
+        /* 右側遙控器區 (佔 1 份) */
+        .remote-section {
+            flex: 1;
+            background: #333;
+            border-radius: 25px;
+            padding: 25px;
+            display: flex; flex-direction: column; align-items: center;
+            box-shadow: inset 0 0 15px #000;
+        }
+
+        #digit-input {
+            width: 100%; height: 45px; background: #111; color: #0f0;
+            font-family: monospace; font-size: 28px; text-align: center;
+            line-height: 45px; border-radius: 8px; margin-bottom: 20px;
+            border: 2px solid #444;
+        }
+
+        /* 遙控器按鈕格線 */
+        .button-grid {
+            display: grid; grid-template-columns: repeat(3, 1fr);
+            gap: 12px; width: 100%;
+        }
+
+        button {
+            padding: 15px 5px; font-size: 16px; font-weight: bold;
+            background: #444; color: #fff; border: none; border-radius: 10px;
+            cursor: pointer; transition: 0.2s;
+        }
+        button:hover { background: #555; }
+        button:active { background: #222; transform: scale(0.95); }
+
+        .btn-large { grid-column: span 3; padding: 12px; background: #444; border: 1px solid #666; }
+        .btn-vol { background: #2c3e50; }
+        .btn-mute { background: #c0392b; }
+        
+        h2 { margin: 0 0 15px 0; font-size: 1.2rem; color: #888; text-transform: uppercase; letter-spacing: 2px; }
+		
+		@media (max-width: 768px) {
+            .main-layout { flex-direction: column; height: auto; }
+            .tv-section { height: 250px; }
+            .remote-section { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="main-layout">
+        <div class="tv-section">
+            <div id="player"></div>
+            <div id="osd">CH 1</div>
+            <div id="static" class="static-noise"></div>
+        </div>
+
+        <div class="remote-section">
+            <h2>TV Remote</h2>
+            <div id="digit-input"></div>
+            
+            <div class="button-grid">
+                <button onclick="pressNumber(1)">1</button>
+                <button onclick="pressNumber(2)">2</button>
+                <button onclick="pressNumber(3)">3</button>
+                <button onclick="pressNumber(4)">4</button>
+                <button onclick="pressNumber(5)">5</button>
+                <button onclick="pressNumber(6)">6</button>
+                <button onclick="pressNumber(7)">7</button>
+                <button onclick="pressNumber(8)">8</button>
+                <button onclick="pressNumber(9)">9</button>
+                
+                <div style="grid-column: 1;"></div>
+                <button onclick="pressNumber(0)">0</button>
+                <div style="grid-column: 3;"></div>
+                
+                <button class="btn-large" onclick="changeChannel(-1)">CH ▲ (上台)</button>
+                <button class="btn-large" onclick="changeChannel(1)">CH ▼ (下台)</button>
+                
+                <button class="btn-vol" onclick="adjustVolume(10)">VOL +</button>
+                <button class="btn-mute" onclick="toggleMute()">MUTE</button>
+                <button class="btn-vol" onclick="adjustVolume(-10)">VOL -</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+    <script>
+        const channels = [
+            { id: 'KyT4qSK8lJo', name: '台灣地震監視' }, 
+            { id: 'baDV1O5EBP0', name: '中視新聞' },
+            { id: 'xL0ch83RAK8', name: '台視新聞' },
+            { id: 'm_dhMSvUCIc', name: 'TVBS NEWS' },
+            { id: 'V1p33hqPrUk', name: '東森新聞' },
+            { id: 'Anr15FA9OCI', name: 'TBS NEWS DIG' },
+            { id: 'iZ44tIBbfH0', name: '邦邦電視台' },
+            { id: 'vr3XyVCR4T0', name: '三立新聞' },
+            { id: 'e1gbvCkwxFE', name: '我們這一家' },
+            { id: 'BjGEQyDPF0Y', name: '玉麟網路電視台' }
+        ];
+        
+        let currentIndex = 0;
+        let player;
+        let inputBuffer = "";
+        let inputTimer = null;
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                videoId: channels[currentIndex].id,
+                playerVars: { 
+                    'autoplay': 1, 
+                    'controls': 0, 
+                    'modestbranding': 1,
+                    'rel': 0,
+                    'mute': 1 // 為了自動播放，初始靜音
+                },
+                events: { 'onReady': onPlayerReady }
+            });
+        }
+
+        function onPlayerReady(event) {
+            showOSD(`READY - CH ${currentIndex + 1}`);
+        }
+
+        // 轉台邏輯
+        function changeChannel(direction) {
+            currentIndex = (currentIndex + direction + channels.length) % channels.length;
+            updateTV();
+        }
+
+        function pressNumber(num) {
+            const display = document.getElementById('digit-input');
+            inputBuffer += num;
+            display.innerText = inputBuffer;
+            clearTimeout(inputTimer);
+            inputTimer = setTimeout(() => {
+                let channelNum = parseInt(inputBuffer);
+                if (channelNum > 0 && channelNum <= channels.length) {
+                    currentIndex = channelNum - 1;
+                    updateTV();
+                } else {
+                    showOSD("ERR: 無此頻道");
+                }
+                inputBuffer = "";
+                display.innerText = "";
+            }, 1000);
+        }
+
+        function updateTV() {
+            const staticLayer = document.getElementById('static');
+            staticLayer.style.display = 'block';
+            
+            player.loadVideoById(channels[currentIndex].id);
+            player.unMute(); // 互動後解除靜音
+            showOSD(`CH ${currentIndex + 1}: ${channels[currentIndex].name}`);
+
+            setTimeout(() => {
+                staticLayer.style.display = 'none';
+            }, 500);
+        }
+
+        function adjustVolume(delta) {
+            player.unMute();
+            let vol = player.getVolume();
+            player.setVolume(vol + delta);
+            showOSD(`VOL: ${vol + delta}%`);
+        }
+
+        function toggleMute() {
+            if (player.isMuted()) {
+                player.unMute();
+                showOSD("UNMUTE");
+            } else {
+                player.mute();
+                showOSD("MUTE");
+            }
+        }
+
+        let osdTimer;
+        function showOSD(text) {
+            const osd = document.getElementById('osd');
+            osd.innerText = text;
+            osd.style.display = 'block';
+            clearTimeout(osdTimer);
+            osdTimer = setTimeout(() => { osd.style.display = 'none'; }, 3000);
+        }
+    </script>
+</body>
+</html>
