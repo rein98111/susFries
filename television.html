@@ -138,11 +138,99 @@
             font-size: 12px;
             background: #555;
         }
+		
+		/* 跑馬燈外框 */
+		.news-ticker {
+  		  width: 100%;
+ 		  background: #C4E1FF; /* 淡藍色背景 */
+  		  color: #333333; /* 字體 */
+  		  height: 35px;
+  		  line-height: 35px;
+  		  overflow: hidden; /* 隱藏超出邊界的部分 */
+  		  position: fixed;
+  		  top: 0;
+  		  left: 0;
+  		  z-index: 1000;
+  		  font-weight: bold;
+  		  box-shadow: 0 2px 10px rgba(0,0,0,0.5);
+		}
+
+		/* 捲動的內容 */
+		.ticker-content {
+ 		   display: inline-block;
+ 		   white-space: nowrap; /* 強制文字不換行 */
+ 		   padding-left: 100%; /* 初始位置在螢幕最右側 */
+ 		   animation: marquee 20s linear infinite; /* 20秒跑一圈，無限循環 */
+		}
+
+		/* 定義捲動動畫 */
+		@keyframes marquee {
+  		  0% { transform: translate(0, 0); }
+  		  100% { transform: translate(-100%, 0); }
+		}
+
+		/* 為了不讓公告遮住電視，調整主佈局的上邊距 */
+		body {
+ 		   padding-top: 40px; 
+		}
+		
+		.news-ticker {
+ 		   width: 100%;
+    	   background: #C4E1FF;
+    	   color: #003D79;
+    	   height: 35px;
+    	   line-height: 35px;
+    	   position: fixed;
+    	   top: 0; left: 0;
+    	   z-index: 1000;
+    	   font-weight: bold;
+    	   display: flex; /* 讓內容水平排列 */
+    	   overflow: hidden; 
+    	   border-bottom: 2px solid #91C5FF;
+	   }
+
+		/* 捲動區域的包裝，確保它不超出跑馬燈 */
+		.ticker-scroll-wrap {
+    		flex: 1;
+    		overflow: hidden;
+    		position: relative;
+		}
+
+		.ticker-content {
+    		display: inline-block;
+    		white-space: nowrap;
+    		padding-left: 100%;
+    		animation: marquee 20s linear infinite;
+		}
+
+		/* 固定日期區塊 */
+		.ticker-fixed-date {
+    		position: absolute;
+    		right: 0;
+    		top: 0;
+    		height: 100%;
+    		padding: 0 15px;
+    		background: #C4E1FF; /* 跟跑馬燈背景一樣，達到蓋住的效果 */
+    		box-shadow: -10px 0 15px #C4E1FF; /* 左側漸層陰影，讓文字消失更自然 */
+    		z-index: 1001;
+    		display: flex;
+    		align-items: center;
+    		border-left: 1px solid #91C5FF; /* 淡淡的分割線 */
+		}
     </style>
 </head>
 <body>
 
     <div class="main-layout">
+	    <div class="news-ticker">
+    	    <div class="ticker-content">
+      	      本網頁轉台方式有3種：數字遙控、上下台切換及點選節目表轉台，使用數字轉台請等待幾秒即切換節目。 // 歡迎你使用電視模擬器，在電腦上體驗看電視的感覺。 // 目前總共節目數量：24台 // 網頁使用Gemini、JavaScript、HTML和CSS製作
+			</div>
+			<div id="ticker-date" class="ticker-fixed-date">
+       		  2026/02/07
+    	    </div>
+	    </div>
+		
         <div class="tv-section">
             <div id="player"></div>
             <div id="osd">CH 1</div>
@@ -168,8 +256,8 @@
                 <button onclick="pressNumber(0)">0</button>
                 <div style="grid-column: 3;"></div>
                 
-                <button class="btn-large" onclick="changeChannel(-1)">CH ▲ </button>
-                <button class="btn-large" onclick="changeChannel(1)">CH ▼ </button>
+                <button class="btn-large" onclick="changeChannel(-1)">CH ▲ (上台)</button>
+                <button class="btn-large" onclick="changeChannel(1)">CH ▼ (下台)</button>
                 
                 <button class="btn-vol" onclick="adjustVolume(10)">VOL +</button>
                 <button class="btn-mute" onclick="toggleMute()">MUTE</button>
@@ -347,6 +435,23 @@
             clearTimeout(osdTimer);
             osdTimer = setTimeout(() => { osd.style.display = 'none'; }, 3000);
         }
+		
+		function updateAnnouncement(msg) {
+    		document.querySelector('.ticker-content').innerText = msg;
+		}
+		
+		function updateTickerDate() {
+    		const dateElement = document.getElementById('ticker-date');
+    		const now = new Date();
+    		const y = now.getFullYear();
+    		const m = String(now.getMonth() + 1).padStart(2, '0');
+    		const d = String(now.getDate()).padStart(2, '0');
+    		// 如果你想加星期幾也可以加在這裡
+    		dateElement.innerText = `${y}/${m}/${d}`;
+		}
+
+		// 在網頁載入時執行
+		window.addEventListener('load', updateTickerDate);
     </script>
 </body>
 </html>
