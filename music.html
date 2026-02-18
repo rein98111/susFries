@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>sus - Music</title>
+    <style>
+        body { font-family: sans-serif; background: #121212; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; z-index: 100; }
+        #player-container { text-align: center; width: 80%; max-width: 500px; display: none; }
+        .controls { margin-top: 20px; }
+        button { padding: 10px 20px; cursor: pointer; background: #333; color: white; border: 1px solid #555; border-radius: 5px; margin: 5px; }
+        #progress-bar { width: 100%; height: 5px; background: #444; cursor: pointer; position: relative; margin-top: 15px; }
+        #progress-inner { height: 100%; background: #ff0000; width: 0%; }
+        /* 隱藏 YouTube 實體畫面 */
+        #yt-player { position: absolute; top: -9999px; left: -9999px; }
+    </style>
+</head>
+<body>
+
+<div id="overlay">
+    <button onclick="startPlayer()" style="font-size: 20px; padding: 20px 40px;">進入播放機</button>
+</div>
+
+<div id="player-container">
+    <h3 id="song-title">準備播放...</h3>
+    
+    <div id="progress-bar" onclick="seek(event)">
+        <div id="progress-inner"></div>
+    </div>
+
+    <div class="controls">
+        <button onclick="prevVideo()">上一首</button>
+        <button onclick="togglePlay()" id="playBtn">暫停</button>
+        <button onclick="nextVideo()">下一首</button>
+        <button onclick="toggleLoop()" id="loopBtn">重複播放: 關</button>
+    </div>
+
+    <div class="controls">
+        音量：<input type="range" min="0" max="100" value="50" oninput="setVolume(this.value)">
+    </div>
+</div>
+
+<div id="yt-player"></div>
+
+<script>
+    let player;
+    let isLooping = false;
+    // 在這裡加入你的 YouTube 影片 ID
+    const playlist = ["yZ3TL2yCmoU", "FKQcvVpPGwI", "C4zD4M0rT6c"]; 
+    let currentIndex = 0;
+
+    // 1. 載入 YouTube API
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    const firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('yt-player', {
+            height: '1',
+            width: '1',
+            videoId: playlist[currentIndex],
+            events: {
+                'onReady': onPlayerReady,
+                'onStateChange': onPlayerStateChange
+            }
+        });
+    }
+
+    function startPlayer() {
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('player-container').style.display = 'block';
+        player.playVideo();
+    }
+
+    function onPlayerReady(event) {
+        updateProgress();
+    }
+
+    function onPlayerStateChange(event) {
+        if (event.data == YT.PlayerState.ENDED) {
+            if (isLooping) {
+                player.playVideo();
+            } else {
+                nextVideo();
+            }
+        }
+        // 更新標題
+        if (event.data == YT.PlayerState.PLAYING) {
+            document.getElementById('song-title').innerText = player.getVideoData().title;
+        }
+    }
+
+    // 控制功能
+    function togglePlay() {
+        const state = player.getPlayerState();
+        if (state == 1) { 
+            player.pauseVideo();
+            document.getElementById('playBtn').innerText = "播放";
+        } else {
+            player.playVideo();
+            document.getElementById('playBtn').innerText = "暫停";
+        }
+    }
+
+    function nextVideo() {
+        currentIndex = (currentIndex + 1) % playlist.length;
+        player.loadVideoById(playlist[currentIndex]);
+    }
+
+    function prevVideo() {
+        currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+        player.loadVideoById(playlist[currentIndex]);
+    }
+
+    function setVolume(val) {
+        player.setVolume(val);
+    }
+
+    function toggleLoop() {
+        isLooping = !isLooping;
+        document.getElementById('loopBtn').innerText = isLooping ? "重複播放: 開" : "重複播放: 關";
+    }
+
+    // 進度條邏輯
+    function updateProgress() {
+        if (player && player.getCurrentTime) {
+            const curr = player.getCurrentTime();
+            const dur = player.getDuration();
+            if (dur > 0) {
+                const perc = (curr / dur) * 100;
+                document.getElementById('progress-inner').style.width = perc + "%";
+            }
+        }
+        setTimeout(updateProgress, 1000);
+    }
+
+    function seek(event) {
+        const bar = document.getElementById('progress-bar');
+        const rect = bar.getBoundingClientRect();
+        const pos = (event.clientX - rect.left) / rect.width;
+        player.seekTo(pos * player.getDuration());
+    }
+</script>
+
+</body>
+</html>
