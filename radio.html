@@ -2,100 +2,80 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>YM Future Radio - Neural Link</title>
+    <title>YM Future Radio - Clean Stream</title>
     <style>
         :root {
             --neon-blue: #00f2ff;
             --deep-blue: #001a1d;
-            --glass-bg: rgba(0, 30, 40, 0.7);
+            --glass-bg: rgba(0, 30, 40, 0.75);
         }
 
         body {
             background-color: #050505;
+            /* 未來感背景網格 */
             background-image: 
                 radial-gradient(circle at 50% 50%, #002b36 0%, #000 100%),
                 linear-gradient(rgba(0, 242, 255, 0.05) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(0, 242, 255, 0.05) 1px, transparent 1px);
             background-size: 100% 100%, 30px 30px, 30px 30px;
             color: var(--neon-blue);
-            font-family: 'Orbitron', 'Segoe UI', sans-serif;
+            font-family: 'Orbitron', sans-serif;
             display: flex;
-            flex-direction: column;
             align-items: center;
             justify-content: center;
             height: 100vh;
             margin: 0;
-            overflow: hidden;
         }
 
         #radio-container {
             background: var(--glass-bg);
             backdrop-filter: blur(15px);
-            border: 1px solid rgba(0, 242, 255, 0.3);
-            padding: 50px;
-            border-radius: 30px;
-            box-shadow: 0 0 40px rgba(0, 242, 255, 0.15), inset 0 0 20px rgba(0, 242, 255, 0.1);
+            border: 1px solid var(--neon-blue);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
             text-align: center;
-            position: relative;
-            width: 450px;
-        }
-
-        /* 未來感裝飾線條 */
-        #radio-container::before {
-            content: "";
-            position: absolute;
-            top: -2px; left: 50px; right: 50px; height: 2px;
-            background: var(--neon-blue);
-            box-shadow: 0 0 15px var(--neon-blue);
+            width: 400px;
         }
 
         #display {
             font-size: 5rem;
             font-weight: 900;
-            text-shadow: 0 0 15px var(--neon-blue), 0 0 30px rgba(0, 242, 255, 0.5);
             margin: 20px 0;
-            font-variant-numeric: tabular-nums;
+            text-shadow: 0 0 15px var(--neon-blue);
         }
 
         .status-text {
-            font-size: 0.8rem;
-            letter-spacing: 4px;
-            opacity: 0.8;
+            font-size: 0.7rem;
+            letter-spacing: 3px;
             text-transform: uppercase;
+            color: rgba(0, 242, 255, 0.6);
         }
 
         .controls {
             display: grid;
             grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            margin-top: 30px;
+            gap: 10px;
         }
 
         button {
-            background: rgba(0, 242, 255, 0.05);
+            background: transparent;
             color: var(--neon-blue);
             border: 1px solid var(--neon-blue);
-            padding: 12px;
-            font-size: 0.8rem;
+            padding: 12px 5px;
             cursor: pointer;
-            border-radius: 4px;
-            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            font-family: 'Orbitron', sans-serif;
+            font-size: 0.75rem;
+            transition: 0.3s;
         }
 
         button:hover {
             background: var(--neon-blue);
             color: #000;
-            box-shadow: 0 0 20px var(--neon-blue);
-            transform: translateY(-2px);
+            box-shadow: 0 0 15px var(--neon-blue);
         }
 
-        .btn-large {
-            grid-column: span 3;
-            font-weight: bold;
-            background: rgba(0, 242, 255, 0.15);
-        }
+        .btn-full { grid-column: span 3; margin-top: 5px; }
 
         #player-container { display: none; }
     </style>
@@ -103,134 +83,126 @@
 </head>
 <body>
 
-    <div id="radio-container">
-        <div class="status-text" id="status">System Online</div>
-        <div id="display">YM 00.0</div>
+<div id="radio-container">
+    <div class="status-text" id="status">Neural Link Standby</div>
+    <div id="display">YM 91.1</div>
 
-        <div class="controls">
-            <button onclick="changeFreq(-0.1)">Tune -</button>
-            <button onclick="togglePlay()" id="playBtn">Link</button>
-            <button onclick="changeFreq(0.1)">Tune +</button>
-            
-            <button onclick="autoScan()" class="btn-large">Auto Scan Sequence</button>
-            <button onclick="snapToNearest()" class="btn-large">Snap to Nearest Station</button>
-        </div>
-    </div>
-
-    <div id="player-container">
-        <div id="main-player"></div>
-        <div id="noise-player"></div>
-    </div>
-
-    <script>
-        // --- 電台清單 (請在此自訂頻率與影片ID) ---
-        const STATIONS = {
-            "91.1": "dQw4w9WgXcQ", 
-            "95.5": "jfKfPfyJRdk", 
-            "101.3": "5qap5aO4i9A",
-            "107.7": "DWuZBVxcW7M"
-        };
-        const STATIC_NOISE_ID = "Po03fb0RbYY"; 
+    <div class="controls">
+        <button onclick="changeFreq(-0.1)">TUNE -</button>
+        <button onclick="togglePlay()" id="playBtn">CONNECT</button>
+        <button onclick="changeFreq(0.1)">TUNE +</button>
         
-        let currentFreq = parseFloat(localStorage.getItem('lastFreq')) || 91.1;
-        let mainPlayer, noisePlayer;
-        let isPowerOn = false;
+        <button onclick="autoScan()" class="btn-full">AUTO SCAN</button>
+        <button onclick="snapToNearest()" class="btn-full">SNAP TO NEAREST</button>
+    </div>
+</div>
 
-        var tag = document.createElement('script');
-        tag.src = "https://www.youtube.com/iframe_api";
-        var firstScriptTag = document.getElementsByTagName('script')[0];
-        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+<div id="player-container">
+    <div id="main-player"></div>
+    <div id="noise-player"></div>
+</div>
 
-        function onYouTubeIframeAPIReady() {
-            mainPlayer = new YT.Player('main-player', {
-                height: '0', width: '0',
-                events: { 'onReady': updateUI }
-            });
-            noisePlayer = new YT.Player('noise-player', {
-                height: '0', width: '0',
-                playerVars: { 'loop': 1, 'playlist': STATIC_NOISE_ID }
-            });
+<script>
+    // --- 自訂電台清單 ---
+    const STATIONS = {
+        "91.1": "dQw4w9WgXcQ", 
+        "98.5": "5qap5aO4i9A", 
+        "105.7": "jfKfPfyJRdk"
+    };
+    const STATIC_ID = "Po03fb0RbYY"; // 雜訊音源
+
+    let currentFreq = parseFloat(localStorage.getItem('lastFreq')) || 91.1;
+    let mainPlayer, noisePlayer, isPowerOn = false;
+
+    function onYouTubeIframeAPIReady() {
+        // 主播放器：使用 youtube-nocookie 域名來強化隱私並減少廣告追蹤
+        mainPlayer = new YT.Player('main-player', {
+            height: '0', width: '0',
+            host: 'https://www.youtube-nocookie.com', 
+            playerVars: {
+                'autoplay': 0,
+                'controls': 0,
+                'rel': 0,
+                'modestbranding': 1,
+                'iv_load_policy': 3 // 不顯示影片註解
+            },
+            events: { 'onReady': () => { updateUI(); } }
+        });
+
+        noisePlayer = new YT.Player('noise-player', {
+            height: '0', width: '0',
+            host: 'https://www.youtube-nocookie.com',
+            playerVars: { 'loop': 1, 'playlist': STATIC_ID }
+        });
+    }
+
+    // 載入 API 腳本
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+
+    function updateUI() {
+        const fStr = currentFreq.toFixed(1);
+        document.getElementById('display').innerText = `YM ${fStr}`;
+        localStorage.setItem('lastFreq', fStr);
+
+        if (!isPowerOn) {
+            document.getElementById('status').innerText = "System Offline";
+            return;
         }
 
-        function updateUI() {
-            const freqStr = currentFreq.toFixed(1);
-            document.getElementById('display').innerText = `YM ${freqStr}`;
-            localStorage.setItem('lastFreq', freqStr);
-            
-            if (!isPowerOn) {
-                document.getElementById('status').innerText = "Standby Mode";
-                return;
-            }
-
-            if (STATIONS[freqStr]) {
-                document.getElementById('status').innerText = "Neural Link Established";
-                mainPlayer.loadVideoById(STATIONS[freqStr]);
-                noisePlayer.pauseVideo();
-            } else {
-                document.getElementById('status').innerText = "Searching Frequencies...";
-                mainPlayer.stopVideo();
-                noisePlayer.playVideo();
-            }
+        if (STATIONS[fStr]) {
+            document.getElementById('status').innerText = "Signal Locked";
+            mainPlayer.loadVideoById(STATIONS[fStr]);
+            noisePlayer.pauseVideo();
+        } else {
+            document.getElementById('status').innerText = "Static Interference";
+            mainPlayer.stopVideo();
+            noisePlayer.playVideo();
         }
+    }
 
-        function changeFreq(delta) {
-            currentFreq = parseFloat((currentFreq + delta).toFixed(1));
-            if (currentFreq < 88.0) currentFreq = 108.0;
-            if (currentFreq > 108.0) currentFreq = 88.0;
-            
-            if (isPowerOn) {
-                noisePlayer.playVideo();
-                setTimeout(updateUI, 200); 
-            } else {
-                updateUI();
-            }
-        }
+    function changeFreq(delta) {
+        currentFreq = parseFloat((currentFreq + delta).toFixed(1));
+        if (currentFreq < 88.0) currentFreq = 108.0;
+        if (currentFreq > 108.0) currentFreq = 88.0;
+        updateUI();
+    }
 
-        function togglePlay() {
-            isPowerOn = !isPowerOn;
-            const btn = document.getElementById('playBtn');
-            if (isPowerOn) {
-                btn.innerText = "Disconnect";
-                btn.style.background = "var(--neon-blue)";
-                btn.style.color = "#000";
-                updateUI();
-            } else {
-                btn.innerText = "Link";
-                btn.style.background = "rgba(0, 242, 255, 0.05)";
-                btn.style.color = "var(--neon-blue)";
-                mainPlayer.stopVideo();
-                noisePlayer.stopVideo();
-                updateUI();
-            }
-        }
-
-        function autoScan() {
-            if (!isPowerOn) togglePlay();
-            document.getElementById('status').innerText = "Scanning Grid...";
-            let scanInterval = setInterval(() => {
-                changeFreq(0.1);
-                if (STATIONS[currentFreq.toFixed(1)]) {
-                    clearInterval(scanInterval);
-                }
-            }, 150);
-        }
-
-        // --- 新功能：跳轉到最近電台 ---
-        function snapToNearest() {
-            if (!isPowerOn) togglePlay();
-            
-            const stationFreqs = Object.keys(STATIONS).map(Number);
-            if (stationFreqs.length === 0) return;
-
-            // 尋找絕對差值最小的頻率
-            const nearest = stationFreqs.reduce((prev, curr) => {
-                return (Math.abs(curr - currentFreq) < Math.abs(prev - currentFreq) ? curr : prev);
-            });
-
-            currentFreq = nearest;
+    function togglePlay() {
+        isPowerOn = !isPowerOn;
+        const btn = document.getElementById('playBtn');
+        if (isPowerOn) {
+            btn.innerText = "DISCONNECT";
+            btn.style.background = "var(--neon-blue)";
+            btn.style.color = "#000";
             updateUI();
-            document.getElementById('status').innerText = "Snapped to Target";
+        } else {
+            btn.innerText = "CONNECT";
+            btn.style.background = "transparent";
+            btn.style.color = "var(--neon-blue)";
+            mainPlayer.stopVideo();
+            noisePlayer.stopVideo();
         }
-    </script>
+    }
+
+    function autoScan() {
+        if (!isPowerOn) togglePlay();
+        let scan = setInterval(() => {
+            changeFreq(0.1);
+            if (STATIONS[currentFreq.toFixed(1)]) clearInterval(scan);
+        }, 150);
+    }
+
+    function snapToNearest() {
+        const freqs = Object.keys(STATIONS).map(Number);
+        if (freqs.length === 0) return;
+        currentFreq = freqs.reduce((prev, curr) => 
+            Math.abs(curr - currentFreq) < Math.abs(prev - currentFreq) ? curr : prev
+        );
+        if (!isPowerOn) togglePlay();
+        updateUI();
+    }
+</script>
 </body>
 </html>
