@@ -79,7 +79,7 @@
 
         .marquee-text {
             display: inline-block;
-            animation: scroll-left 30s linear infinite;
+            animation: scroll-left 45s linear infinite;
             font-size: 14px;
             font-weight: bold;
             letter-spacing: 2px;
@@ -332,7 +332,7 @@
     }
 
     function updateMarqueeText(title) {
-        const content = `NOW STREAMING: ${title} // `.repeat(5);
+        const content = `正在放送中: ${title} // `.repeat(5);
         document.getElementById('top-marquee').innerText = content;
     }
 
