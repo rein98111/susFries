@@ -2,94 +2,265 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>果宝音乐机</title>
     <style>
-        body { font-family: 'Courier New', monospace; background: #0a0a0a; color: #00f2ff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
-        
-        /* 進入遮罩 */
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; z-index: 1000; }
-        #overlay button { padding: 20px 40px; font-size: 24px; background: none; color: #00f2ff; border: 2px solid #00f2ff; cursor: pointer; text-shadow: 0 0 10px #00f2ff; box-shadow: 0 0 15px #00f2ff; }
+        :root {
+            --neon-cyan: #00f2ff;
+            --bg-black: #050505;
+            --panel-bg: rgba(0, 0, 0, 0.85);
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: var(--bg-black);
+            color: var(--neon-cyan);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* 初始進入遮罩 */
+        #overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: #000;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            transition: 0.5s;
+        }
+
+        #overlay button {
+            padding: 20px 40px;
+            font-size: 20px;
+            background: none;
+            color: var(--neon-cyan);
+            border: 2px solid var(--neon-cyan);
+            cursor: pointer;
+            box-shadow: 0 0 15px var(--neon-cyan);
+            text-transform: uppercase;
+            letter-spacing: 5px;
+        }
+
+        #overlay button:hover {
+            background: var(--neon-cyan);
+            color: #000;
+        }
 
         /* 滾動文字 */
-        .f-marquee { position: fixed; width: 100%; height: 35px; background: rgba(0, 242, 255, 0.1); border-top: 1px solid #00f2ff; border-bottom: 1px solid #00f2ff; overflow: hidden; white-space: nowrap; line-height: 35px; z-index: 99; }
-        .marquee-top { top: 0; }
-        .marquee-bottom { bottom: 0; }
-        .marquee-content { display: inline-block; animation: scroll-left 25s linear infinite; }
-        .marquee-content-reverse { display: inline-block; animation: scroll-right 25s linear infinite; }
+        .marquee-container {
+            position: fixed;
+            width: 100%;
+            height: 30px;
+            background: rgba(0, 242, 255, 0.05);
+            border-top: 1px solid var(--neon-cyan);
+            border-bottom: 1px solid var(--neon-cyan);
+            overflow: hidden;
+            white-space: nowrap;
+            line-height: 30px;
+            z-index: 99;
+        }
+        .top { top: 0; }
+        .bottom { bottom: 0; }
 
-        @keyframes scroll-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
-        @keyframes scroll-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+        .marquee-text {
+            display: inline-block;
+            animation: scroll-left 30s linear infinite;
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        .reverse {
+            animation: scroll-right 30s linear infinite;
+        }
 
-        /* 播放器介面 */
-        #player-container { text-align: center; width: 90%; max-width: 600px; display: none; padding: 40px; border: 1px solid #00f2ff; background: rgba(0,0,0,0.8); box-shadow: 0 0 20px rgba(0,242,255,0.2); }
-        #progress-bar { width: 100%; height: 10px; background: #1a1a1a; cursor: pointer; margin: 25px 0; border: 1px solid #333; }
-        #progress-inner { height: 100%; background: #00f2ff; width: 0%; box-shadow: 0 0 10px #00f2ff; }
-        
-        .controls button { background: none; border: 1px solid #00f2ff; color: #00f2ff; padding: 10px 15px; margin: 5px; cursor: pointer; transition: 0.3s; }
-        .controls button:hover { background: #00f2ff; color: #000; }
+        @keyframes scroll-left {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+        @keyframes scroll-right {
+            from { transform: translateX(-50%); }
+            to { transform: translateX(0); }
+        }
 
-        /* 隱藏 YouTube 實體 */
-        #yt-player { position: absolute; top: -9999px; }
+        /* 主播放面板 */
+        #main-ui {
+            text-align: center;
+            width: 90%;
+            max-width: 600px;
+            padding: 50px;
+            border: 1px solid var(--neon-cyan);
+            background: var(--panel-bg);
+            box-shadow: 0 0 30px rgba(0, 242, 255, 0.15);
+            display: none;
+            z-index: 10;
+        }
+
+        #song-title {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+            height: 3rem;
+            overflow: hidden;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+
+        /* 進度條 */
+        #progress-container {
+            width: 100%;
+            height: 6px;
+            background: #1a1a1a;
+            margin: 20px 0;
+            cursor: pointer;
+            position: relative;
+        }
+        #progress-bar {
+            height: 100%;
+            background: var(--neon-cyan);
+            width: 0%;
+            box-shadow: 0 0 10px var(--neon-cyan);
+        }
+
+        /* 按鈕控制項 */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
+
+        .controls button {
+            background: none;
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            font-size: 24px;
+            width: 60px;
+            height: 50px;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .controls button:hover {
+            background: rgba(0, 242, 255, 0.2);
+        }
+
+        .active-mode {
+            background: var(--neon-cyan) !important;
+            color: #000 !important;
+        }
+
+        input[type="range"] {
+            accent-color: var(--neon-cyan);
+            width: 150px;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+
+        /* 隱藏 YouTube */
+        #yt-api-player { position: absolute; top: -9999px; }
     </style>
 </head>
 <body>
 
-<div id="overlay"><button onclick="startPlayer()">INITIALIZE SYSTEM</button></div>
-
-<div class="f-marquee marquee-top">
-    <div class="marquee-content" id="top-text">LOADING SATELLITE DATA... CONNECTING TO STREAM... NO-COOKIE MODE ENABLED... </div>
+<div id="overlay">
+    <div style="margin-bottom: 20px; opacity: 0.7;">進入音樂機</div>
+    <button onclick="startStation()">Initialize</button>
 </div>
 
-<div id="player-container">
-    <div style="font-size: 12px; opacity: 0.6; margin-bottom: 10px;">NOW DECODING:</div>
-    <h2 id="song-title">準備播放...</h2>
+<div class="marquee-container top">
+    <div class="marquee-text" id="top-marquee">LOADING DATA STREAM... </div>
+</div>
+
+<div id="main-ui">
+    <div style="font-size: 10px; margin-bottom: 5px; opacity: 0.5;">DECODING SIGNAL...</div>
+    <div id="song-title">等待播放開始...</div>
     
-    <div id="progress-bar" onclick="seek(event)">
-        <div id="progress-inner"></div>
+    <div id="progress-container" onclick="seek(event)">
+        <div id="progress-bar"></div>
     </div>
 
     <div class="controls">
-        <button onclick="prevVideo()">⏮︎</button>
-        <button onclick="togglePlay()" id="playBtn">▶︎</button>
-        <button onclick="nextVideo()">⏭︎</button>
-        <button onclick="toggleLoop()" id="loopBtn">LOOP: OFF</button>
+        <button onclick="prevVideo()" title="上一首">⏮︎</button>
+        <button onclick="togglePlay()" id="playBtn" title="暫停">⏸︎</button>
+        <button onclick="nextVideo()" title="下一首">⏭︎</button>
+        <button onclick="shuffleVideo()" title="隨機跳轉">🔀</button>
+        <button onclick="toggleLoop()" id="loopBtn" title="重複播放">⟲</button>
     </div>
 
-    <div style="margin-top: 20px;">
-        VOLUME <input type="range" min="0" max="100" value="50" oninput="setVolume(this.value)" style="vertical-align: middle;">
+    <div style="margin-top: 30px; font-size: 12px;">
+        VOL <input type="range" min="0" max="100" value="50" oninput="setVolume(this.value)">
     </div>
 </div>
 
-<div class="f-marquee marquee-bottom">
-    <div class="marquee-content-reverse">ENCRYPTED CONNECTION... 24H BROADCAST... NO TRACKING... ENCRYPTED CONNECTION... 24H BROADCAST... </div>
+<div class="marquee-container bottom">
+    <div class="marquee-text reverse">ENCRYPTED CONNECTION // NO-COOKIE MODE // STABLE SIGNAL // ENCRYPTED CONNECTION // NO-COOKIE MODE // STABLE SIGNAL // </div>
 </div>
 
-<div id="yt-player"></div>
+<div id="yt-api-player"></div>
 
 <script>
     let player;
     let isLooping = false;
-    // 放入你的 YouTube ID 清單
-    const playlist = ["dkhZkaJY5RA", "a7AHk0SK0wY", "Cw8vkMswRUU", "N9QE3HIznuE", "_Zli4pZ0VlQ", "ZlFrlw9uIRk", "tBDF_q34lNU", "HH-syOneq4E", "Rwmt0Hry7SI", "bcfB9NMPw7o", "9QMAyRm0gqQ", "wZ0baRAUegk", "8AMXjuneN0", "nJjupUntxww", "WZ2uzJxG3uI", "IdDyJuPDwe4", "cuqNnA4bjA0", "myzFJaTTu0Y", "02Sk-DjKpo8", "TUSv9vpr0AI", "j57BOYCA2Bc", "rct2Fm3XHmc", "u_CXsfCwUQU", "AOl61XS7HAw", "k_KkbI17Ipc", "0UqWZU95Jhg", "jPg_NU9nXZA", "Vy4jndbLWxA", "P91HEUOR5U0", "emdFdZD71jw", "wdvzk9rMZrY", "ynxSICWTZcM", "ug_o2lSmjQU", "p9Kc41dHskc", "4jz1i36MQXU", "Ob27F6kgUSQ", "ug_o2lSmjQU", "943-tBPcFCg", "Oe1I9WDa9ug", "UyMI-6GogU0", "YWCtgIUotPM", "VLjZZe1riOM", "roRbbnm2ZD0", "BxUWqkM73kc", "r-2DdcGyfJo", "dKx2vs3XAYQ", "y6qIFxEfywY", "Xgvu7L7bqXk", "H29MkEsNyNU", "p2AiQMF_sMI", "J8Zasy87z1E", "tP0NkfWaGY8", "xeIHQZMxTo4", "SHKbm6vVqUw", "91frwuPB7qg", "_TWq9VHpSls", "PZld3istIhg", "G8_FXwaiWJw", "VLa3Y7J1TA4", "6iMZl88rreU", "RCvBbEbpt_g", "kk7FLOqq1-M", "F75lKHGiZxY", "hvoSxl3vEX0", "8aH5j1nhwTE", "K31dN8X-QjI", "ziFsGwJrZA8", "cK1QJKaK2PU", "BmhuLj_xNMg", "p6KWGyFDv4A", "kmrbxM8CZnk", "JWmzDGn0PyM", "Dd8EPsPv41A", "xG99b-FMSYg", "5EE75UprmyU", "_TrHl5LzGDw", "95scLxEHlSc", "3uzaHzTEdCQ", "0aTqbNs7zWM", "j2ow5cvejvI", "nj48dJloohI", "CWuapSqfSSY", "X-3CviBEpsA", "kPnlfU6t8Po", "xo_ZZR23K7U", "yx3d6hbYnSQ", "J0j_2TBZVVE", "YIqNeK7-NtE", "mKBfeUUZdwY", "-s7w93KI8TU", "XhejjQ4aqm8", "TAn2arP52Q8", "yN7U7-4I8p4", "6P4iqvReHBo", "qbjx5-rqn5g", "ehjilYXOOBg", "IGR1IMjBJQo", "AnS-r3ay9a8", "sLQ--xaMKKA", "XwGuC3qvG-A", "5Cq2e3fvtcA", "2Mug25PCW64", "HmI7Nj8V8Fo", "HqyydD2x7Sk", "_YLm6RjArxw", "znwmnV4NLyc", "W3GqwnXLwg8", "tVwqE8A6TgA", "6hoYDg79kUw", "zrjhkfbCV1s", "zMPkFl98RG8", "7upvKehnayA", "RqcN3yNYh08", "nzkNydW0RWU", "yMMgEunoqt4", "72LMKz-wfWA", "wO62V37EfTk", "4EdVaZd3n2o", "MhhcUGoOuGQ", "FKQcvVpPGwI", "M1HvD6sr-5I", "imMtQFlfdT0", "Y4lGCT0VVxE", "q0hqcEzzNoM", "8M-KxhI1Ylo", "C4zD4M0rT6c", "4oQ0JintTcA", "N_C19o2td4g", "pLdbDf2U_YA", "JlhcViv5-jE", "nmCbW13J8AI"]; 
     let currentIndex = 0;
+    
+    // 你提供的播放清單
+    const playlist = [
+        "dkhZkaJY5RA", "a7AHk0SK0wY", "Cw8vkMswRUU", "N9QE3HIznuE", "_Zli4pZ0VlQ", 
+        "ZlFrlw9uIRk", "tBDF_q34lNU", "HH-syOneq4E", "Rwmt0Hry7SI", "bcfB9NMPw7o", 
+        "9QMAyRm0gqQ", "wZ0baRAUegk", "8AMXjuneN0", "nJjupUntxww", "WZ2uzJxG3uI", 
+        "IdDyJuPDwe4", "cuqNnA4bjA0", "myzFJaTTu0Y", "02Sk-DjKpo8", "TUSv9vpr0AI", 
+        "j57BOYCA2Bc", "rct2Fm3XHmc", "u_CXsfCwUQU", "AOl61XS7HAw", "k_KkbI17Ipc", 
+        "0UqWZU95Jhg", "jPg_NU9nXZA", "Vy4jndbLWxA", "P91HEUOR5U0", "emdFdZD71jw", 
+        "wdvzk9rMZrY", "ynxSICWTZcM", "ug_o2lSmjQU", "p9Kc41dHskc", "4jz1i36MQXU", 
+        "Ob27F6kgUSQ", "ug_o2lSmjQU", "943-tBPcFCg", "Oe1I9WDa9ug", "UyMI-6GogU0", 
+        "YWCtgIUotPM", "VLjZZe1riOM", "roRbbnm2ZD0", "BxUWqkM73kc", "r-2DdcGyfJo", 
+        "dKx2vs3XAYQ", "y6qIFxEfywY", "Xgvu7L7bqXk", "H29MkEsNyNU", "p2AiQMF_sMI", 
+        "J8Zasy87z1E", "tP0NkfWaGY8", "xeIHQZMxTo4", "SHKbm6vVqUw", "91frwuPB7qg", 
+        "_TWq9VHpSls", "PZld3istIhg", "G8_FXwaiWJw", "VLa3Y7J1TA4", "6iMZl88rreU", 
+        "RCvBbEbpt_g", "kk7FLOqq1-M", "F75lKHGiZxY", "hvoSxl3vEX0", "8aH5j1nhwTE", 
+        "K31dN8X-QjI", "ziFsGwJrZA8", "cK1QJKaK2PU", "BmhuLj_xNMg", "p6KWGyFDv4A", 
+        "kmrbxM8CZnk", "JWmzDGn0PyM", "Dd8EPsPv41A", "xG99b-FMSYg", "5EE75UprmyU", 
+        "_TrHl5LzGDw", "95scLxEHlSc", "3uzaHzTEdCQ", "0aTqbNs7zWM", "j2ow5cvejvI", 
+        "nj48dJloohI", "CWuapSqfSSY", "X-3CviBEpsA", "kPnlfU6t8Po", "xo_ZZR23K7U", 
+        "yx3d6hbYnSQ", "J0j_2TBZVVE", "YIqNeK7-NtE", "mKBfeUUZdwY", "-s7w93KI8TU", 
+        "XhejjQ4aqm8", "TAn2arP52Q8", "yN7U7-4I8p4", "6P4iqvReHBo", "qbjx5-rqn5g", 
+        "ehjilYXOOBg", "IGR1IMjBJQo", "AnS-r3ay9a8", "sLQ--xaMKKA", "XwGuC3qvG-A", 
+        "5Cq2e3fvtcA", "2Mug25PCW64", "HmI7Nj8V8Fo", "HqyydD2x7Sk", "_YLm6RjArxw", 
+        "znwmnV4NLyc", "W3GqwnXLwg8", "tVwqE8A6TgA", "6hoYDg79kUw", "zrjhkfbCV1s", 
+        "zMPkFl98RG8", "7upvKehnayA", "RqcN3yNYh08", "nzkNydW0RWU", "yMMgEunoqt4", 
+        "72LMKz-wfWA", "wO62V37EfTk", "4EdVaZd3n2o", "MhhcUGoOuGQ", "FKQcvVpPGwI", 
+        "M1HvD6sr-5I", "imMtQFlfdT0", "Y4lGCT0VVxE", "q0hqcEzzNoM", "8M-KxhI1Ylo", 
+        "C4zD4M0rT6c", "4oQ0JintTcA", "N_C19o2td4g", "pLdbDf2U_YA", "JlhcViv5-jE", 
+        "nmCbW13J8AI"
+    ];
 
-    // 關鍵修改：強制載入 No-Cookie 網域
+    // 載入 API
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
-    const firstScriptTag = document.getElementsByTagName('script')[0];
-    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+    document.head.appendChild(tag);
 
     function onYouTubeIframeAPIReady() {
-        player = new YT.Player('yt-player', {
-            height: '1',
-            width: '1',
-            host: 'https://www.youtube-nocookie.com', // 強制使用無 Cookie 模式
+        player = new YT.Player('yt-api-player', {
+            height: '0',
+            width: '0',
+            host: 'https://www.youtube-nocookie.com',
             videoId: playlist[currentIndex],
             playerVars: {
                 'autoplay': 0,
                 'controls': 0,
-                'rel': 0,
                 'modestbranding': 1,
+                'rel': 0,
                 'origin': window.location.origin
             },
             events: {
@@ -99,11 +270,13 @@
         });
     }
 
-    function startPlayer() {
-        document.getElementById('overlay').style.display = 'none';
-        document.getElementById('player-container').style.display = 'block';
-        player.playVideo();
-        updateMarquee();
+    function startStation() {
+        document.getElementById('overlay').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'block';
+            player.playVideo();
+        }, 500);
     }
 
     function onPlayerReady(event) {
@@ -111,30 +284,28 @@
     }
 
     function onPlayerStateChange(event) {
-        if (event.data == YT.PlayerState.ENDED) {
-            isLooping ? player.playVideo() : nextVideo();
-        }
+        const btn = document.getElementById('playBtn');
         if (event.data == YT.PlayerState.PLAYING) {
             const title = player.getVideoData().title;
             document.getElementById('song-title').innerText = title;
-            updateMarquee(title);
+            btn.innerText = "⏸︎";
+            updateMarqueeText(title);
+        }
+        if (event.data == YT.PlayerState.PAUSED) {
+            btn.innerText = "▶︎";
+        }
+        if (event.data == YT.PlayerState.ENDED) {
+            isLooping ? player.playVideo() : nextVideo();
         }
     }
 
-    function updateMarquee(title = "") {
-        const text = `STATION ACTIVE // NOW PLAYING: ${title} // `.repeat(3);
-        document.getElementById('top-text').innerText = text;
+    function updateMarqueeText(title) {
+        const content = `NOW STREAMING: ${title} // `.repeat(5);
+        document.getElementById('top-marquee').innerText = content;
     }
 
     function togglePlay() {
-        const state = player.getPlayerState();
-        if (state == 1) { 
-            player.pauseVideo();
-            document.getElementById('playBtn').innerText = "▶︎";
-        } else {
-            player.playVideo();
-            document.getElementById('playBtn').innerText = "⏸︎";
-        }
+        player.getPlayerState() == 1 ? player.pauseVideo() : player.playVideo();
     }
 
     function nextVideo() {
@@ -147,11 +318,22 @@
         player.loadVideoById(playlist[currentIndex]);
     }
 
-    function setVolume(val) { player.setVolume(val); }
+    function shuffleVideo() {
+        let newIndex;
+        do {
+            newIndex = Math.floor(Math.random() * playlist.length);
+        } while (newIndex === currentIndex);
+        currentIndex = newIndex;
+        player.loadVideoById(playlist[currentIndex]);
+    }
 
     function toggleLoop() {
         isLooping = !isLooping;
-        document.getElementById('loopBtn').innerText = isLooping ? "LOOP: ON" : "LOOP: OFF";
+        document.getElementById('loopBtn').classList.toggle('active-mode');
+    }
+
+    function setVolume(val) {
+        player.setVolume(val);
     }
 
     function updateProgress() {
@@ -159,17 +341,17 @@
             const curr = player.getCurrentTime();
             const dur = player.getDuration();
             if (dur > 0) {
-                document.getElementById('progress-inner').style.width = (curr / dur * 100) + "%";
+                document.getElementById('progress-bar').style.width = (curr / dur * 100) + "%";
             }
         }
         setTimeout(updateProgress, 1000);
     }
 
     function seek(event) {
-        const bar = document.getElementById('progress-bar');
-        const rect = bar.getBoundingClientRect();
-        const pos = (event.clientX - rect.left) / rect.width;
-        player.seekTo(pos * player.getDuration());
+        const container = document.getElementById('progress-container');
+        const rect = container.getBoundingClientRect();
+        const percent = (event.clientX - rect.left) / rect.width;
+        player.seekTo(percent * player.getDuration());
     }
 </script>
 
