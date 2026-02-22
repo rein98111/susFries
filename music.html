@@ -241,7 +241,7 @@
 <div id="yt-api-player"></div>
 
 <script>
-let player;
+    let player;
     let isLooping = false;
     let currentIndex = 0;
     
@@ -325,7 +325,9 @@ let player;
     }
 
     function togglePlay() {
-        player.getPlayerState() == 1 ? player.pauseVideo() : player.playVideo();
+        if(player && player.getPlayerState) {
+            player.getPlayerState() == 1 ? player.pauseVideo() : player.playVideo();
+        }
     }
 
     function nextVideo() {
@@ -353,7 +355,7 @@ let player;
     }
 
     function setVolume(val) {
-        player.setVolume(val);
+        if(player && player.setVolume) player.setVolume(val);
     }
 
     function updateProgress() {
@@ -371,7 +373,7 @@ let player;
         const container = document.getElementById('progress-container');
         const rect = container.getBoundingClientRect();
         const percent = (event.clientX - rect.left) / rect.width;
-        player.seekTo(percent * player.getDuration());
+        if(player && player.getDuration) player.seekTo(percent * player.getDuration());
     }
 
     function updateTime() {
@@ -394,17 +396,18 @@ let player;
     }
 
     function startStation() {
+        // 先顯示介面，再嘗試播放
         document.getElementById('overlay').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('main-ui').style.display = 'block';
-            if (player && player.playVideo) {
+            
+            if (player && typeof player.playVideo === 'function') {
                 player.playVideo();
             }
             updateTime(); 
         }, 500);
     }
 </script>
-
 </body>
 </html>
