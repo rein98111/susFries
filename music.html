@@ -299,6 +299,18 @@
         });
     }
 
+    function startStation() {
+        document.getElementById('overlay').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'block';
+            if (player && player.playVideo) {
+                player.playVideo();
+            }
+            updateTime(); 
+        }, 500);
+    }
+
     function onPlayerReady(event) {
         updateProgress();
     }
@@ -325,9 +337,7 @@
     }
 
     function togglePlay() {
-        if(player && player.getPlayerState) {
-            player.getPlayerState() == 1 ? player.pauseVideo() : player.playVideo();
-        }
+        player.getPlayerState() == 1 ? player.pauseVideo() : player.playVideo();
     }
 
     function nextVideo() {
@@ -355,7 +365,7 @@
     }
 
     function setVolume(val) {
-        if(player && player.setVolume) player.setVolume(val);
+        player.setVolume(val);
     }
 
     function updateProgress() {
@@ -373,7 +383,7 @@
         const container = document.getElementById('progress-container');
         const rect = container.getBoundingClientRect();
         const percent = (event.clientX - rect.left) / rect.width;
-        if(player && player.getDuration) player.seekTo(percent * player.getDuration());
+        player.seekTo(percent * player.getDuration());
     }
 
     function updateTime() {
@@ -393,20 +403,6 @@
             target.innerText = fullText.repeat(6); 
         }
         setTimeout(updateTime, 1000);
-    }
-
-    function startStation() {
-        // 先顯示介面，再嘗試播放
-        document.getElementById('overlay').style.opacity = '0';
-        setTimeout(() => {
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'block';
-            
-            if (player && typeof player.playVideo === 'function') {
-                player.playVideo();
-            }
-            updateTime(); 
-        }, 500);
     }
 </script>
 </body>
