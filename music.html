@@ -241,11 +241,10 @@
 <div id="yt-api-player"></div>
 
 <script>
-    let player;
+let player;
     let isLooping = false;
     let currentIndex = 0;
     
-    // 你提供的播放清單
     const playlist = [
         "dkhZkaJY5RA", "a7AHk0SK0wY", "Cw8vkMswRUU", "N9QE3HIznuE", "_Zli4pZ0VlQ", 
         "ZlFrlw9uIRk", "tBDF_q34lNU", "HH-syOneq4E", "Rwmt0Hry7SI", "bcfB9NMPw7o", 
@@ -276,7 +275,6 @@
         "nmCbW13J8AI"
     ];
 
-    // 載入 API
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     document.head.appendChild(tag);
@@ -299,15 +297,6 @@
                 'onStateChange': onPlayerStateChange
             }
         });
-    }
-
-    function startStation() {
-        document.getElementById('overlay').style.opacity = '0';
-        setTimeout(() => {
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'block';
-            player.playVideo();
-        }, 500);
     }
 
     function onPlayerReady(event) {
@@ -393,41 +382,28 @@
         const hours = String(now.getHours()).padStart(2, '0');
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const seconds = String(now.getSeconds()).padStart(2, '0');
-    
+        
         const timeStr = `${month}/${day} ${hours}:${minutes}:${seconds}`;
-        // 單段文字
         const fullText = `果宝音乐机 ${year} - 已启用Youtube隐私模式 - ${timeStr} // `;
-    
+        
         const target = document.getElementById('bottom-marquee');
         if (target) {
-            // 跟隨上排邏輯，重複 5 次以上，確保長度遠超螢幕寬度
             target.innerText = fullText.repeat(6); 
         }
-    
-        setTimeout(updateTime, 1000);
-    }
-    
-        // 每秒更新一次
         setTimeout(updateTime, 1000);
     }
 
-    // 修正啟動函式，確保點擊按鈕後會觸發計時器
     function startStation() {
-        // 處理遮罩
         document.getElementById('overlay').style.opacity = '0';
         setTimeout(() => {
             document.getElementById('overlay').style.display = 'none';
             document.getElementById('main-ui').style.display = 'block';
-        
-            // 播放音樂
             if (player && player.playVideo) {
                 player.playVideo();
             }
-        
-            // --- 關鍵：啟動時間更新 ---
             updateTime(); 
         }, 500);
-    }   
+    }
 </script>
 
 </body>
