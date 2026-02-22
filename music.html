@@ -95,8 +95,13 @@
         }
 
         @keyframes scroll-right {
-            from { transform: translateX(-33.33%); }
-            to { transform: translateX(0); }
+            from { transform: translateX(-33.33%); } /* 從三分之一處開始 */
+            to { transform: translateX(0); }         /* 跑回原點 */
+        }
+
+        /* 確保下排使用了正確的動畫 */
+        .reverse {
+            animation: scroll-right 30s linear infinite;
         }
 
         /* 確保文字強制不換行 */
@@ -220,9 +225,8 @@
 </div>
 
 <div class="marquee-container bottom">
-    <div class="marquee-text reverse">果宝音乐机 2026 - 已启用Youtube隐私模式 - 果宝音乐机 2026 - 已启用Youtube隐私模式 - 果宝音乐机 2026 - 已启用Youtube隐私模式 - </div>
+    <div class="marquee-text reverse" id="bottom-marquee"></div>
 </div>
-
 <div id="yt-api-player"></div>
 
 <script>
@@ -379,23 +383,38 @@
         const minutes = String(now.getMinutes()).padStart(2, '0');
         const seconds = String(now.getSeconds()).padStart(2, '0');
     
-        // 你的指定格式
+        // 組合你要的完整字串
         const timeStr = `${month}/${day} ${hours}:${minutes}:${seconds}`;
         const fullText = `果宝音乐机 ${year} - 已启用Youtube隐私模式 - ${timeStr} // `;
     
-        // 重複 3 次配合 CSS 的 -33.33% 位移，達成無縫循環
-        document.getElementById('bottom-marquee').innerText = fullText.repeat(3);
+        // 取得下排跑馬燈元素
+        const bottomMarquee = document.getElementById('bottom-marquee');
+        if (bottomMarquee) {
+            // 重複 3 次以配合 CSS 的 -33.33% 位移，達成無縫滾動
+            bottomMarquee.innerText = fullText.repeat(3);
+        }
     
+        // 每秒更新一次
         setTimeout(updateTime, 1000);
     }
 
-    // 確保在按下啟動按鈕的函式裡有這行
+    // 修正啟動函式，確保點擊按鈕後會觸發計時器
     function startStation() {
-        document.getElementById('overlay').style.display = 'none';
-        document.getElementById('main-ui').style.display = 'block';
-        player.playVideo();
-        updateTime(); // <--- 啟動時間更新
-    }    
+        // 處理遮罩
+        document.getElementById('overlay').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'block';
+        
+            // 播放音樂
+            if (player && player.playVideo) {
+                player.playVideo();
+            }
+        
+            // --- 關鍵：啟動時間更新 ---
+            updateTime(); 
+        }, 500);
+    }   
 </script>
 
 </body>
