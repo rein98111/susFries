@@ -80,13 +80,21 @@
             animation: scroll-right 30s linear infinite;
         }
 
+        /* 修改動畫位移為三分之一 */
         @keyframes scroll-left {
             from { transform: translateX(0); }
-            to { transform: translateX(-50%); }
+            to { transform: translateX(-33.33%); }
         }
+
         @keyframes scroll-right {
-            from { transform: translateX(-50%); }
+            from { transform: translateX(-33.33%); }
             to { transform: translateX(0); }
+        }
+
+        /* 確保文字強制不換行 */
+        .marquee-text {
+            display: inline-block;
+            white-space: nowrap;
         }
 
         /* 主播放面板 */
@@ -174,8 +182,8 @@
 <body>
 
 <div id="overlay">
-    <div style="margin-bottom: 20px; opacity: 0.7;">進入音樂機</div>
-    <button onclick="startStation()">Initialize</button>
+    <div style="margin-bottom: 20px; opacity: 0.7;">果宝音乐机 [1.0]</div>
+    <button onclick="startStation()">点我进入音乐机</button>
 </div>
 
 <div class="marquee-container top">
@@ -183,8 +191,8 @@
 </div>
 
 <div id="main-ui">
-    <div style="font-size: 10px; margin-bottom: 5px; opacity: 0.5;">DECODING SIGNAL...</div>
-    <div id="song-title">等待播放開始...</div>
+    <div style="font-size: 10px; margin-bottom: 5px; opacity: 0.5;">正在放送中/div>
+    <div id="song-title">等待放送开始...</div>
     
     <div id="progress-container" onclick="seek(event)">
         <div id="progress-bar"></div>
@@ -194,7 +202,7 @@
         <button onclick="prevVideo()" title="上一首">⏮︎</button>
         <button onclick="togglePlay()" id="playBtn" title="暫停">⏸︎</button>
         <button onclick="nextVideo()" title="下一首">⏭︎</button>
-        <button onclick="shuffleVideo()" title="隨機跳轉">🔀</button>
+        <button onclick="shuffleVideo()" title="隨機跳轉">⇝</button>
         <button onclick="toggleLoop()" id="loopBtn" title="重複播放">⟲</button>
     </div>
 
@@ -204,7 +212,7 @@
 </div>
 
 <div class="marquee-container bottom">
-    <div class="marquee-text reverse">ENCRYPTED CONNECTION // NO-COOKIE MODE // STABLE SIGNAL // ENCRYPTED CONNECTION // NO-COOKIE MODE // STABLE SIGNAL // </div>
+    <div class="marquee-text reverse">果宝音乐机 2026 - 已启用Youtube隐私模式 - 果宝音乐机 2026 - 已启用Youtube隐私模式 - 果宝音乐机 2026 - 已启用Youtube隐私模式 - </div>
 </div>
 
 <div id="yt-api-player"></div>
@@ -353,6 +361,33 @@
         const percent = (event.clientX - rect.left) / rect.width;
         player.seekTo(percent * player.getDuration());
     }
+
+    function updateTime() {
+        const now = new Date();
+        const year = now.getFullYear();
+        const month = String(now.getMonth() + 1).padStart(2, '0');
+        const day = String(now.getDate()).padStart(2, '0');
+        const hours = String(now.getHours()).padStart(2, '0');
+        const minutes = String(now.getMinutes()).padStart(2, '0');
+        const seconds = String(now.getSeconds()).padStart(2, '0');
+    
+        // 你的指定格式
+        const timeStr = `${month}/${day} ${hours}:${minutes}:${seconds}`;
+        const fullText = `果宝音乐机 ${year} - 已启用Youtube隐私模式 - ${timeStr} // `;
+    
+        // 重複 3 次配合 CSS 的 -33.33% 位移，達成無縫循環
+        document.getElementById('bottom-marquee').innerText = fullText.repeat(3);
+    
+        setTimeout(updateTime, 1000);
+    }
+
+    // 確保在按下啟動按鈕的函式裡有這行
+    function startStation() {
+        document.getElementById('overlay').style.display = 'none';
+        document.getElementById('main-ui').style.display = 'block';
+        player.playVideo();
+        updateTime(); // <--- 啟動時間更新
+    }    
 </script>
 
 </body>
