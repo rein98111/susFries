@@ -2,42 +2,66 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>sus - Music</title>
+    <title>果宝音乐机</title>
     <style>
-        body { font-family: sans-serif; background: #121212; color: white; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; z-index: 100; }
-        #player-container { text-align: center; width: 80%; max-width: 500px; display: none; }
-        .controls { margin-top: 20px; }
-        button { padding: 10px 20px; cursor: pointer; background: #333; color: white; border: 1px solid #555; border-radius: 5px; margin: 5px; }
-        #progress-bar { width: 100%; height: 5px; background: #444; cursor: pointer; position: relative; margin-top: 15px; }
-        #progress-inner { height: 100%; background: #ff0000; width: 0%; }
-        /* 隱藏 YouTube 實體畫面 */
-        #yt-player { position: absolute; top: -9999px; left: -9999px; }
+        body { font-family: 'Courier New', monospace; background: #0a0a0a; color: #00f2ff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; overflow: hidden; }
+        
+        /* 進入遮罩 */
+        #overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; display: flex; justify-content: center; align-items: center; z-index: 1000; }
+        #overlay button { padding: 20px 40px; font-size: 24px; background: none; color: #00f2ff; border: 2px solid #00f2ff; cursor: pointer; text-shadow: 0 0 10px #00f2ff; box-shadow: 0 0 15px #00f2ff; }
+
+        /* 滾動文字 */
+        .f-marquee { position: fixed; width: 100%; height: 35px; background: rgba(0, 242, 255, 0.1); border-top: 1px solid #00f2ff; border-bottom: 1px solid #00f2ff; overflow: hidden; white-space: nowrap; line-height: 35px; z-index: 99; }
+        .marquee-top { top: 0; }
+        .marquee-bottom { bottom: 0; }
+        .marquee-content { display: inline-block; animation: scroll-left 25s linear infinite; }
+        .marquee-content-reverse { display: inline-block; animation: scroll-right 25s linear infinite; }
+
+        @keyframes scroll-left { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+        @keyframes scroll-right { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+
+        /* 播放器介面 */
+        #player-container { text-align: center; width: 90%; max-width: 600px; display: none; padding: 40px; border: 1px solid #00f2ff; background: rgba(0,0,0,0.8); box-shadow: 0 0 20px rgba(0,242,255,0.2); }
+        #progress-bar { width: 100%; height: 10px; background: #1a1a1a; cursor: pointer; margin: 25px 0; border: 1px solid #333; }
+        #progress-inner { height: 100%; background: #00f2ff; width: 0%; box-shadow: 0 0 10px #00f2ff; }
+        
+        .controls button { background: none; border: 1px solid #00f2ff; color: #00f2ff; padding: 10px 15px; margin: 5px; cursor: pointer; transition: 0.3s; }
+        .controls button:hover { background: #00f2ff; color: #000; }
+
+        /* 隱藏 YouTube 實體 */
+        #yt-player { position: absolute; top: -9999px; }
     </style>
 </head>
 <body>
 
-<div id="overlay">
-    <button onclick="startPlayer()" style="font-size: 20px; padding: 20px 40px;">進入播放機</button>
+<div id="overlay"><button onclick="startPlayer()">INITIALIZE SYSTEM</button></div>
+
+<div class="f-marquee marquee-top">
+    <div class="marquee-content" id="top-text">LOADING SATELLITE DATA... CONNECTING TO STREAM... NO-COOKIE MODE ENABLED... </div>
 </div>
 
 <div id="player-container">
-    <h3 id="song-title">準備播放...</h3>
+    <div style="font-size: 12px; opacity: 0.6; margin-bottom: 10px;">NOW DECODING:</div>
+    <h2 id="song-title">準備播放...</h2>
     
     <div id="progress-bar" onclick="seek(event)">
         <div id="progress-inner"></div>
     </div>
 
     <div class="controls">
-        <button onclick="prevVideo()">上一首</button>
-        <button onclick="togglePlay()" id="playBtn">暫停</button>
-        <button onclick="nextVideo()">下一首</button>
-        <button onclick="toggleLoop()" id="loopBtn">重複播放: 關</button>
+        <button onclick="prevVideo()">⏮︎</button>
+        <button onclick="togglePlay()" id="playBtn">▶︎</button>
+        <button onclick="nextVideo()">⏭︎</button>
+        <button onclick="toggleLoop()" id="loopBtn">LOOP: OFF</button>
     </div>
 
-    <div class="controls">
-        音量：<input type="range" min="0" max="100" value="50" oninput="setVolume(this.value)">
+    <div style="margin-top: 20px;">
+        VOLUME <input type="range" min="0" max="100" value="50" oninput="setVolume(this.value)" style="vertical-align: middle;">
     </div>
+</div>
+
+<div class="f-marquee marquee-bottom">
+    <div class="marquee-content-reverse">ENCRYPTED CONNECTION... 24H BROADCAST... NO TRACKING... ENCRYPTED CONNECTION... 24H BROADCAST... </div>
 </div>
 
 <div id="yt-player"></div>
@@ -45,11 +69,11 @@
 <script>
     let player;
     let isLooping = false;
-    // 在這裡加入你的 YouTube 影片 ID
-    const playlist = ["yZ3TL2yCmoU", "FKQcvVpPGwI", "C4zD4M0rT6c"]; 
+    // 放入你的 YouTube ID 清單
+    const playlist = ["dkhZkaJY5RA", "a7AHk0SK0wY", "Cw8vkMswRUU", "N9QE3HIznuE", "_Zli4pZ0VlQ", "ZlFrlw9uIRk", "tBDF_q34lNU", "HH-syOneq4E", "Rwmt0Hry7SI", "bcfB9NMPw7o", "9QMAyRm0gqQ", "wZ0baRAUegk", "8AMXjuneN0", "nJjupUntxww", "WZ2uzJxG3uI", "IdDyJuPDwe4", "cuqNnA4bjA0", "myzFJaTTu0Y", "02Sk-DjKpo8", "TUSv9vpr0AI", "j57BOYCA2Bc", "rct2Fm3XHmc", "u_CXsfCwUQU", "AOl61XS7HAw", "k_KkbI17Ipc", "0UqWZU95Jhg", "jPg_NU9nXZA", "Vy4jndbLWxA", "P91HEUOR5U0", "emdFdZD71jw", "wdvzk9rMZrY", "ynxSICWTZcM", "ug_o2lSmjQU", "p9Kc41dHskc", "4jz1i36MQXU", "Ob27F6kgUSQ", "ug_o2lSmjQU", "943-tBPcFCg", "Oe1I9WDa9ug", "UyMI-6GogU0", "YWCtgIUotPM", "VLjZZe1riOM", "roRbbnm2ZD0", "BxUWqkM73kc", "r-2DdcGyfJo", "dKx2vs3XAYQ", "y6qIFxEfywY", "Xgvu7L7bqXk", "H29MkEsNyNU", "p2AiQMF_sMI", "J8Zasy87z1E", "tP0NkfWaGY8", "xeIHQZMxTo4", "SHKbm6vVqUw", "91frwuPB7qg", "_TWq9VHpSls", "PZld3istIhg", "G8_FXwaiWJw", "VLa3Y7J1TA4", "6iMZl88rreU", "RCvBbEbpt_g", "kk7FLOqq1-M", "F75lKHGiZxY", "hvoSxl3vEX0", "8aH5j1nhwTE", "K31dN8X-QjI", "ziFsGwJrZA8", "cK1QJKaK2PU", "BmhuLj_xNMg", "p6KWGyFDv4A", "kmrbxM8CZnk", "JWmzDGn0PyM", "Dd8EPsPv41A", "xG99b-FMSYg", "5EE75UprmyU", "_TrHl5LzGDw", "95scLxEHlSc", "3uzaHzTEdCQ", "0aTqbNs7zWM", "j2ow5cvejvI", "nj48dJloohI", "CWuapSqfSSY", "X-3CviBEpsA", "kPnlfU6t8Po", "xo_ZZR23K7U", "yx3d6hbYnSQ", "J0j_2TBZVVE", "YIqNeK7-NtE", "mKBfeUUZdwY", "-s7w93KI8TU", "XhejjQ4aqm8", "TAn2arP52Q8", "yN7U7-4I8p4", "6P4iqvReHBo", "qbjx5-rqn5g", "ehjilYXOOBg", "IGR1IMjBJQo", "AnS-r3ay9a8", "sLQ--xaMKKA", "XwGuC3qvG-A", "5Cq2e3fvtcA", "2Mug25PCW64", "HmI7Nj8V8Fo", "HqyydD2x7Sk", "_YLm6RjArxw", "znwmnV4NLyc", "W3GqwnXLwg8", "tVwqE8A6TgA", "6hoYDg79kUw", "zrjhkfbCV1s", "zMPkFl98RG8", "7upvKehnayA", "RqcN3yNYh08", "nzkNydW0RWU", "yMMgEunoqt4", "72LMKz-wfWA", "wO62V37EfTk", "4EdVaZd3n2o", "MhhcUGoOuGQ", "FKQcvVpPGwI", "M1HvD6sr-5I", "imMtQFlfdT0", "Y4lGCT0VVxE", "q0hqcEzzNoM", "8M-KxhI1Ylo", "C4zD4M0rT6c", "4oQ0JintTcA", "N_C19o2td4g", "pLdbDf2U_YA", "JlhcViv5-jE", "nmCbW13J8AI"]; 
     let currentIndex = 0;
 
-    // 1. 載入 YouTube API
+    // 關鍵修改：強制載入 No-Cookie 網域
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
     const firstScriptTag = document.getElementsByTagName('script')[0];
@@ -59,7 +83,15 @@
         player = new YT.Player('yt-player', {
             height: '1',
             width: '1',
+            host: 'https://www.youtube-nocookie.com', // 強制使用無 Cookie 模式
             videoId: playlist[currentIndex],
+            playerVars: {
+                'autoplay': 0,
+                'controls': 0,
+                'rel': 0,
+                'modestbranding': 1,
+                'origin': window.location.origin
+            },
             events: {
                 'onReady': onPlayerReady,
                 'onStateChange': onPlayerStateChange
@@ -71,6 +103,7 @@
         document.getElementById('overlay').style.display = 'none';
         document.getElementById('player-container').style.display = 'block';
         player.playVideo();
+        updateMarquee();
     }
 
     function onPlayerReady(event) {
@@ -79,27 +112,28 @@
 
     function onPlayerStateChange(event) {
         if (event.data == YT.PlayerState.ENDED) {
-            if (isLooping) {
-                player.playVideo();
-            } else {
-                nextVideo();
-            }
+            isLooping ? player.playVideo() : nextVideo();
         }
-        // 更新標題
         if (event.data == YT.PlayerState.PLAYING) {
-            document.getElementById('song-title').innerText = player.getVideoData().title;
+            const title = player.getVideoData().title;
+            document.getElementById('song-title').innerText = title;
+            updateMarquee(title);
         }
     }
 
-    // 控制功能
+    function updateMarquee(title = "") {
+        const text = `STATION ACTIVE // NOW PLAYING: ${title} // `.repeat(3);
+        document.getElementById('top-text').innerText = text;
+    }
+
     function togglePlay() {
         const state = player.getPlayerState();
         if (state == 1) { 
             player.pauseVideo();
-            document.getElementById('playBtn').innerText = "播放";
+            document.getElementById('playBtn').innerText = "▶︎";
         } else {
             player.playVideo();
-            document.getElementById('playBtn').innerText = "暫停";
+            document.getElementById('playBtn').innerText = "⏸︎";
         }
     }
 
@@ -113,23 +147,19 @@
         player.loadVideoById(playlist[currentIndex]);
     }
 
-    function setVolume(val) {
-        player.setVolume(val);
-    }
+    function setVolume(val) { player.setVolume(val); }
 
     function toggleLoop() {
         isLooping = !isLooping;
-        document.getElementById('loopBtn').innerText = isLooping ? "重複播放: 開" : "重複播放: 關";
+        document.getElementById('loopBtn').innerText = isLooping ? "LOOP: ON" : "LOOP: OFF";
     }
 
-    // 進度條邏輯
     function updateProgress() {
         if (player && player.getCurrentTime) {
             const curr = player.getCurrentTime();
             const dur = player.getDuration();
             if (dur > 0) {
-                const perc = (curr / dur) * 100;
-                document.getElementById('progress-inner').style.width = perc + "%";
+                document.getElementById('progress-inner').style.width = (curr / dur * 100) + "%";
             }
         }
         setTimeout(updateProgress, 1000);
