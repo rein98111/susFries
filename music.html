@@ -56,8 +56,8 @@
         /* 滾動文字 */
         .marquee-container {
             position: fixed;
-            left: 0;          /* 確保從最左邊開始 */
-            width: 100%;      /* 確保佔滿全寬 */
+            left: 0;
+            width: 100vw;      /* 確保佔滿視窗寬度 */
             height: 35px;
             background: rgba(0, 242, 255, 0.05);
             border-top: 1px solid var(--neon-cyan);
@@ -65,12 +65,16 @@
             overflow: hidden;
             white-space: nowrap;
             line-height: 35px;
-            z-index: 99;
+            z-index: 999;
+        }
+
+        /* 確保這兩段分別貼頂與貼底 */
+        .top { 
+            top: 0; 
         }
 
         .bottom { 
             bottom: 0; 
-            text-align: left; /* 確保內容不被推向右邊 */
         }
 
         .marquee-text {
