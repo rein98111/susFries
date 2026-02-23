@@ -12,7 +12,8 @@
         }
 
         body {
-            font-family: 'Courier New', monospace;
+            /* 統一繁簡中文字體 */
+            font-family: "Microsoft JhengHei", "微軟正黑體", "Heiti TC", "Heiti SC", sans-serif;
             background-color: var(--bg-black);
             color: var(--neon-cyan);
             margin: 0;
@@ -48,51 +49,50 @@
             letter-spacing: 5px;
         }
 
-        /* 垂直跑馬燈容器 - 無背景、無邊框 */
+        /* 垂直跑馬燈容器 */
         .marquee-container {
             position: fixed;
             width: 100px;
             height: 300vh;
-            background: none; /* 移除背景 */
-            border: none;     /* 移除邊框 */
+            background: none;
+            border: none;
             overflow: hidden;
             display: flex;
             justify-content: center;
-            z-index: 1; /* 放在播放器後面 */
+            z-index: 1;
         }
 
-        /* 垂直文字樣式 - 純白、加大、加粗 */
+        /* 垂直文字樣式 */
         .marquee-text {
-            color: #ffffff; /* 純白色 */
-            font-size: 50px; /* 超大文字 */
+            color: #ffffff;
+            font-size: 50px;
             font-weight: 900;
             white-space: nowrap;
-            writing-mode: vertical-rl; /* 垂直排列 */
-            text-orientation: upright;
+            writing-mode: vertical-rl;
+            /* 讓英文數字回正站立 */
+            text-orientation: upright; 
             letter-spacing: 15px;
             text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
             text-transform: uppercase;
-            opacity: 0.8; /* 稍微透明增加質感 */
+            opacity: 0.8;
         }
 
-        /* 左側：逆時針旋轉 7 度，移到最左邊 */
         .top {
             left: 7%;
             top: -100vh;
             transform: rotate(7deg);
         }
         .top .marquee-text {
-            animation: v-scroll-up 45s linear infinite;
+            animation: v-scroll-up 20s linear infinite;
         }
 
-        /* 右側：逆時針旋轉 7 度，移到最右邊 */
         .bottom {
             right: 7%;
             top: -100vh;
             transform: rotate(7deg);
         }
         .bottom .marquee-text {
-            animation: v-scroll-down 45s linear infinite;
+            animation: v-scroll-down 20s linear infinite;
         }
 
         @keyframes v-scroll-up {
@@ -105,11 +105,43 @@
             to { transform: translateY(0); }
         }
 
+        /* 模擬聲波樣式 */
+        .visualizer {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 40px;
+            gap: 5px;
+            margin: 20px 0;
+            opacity: 0;
+            transition: opacity 0.5s;
+        }
+        .visualizer div {
+            width: 5px;
+            background: var(--neon-cyan);
+            box-shadow: 0 0 10px var(--neon-cyan);
+            animation: bounce 0.5s ease-in-out infinite alternate;
+            animation-play-state: paused;
+        }
+        /* 讓聲波參差不齊 */
+        .visualizer div:nth-child(2n) { animation-duration: 0.3s; }
+        .visualizer div:nth-child(3n) { animation-duration: 0.6s; }
+        .visualizer div:nth-child(4n) { animation-duration: 0.45s; }
+
+        @keyframes bounce {
+            from { height: 5px; }
+            to { height: 35px; }
+        }
+
+        /* 當播放時啟動聲波 */
+        .playing .visualizer { opacity: 1; }
+        .playing .visualizer div { animation-play-state: running; }
+
         /* 主播放面板 */
         #main-ui {
             text-align: center;
             width: 90%;
-            max-width: 650px; /* 恢復較大尺寸 */
+            max-width: 650px;
             padding: 50px;
             border: 1px solid var(--neon-cyan);
             background: var(--panel-bg);
@@ -117,13 +149,13 @@
             display: none;
             z-index: 10;
             position: relative;
-            backdrop-filter: blur(5px); /* 背景毛玻璃 */
+            backdrop-filter: blur(8px);
         }
 
         #song-title {
-            font-size: 1.5rem;
-            margin-bottom: 30px;
-            height: 4rem;
+            font-size: 1.6rem;
+            margin-bottom: 10px;
+            height: 4.5rem;
             font-weight: bold;
             overflow: hidden;
             display: -webkit-box;
@@ -131,7 +163,6 @@
             -webkit-box-orient: vertical;
         }
 
-        /* 進度條 */
         #progress-container {
             width: 100%; height: 8px; background: #1a1a1a;
             margin: 25px 0; cursor: pointer; position: relative;
@@ -141,7 +172,6 @@
             width: 0%; box-shadow: 0 0 10px var(--neon-cyan);
         }
 
-        /* 控制按鈕 */
         .controls { display: flex; justify-content: center; gap: 20px; margin-top: 25px; }
         .controls button {
             background: none; border: 1px solid var(--neon-cyan);
@@ -166,7 +196,6 @@
 <div class="marquee-container top">
     <div class="marquee-text" id="top-marquee">LOADING DATA...</div>
 </div>
-
 <div class="marquee-container bottom">
     <div class="marquee-text" id="bottom-marquee">INITIALIZING...</div>
 </div>
@@ -174,6 +203,12 @@
 <div id="main-ui">
     <div style="font-size: 10px; margin-bottom: 10px; opacity: 0.5; letter-spacing: 2px;">正在放送中</div>
     <div id="song-title">等待放送開始...</div>
+    
+    <div class="visualizer">
+        <div></div><div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div><div></div>
+        <div></div><div></div><div></div><div></div><div></div>
+    </div>
     
     <div id="progress-container" onclick="seek(event)">
         <div id="progress-bar"></div>
@@ -199,35 +234,8 @@
     let isLooping = false;
     let currentIndex = 0;
     
-    const playlist = [
-        "dkhZkaJY5RA", "a7AHk0SK0wY", "Cw8vkMswRUU", "N9QE3HIznuE", "_Zli4pZ0VlQ", 
-        "ZlFrlw9uIRk", "tBDF_q34lNU", "HH-syOneq4E", "Rwmt0Hry7SI", "bcfB9NMPw7o", 
-        "9QMAyRm0gqQ", "wZ0baRAUegk", "8AMXjuneN0", "nJjupUntxww", "WZ2uzJxG3uI", 
-        "IdDyJuPDwe4", "cuqNnA4bjA0", "myzFJaTTu0Y", "02Sk-DjKpo8", "TUSv9vpr0AI", 
-        "j57BOYCA2Bc", "rct2Fm3XHmc", "u_CXsfCwUQU", "AOl61XS7HAw", "k_KkbI17Ipc", 
-        "0UqWZU95Jhg", "jPg_NU9nXZA", "Vy4jndbLWxA", "P91HEUOR5U0", "emdFdZD71jw", 
-        "wdvzk9rMZrY", "ynxSICWTZcM", "ug_o2lSmjQU", "p9Kc41dHskc", "4jz1i36MQXU", 
-        "Ob27F6kgUSQ", "ug_o2lSmjQU", "943-tBPcFCg", "Oe1I9WDa9ug", "UyMI-6GogU0", 
-        "YWCtgIUotPM", "VLjZZe1riOM", "roRbbnm2ZD0", "BxUWqkM73kc", "r-2DdcGyfJo", 
-        "dKx2vs3XAYQ", "y6qIFxEfywY", "Xgvu7L7bqXk", "H29MkEsNyNU", "p2AiQMF_sMI", 
-        "J8Zasy87z1E", "tP0NkfWaGY8", "xeIHQZMxTo4", "SHKbm6vVqUw", "91frwuPB7qg", 
-        "_TWq9VHpSls", "PZld3istIhg", "G8_FXwaiWJw", "VLa3Y7J1TA4", "6iMZl88rreU", 
-        "RCvBbEbpt_g", "kk7FLOqq1-M", "F75lKHGiZxY", "hvoSxl3vEX0", "8aH5j1nhwTE", 
-        "K31dN8X-QjI", "ziFsGwJrZA8", "cK1QJKaK2PU", "BmhuLj_xNMg", "p6KWGyFDv4A", 
-        "kmrbxM8CZnk", "JWmzDGn0PyM", "Dd8EPsPv41A", "xG99b-FMSYg", "5EE75UprmyU", 
-        "_TrHl5LzGDw", "95scLxEHlSc", "3uzaHzTEdCQ", "0aTqbNs7zWM", "j2ow5cvejvI", 
-        "nj48dJloohI", "CWuapSqfSSY", "X-3CviBEpsA", "kPnlfU6t8Po", "xo_ZZR23K7U", 
-        "yx3d6hbYnSQ", "J0j_2TBZVVE", "YIqNeK7-NtE", "mKBfeUUZdwY", "-s7w93KI8TU", 
-        "XhejjQ4aqm8", "TAn2arP52Q8", "yN7U7-4I8p4", "6P4iqvReHBo", "qbjx5-rqn5g", 
-        "ehjilYXOOBg", "IGR1IMjBJQo", "AnS-r3ay9a8", "sLQ--xaMKKA", "XwGuC3qvG-A", 
-        "5Cq2e3fvtcA", "2Mug25PCW64", "HmI7Nj8V8Fo", "HqyydD2x7Sk", "_YLm6RjArxw", 
-        "znwmnV4NLyc", "W3GqwnXLwg8", "tVwqE8A6TgA", "6hoYDg79kUw", "zrjhkfbCV1s", 
-        "zMPkFl98RG8", "7upvKehnayA", "RqcN3yNYh08", "nzkNydW0RWU", "yMMgEunoqt4", 
-        "72LMKz-wfWA", "wO62V37EfTk", "4EdVaZd3n2o", "MhhcUGoOuGQ", "FKQcvVpPGwI", 
-        "M1HvD6sr-5I", "imMtQFlfdT0", "Y4lGCT0VVxE", "q0hqcEzzNoM", "8M-KxhI1Ylo", 
-        "C4zD4M0rT6c", "4oQ0JintTcA", "N_C19o2td4g", "pLdbDf2U_YA", "JlhcViv5-jE", 
-        "nmCbW13J8AI"
-    ];
+    // 播放清單保持原樣...
+    const playlist = ["dkhZkaJY5RA", "a7AHk0SK0wY", "Cw8vkMswRUU", "N9QE3HIznuE", "_Zli4pZ0VlQ", "ZlFrlw9uIRk", "tBDF_q34lNU", "HH-syOneq4E", "Rwmt0Hry7SI", "bcfB9NMPw7o", "9QMAyRm0gqQ", "wZ0baRAUegk", "8AMXjuneN0", "nJjupUntxww", "WZ2uzJxG3uI", "IdDyJuPDwe4", "cuqNnA4bjA0", "myzFJaTTu0Y", "02Sk-DjKpo8", "TUSv9vpr0AI", "j57BOYCA2Bc", "rct2Fm3XHmc", "u_CXsfCwUQU", "AOl61XS7HAw", "k_KkbI17Ipc", "0UqWZU95Jhg", "jPg_NU9nXZA", "Vy4jndbLWxA", "P91HEUOR5U0", "emdFdZD71jw", "wdvzk9rMZrY", "ynxSICWTZcM", "ug_o2lSmjQU", "p9Kc41dHskc", "4jz1i36MQXU", "Ob27F6kgUSQ", "ug_o2lSmjQU", "943-tBPcFCg", "Oe1I9WDa9ug", "UyMI-6GogU0", "YWCtgIUotPM", "VLjZZe1riOM", "roRbbnm2ZD0", "BxUWqkM73kc", "r-2DdcGyfJo", "dKx2vs3XAYQ", "y6qIFxEfywY", "Xgvu7L7bqXk", "H29MkEsNyNU", "p2AiQMF_sMI", "J8Zasy87z1E", "tP0NkfWaGY8", "xeIHQZMxTo4", "SHKbm6vVqUw", "91frwuPB7qg", "_TWq9VHpSls", "PZld3istIhg", "G8_FXwaiWJw", "VLa3Y7J1TA4", "6iMZl88rreU", "RCvBbEbpt_g", "kk7FLOqq1-M", "F75lKHGiZxY", "hvoSxl3vEX0", "8aH5j1nhwTE", "K31dN8X-QjI", "ziFsGwJrZA8", "cK1QJKaK2PU", "BmhuLj_xNMg", "p6KWGyFDv4A", "kmrbxM8CZnk", "JWmzDGn0PyM", "Dd8EPsPv41A", "xG99b-FMSYg", "5EE75UprmyU", "_TrHl5LzGDw", "95scLxEHlSc", "3uzaHzTEdCQ", "0aTqbNs7zWM", "j2ow5cvejvI", "nj48dJloohI", "CWuapSqfSSY", "X-3CviBEpsA", "kPnlfU6t8Po", "xo_ZZR23K7U", "yx3d6hbYnSQ", "J0j_2TBZVVE", "YIqNeK7-NtE", "mKBfeUUZdwY", "-s7w93KI8TU", "XhejjQ4aqm8", "TAn2arP52Q8", "yN7U7-4I8p4", "6P4iqvReHBo", "qbjx5-rqn5g", "ehjilYXOOBg", "IGR1IMjBJQo", "AnS-r3ay9a8", "sLQ--xaMKKA", "XwGuC3qvG-A", "5Cq2e3fvtcA", "2Mug25PCW64", "HmI7Nj8V8Fo", "HqyydD2x7Sk", "_YLm6RjArxw", "znwmnV4NLyc", "W3GqwnXLwg8", "tVwqE8A6TgA", "6hoYDg79kUw", "zrjhkfbCV1s", "zMPkFl98RG8", "7upvKehnayA", "RqcN3yNYh08", "nzkNydW0RWU", "yMMgEunoqt4", "72LMKz-wfWA", "wO62V37EfTk", "4EdVaZd3n2o", "MhhcUGoOuGQ", "FKQcvVpPGwI", "M1HvD6sr-5I", "imMtQFlfdT0", "Y4lGCT0VVxE", "q0hqcEzzNoM", "8M-KxhI1Ylo", "C4zD4M0rT6c", "4oQ0JintTcA", "N_C19o2td4g", "pLdbDf2U_YA", "JlhcViv5-jE", "nmCbW13J8AI"];
 
     const tag = document.createElement('script');
     tag.src = "https://www.youtube.com/iframe_api";
@@ -246,40 +254,39 @@
     function onPlayerReady(event) { updateProgress(); }
 
     function onPlayerStateChange(event) {
+        const ui = document.getElementById('main-ui');
         if (event.data == YT.PlayerState.PLAYING) {
+            ui.classList.add('playing'); // 播放時加入 class 以顯示聲波
             const title = player.getVideoData().title;
             document.getElementById('song-title').innerText = title;
             document.getElementById('playBtn').innerText = "⏸︎";
             updateMarqueeText(title);
+        } else {
+            ui.classList.remove('playing'); // 暫停或停止時移除 class
+            if (event.data == YT.PlayerState.PAUSED) document.getElementById('playBtn').innerText = "▶︎";
         }
-        if (event.data == YT.PlayerState.PAUSED) document.getElementById('playBtn').innerText = "▶︎";
         if (event.data == YT.PlayerState.ENDED) isLooping ? player.playVideo() : nextVideo();
     }
 
     function updateMarqueeText(title) {
-        // 重複15次確保覆蓋率
         const content = `正在放送中: ${title} // `.repeat(15);
         document.getElementById('top-marquee').innerText = content;
     }
 
     function updateTime() {
         const now = new Date();
-        const year = now.getFullYear(); // 取得年份
-        const month = String(now.getMonth() + 1).padStart(2, '0');
-        const day = String(now.getDate()).padStart(2, '0');
-        const hours = String(now.getHours()).padStart(2, '0');
-        const minutes = String(now.getMinutes()).padStart(2, '0');
-        const seconds = String(now.getSeconds()).padStart(2, '0');
+        const year = now.getFullYear();
+        const month = String(now.getMonth()+1).padStart(2,'0');
+        const day = String(now.getDate()).padStart(2,'0');
+        const hours = String(now.getHours()).padStart(2,'0');
+        const minutes = String(now.getMinutes()).padStart(2,'0');
+        const seconds = String(now.getSeconds()).padStart(2,'0');
         
         const timeStr = `${month}/${day} ${hours}:${minutes}:${seconds}`;
-        
-        // 恢復你原本要求的文字格式
+        // 恢復完整文字格式
         const fullText = `果宝音乐机 ${year} - 已启用Youtube隐私模式 - ${timeStr} // `;
         
-        const target = document.getElementById('bottom-marquee');
-        if (target) {
-            target.innerText = fullText.repeat(15);
-        }
+        document.getElementById('bottom-marquee').innerText = fullText.repeat(15);
         setTimeout(updateTime, 1000);
     }
 
