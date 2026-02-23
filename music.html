@@ -8,7 +8,7 @@
         :root {
             --neon-cyan: #00f2ff;
             --bg-black: #050505;
-            --panel-bg: rgba(0, 0, 0, 0.85);
+            --panel-bg: rgba(0, 0, 0, 0.9);
         }
 
         body {
@@ -32,8 +32,8 @@
             flex-direction: column;
             justify-content: center;
             align-items: center;
-            z-index: 1000;
-            transition: 0.5s;
+            z-index: 2000;
+            transition: 0.8s;
         }
 
         #overlay button {
@@ -48,96 +48,83 @@
             letter-spacing: 5px;
         }
 
-        #overlay button:hover {
-            background: var(--neon-cyan);
-            color: #000;
-        }
-
-        /* 滾動文字 */
+        /* 垂直跑馬燈容器 - 無背景、無邊框 */
         .marquee-container {
             position: fixed;
-            left: 0;
-            width: 100vw;      /* 確保佔滿視窗寬度 */
-            height: 35px;
-            background: rgba(0, 242, 255, 0.05);
-            border-top: 1px solid var(--neon-cyan);
-            border-bottom: 1px solid var(--neon-cyan);
+            width: 100px;
+            height: 300vh;
+            background: none; /* 移除背景 */
+            border: none;     /* 移除邊框 */
             overflow: hidden;
-            white-space: nowrap;
-            line-height: 35px;
-            z-index: 999;
+            display: flex;
+            justify-content: center;
+            z-index: 1; /* 放在播放器後面 */
         }
 
-        /* 確保這兩段分別貼頂與貼底 */
-        .top { 
-            top: 0; 
-        }
-
-        .bottom { 
-            bottom: 0; 
-        }
-
+        /* 垂直文字樣式 - 純白、加大、加粗 */
         .marquee-text {
-            display: inline-block;
-            animation: scroll-left 45s linear infinite;
-            font-size: 14px;
-            font-weight: bold;
-            letter-spacing: 2px;
-        }
-        .reverse {
-            animation: scroll-right 30s linear infinite;
-        }
-
-        /* 統一滾動動畫：位移只要 1/3 到 1/2 就能達成視覺無縫 */
-        @keyframes scroll-left {
-            from { transform: translateX(0); }
-            to { transform: translateX(-33.33%); } /* 配合 repeat(6) 非常穩 */
-        }
-
-        @keyframes scroll-right {
-            from { transform: translateX(-33.33%); }
-            to { transform: translateX(0); }
-        }
-
-        /* 確保下排文字 class 使用與上排相同的設定 */
-        .marquee-text {
-            display: inline-block;
+            color: #ffffff; /* 純白色 */
+            font-size: 50px; /* 超大文字 */
+            font-weight: 900;
             white-space: nowrap;
-        will-change: transform;
+            writing-mode: vertical-rl; /* 垂直排列 */
+            text-orientation: upright;
+            letter-spacing: 15px;
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3);
+            text-transform: uppercase;
+            opacity: 0.8; /* 稍微透明增加質感 */
         }
 
-        /* 如果你希望下排也是往左跑，請把 reverse 改成跟上排一樣的動畫名稱 */
-        .reverse {
-            animation: scroll-right 30s linear infinite; /* 往右跑 */
+        /* 左側：逆時針旋轉 7 度，移到最左邊 */
+        .top {
+            left: 7%;
+            top: -100vh;
+            transform: rotate(7deg);
+        }
+        .top .marquee-text {
+            animation: v-scroll-up 45s linear infinite;
         }
 
-        .top-scroll {
-            animation: scroll-left 30s linear infinite; /* 往左跑 */
+        /* 右側：逆時針旋轉 7 度，移到最右邊 */
+        .bottom {
+            right: 7%;
+            top: -100vh;
+            transform: rotate(7deg);
+        }
+        .bottom .marquee-text {
+            animation: v-scroll-down 45s linear infinite;
         }
 
-        /* 確保文字強制不換行 */
-        .marquee-text {
-            display: inline-block;
-            white-space: nowrap;
+        @keyframes v-scroll-up {
+            from { transform: translateY(0); }
+            to { transform: translateY(-33.33%); }
+        }
+
+        @keyframes v-scroll-down {
+            from { transform: translateY(-33.33%); }
+            to { transform: translateY(0); }
         }
 
         /* 主播放面板 */
         #main-ui {
             text-align: center;
             width: 90%;
-            max-width: 600px;
+            max-width: 650px; /* 恢復較大尺寸 */
             padding: 50px;
             border: 1px solid var(--neon-cyan);
             background: var(--panel-bg);
-            box-shadow: 0 0 30px rgba(0, 242, 255, 0.15);
+            box-shadow: 0 0 40px rgba(0, 242, 255, 0.2);
             display: none;
             z-index: 10;
+            position: relative;
+            backdrop-filter: blur(5px); /* 背景毛玻璃 */
         }
 
         #song-title {
-            font-size: 1.2rem;
+            font-size: 1.5rem;
             margin-bottom: 30px;
-            height: 3rem;
+            height: 4rem;
+            font-weight: bold;
             overflow: hidden;
             display: -webkit-box;
             -webkit-line-clamp: 2;
@@ -146,98 +133,65 @@
 
         /* 進度條 */
         #progress-container {
-            width: 100%;
-            height: 6px;
-            background: #1a1a1a;
-            margin: 20px 0;
-            cursor: pointer;
-            position: relative;
+            width: 100%; height: 8px; background: #1a1a1a;
+            margin: 25px 0; cursor: pointer; position: relative;
         }
         #progress-bar {
-            height: 100%;
-            background: var(--neon-cyan);
-            width: 0%;
-            box-shadow: 0 0 10px var(--neon-cyan);
+            height: 100%; background: var(--neon-cyan);
+            width: 0%; box-shadow: 0 0 10px var(--neon-cyan);
         }
 
-        /* 按鈕控制項 */
-        .controls {
-            display: flex;
-            justify-content: center;
-            gap: 15px;
-            margin-top: 30px;
-            flex-wrap: wrap;
-        }
-
+        /* 控制按鈕 */
+        .controls { display: flex; justify-content: center; gap: 20px; margin-top: 25px; }
         .controls button {
-            background: none;
-            border: 1px solid var(--neon-cyan);
-            color: var(--neon-cyan);
-            font-size: 24px;
-            width: 60px;
-            height: 50px;
-            cursor: pointer;
-            transition: 0.2s;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            background: none; border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan); font-size: 24px; width: 60px; height: 55px;
+            cursor: pointer; transition: 0.2s;
         }
+        .controls button:hover { background: rgba(0, 242, 255, 0.2); }
+        .active-mode { background: var(--neon-cyan) !important; color: #000 !important; }
 
-        .controls button:hover {
-            background: rgba(0, 242, 255, 0.2);
-        }
+        input[type="range"] { accent-color: var(--neon-cyan); width: 180px; }
 
-        .active-mode {
-            background: var(--neon-cyan) !important;
-            color: #000 !important;
-        }
-
-        input[type="range"] {
-            accent-color: var(--neon-cyan);
-            width: 150px;
-            margin-left: 10px;
-            vertical-align: middle;
-        }
-
-        /* 隱藏 YouTube */
         #yt-api-player { position: absolute; top: -9999px; }
     </style>
 </head>
 <body>
 
 <div id="overlay">
-    <div style="margin-bottom: 20px; opacity: 0.7;">果宝音乐机 [1.0]</div>
+    <div style="margin-bottom: 20px; opacity: 0.7; letter-spacing: 5px;">果宝音乐机 [1.0]</div>
     <button onclick="startStation()">点我进入音乐机</button>
 </div>
 
 <div class="marquee-container top">
-    <div class="marquee-text" id="top-marquee">LOADING DATA STREAM... </div>
+    <div class="marquee-text" id="top-marquee">LOADING DATA...</div>
+</div>
+
+<div class="marquee-container bottom">
+    <div class="marquee-text" id="bottom-marquee">INITIALIZING...</div>
 </div>
 
 <div id="main-ui">
-    <div style="font-size: 10px; margin-bottom: 5px; opacity: 0.5;">正在放送中</div>
-    <div id="song-title">等待放送开始...</div>
+    <div style="font-size: 10px; margin-bottom: 10px; opacity: 0.5; letter-spacing: 2px;">正在放送中</div>
+    <div id="song-title">等待放送開始...</div>
     
     <div id="progress-container" onclick="seek(event)">
         <div id="progress-bar"></div>
     </div>
 
     <div class="controls">
-        <button onclick="prevVideo()" title="上一首">⏮︎</button>
-        <button onclick="togglePlay()" id="playBtn" title="暫停">⏸︎</button>
-        <button onclick="nextVideo()" title="下一首">⏭︎</button>
-        <button onclick="shuffleVideo()" title="隨機跳轉">⇝</button>
-        <button onclick="toggleLoop()" id="loopBtn" title="重複播放">⟲</button>
+        <button onclick="prevVideo()">⏮︎</button>
+        <button onclick="togglePlay()" id="playBtn">⏸︎</button>
+        <button onclick="nextVideo()">⏭︎</button>
+        <button onclick="shuffleVideo()">⇝</button>
+        <button onclick="toggleLoop()" id="loopBtn">⟲</button>
     </div>
 
-    <div style="margin-top: 30px; font-size: 12px;">
+    <div style="margin-top: 40px; font-size: 14px; opacity: 0.8;">
         VOL <input type="range" min="0" max="100" value="50" oninput="setVolume(this.value)">
     </div>
 </div>
 
-<div class="marquee-container bottom">
-    <div class="marquee-text reverse" id="bottom-marquee"></div>
-</div>
 <div id="yt-api-player"></div>
 
 <script>
@@ -281,114 +235,36 @@
 
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('yt-api-player', {
-            height: '0',
-            width: '0',
+            height: '0', width: '0',
             host: 'https://www.youtube-nocookie.com',
             videoId: playlist[currentIndex],
-            playerVars: {
-                'autoplay': 0,
-                'controls': 0,
-                'modestbranding': 1,
-                'rel': 0,
-                'origin': window.location.origin
-            },
-            events: {
-                'onReady': onPlayerReady,
-                'onStateChange': onPlayerStateChange
-            }
+            playerVars: { 'autoplay': 0, 'controls': 0, 'modestbranding': 1, 'rel': 0 },
+            events: { 'onReady': onPlayerReady, 'onStateChange': onPlayerStateChange }
         });
     }
 
-    function startStation() {
-        document.getElementById('overlay').style.opacity = '0';
-        setTimeout(() => {
-            document.getElementById('overlay').style.display = 'none';
-            document.getElementById('main-ui').style.display = 'block';
-            if (player && player.playVideo) {
-                player.playVideo();
-            }
-            updateTime(); 
-        }, 500);
-    }
-
-    function onPlayerReady(event) {
-        updateProgress();
-    }
+    function onPlayerReady(event) { updateProgress(); }
 
     function onPlayerStateChange(event) {
-        const btn = document.getElementById('playBtn');
         if (event.data == YT.PlayerState.PLAYING) {
             const title = player.getVideoData().title;
             document.getElementById('song-title').innerText = title;
-            btn.innerText = "⏸︎";
+            document.getElementById('playBtn').innerText = "⏸︎";
             updateMarqueeText(title);
         }
-        if (event.data == YT.PlayerState.PAUSED) {
-            btn.innerText = "▶︎";
-        }
-        if (event.data == YT.PlayerState.ENDED) {
-            isLooping ? player.playVideo() : nextVideo();
-        }
+        if (event.data == YT.PlayerState.PAUSED) document.getElementById('playBtn').innerText = "▶︎";
+        if (event.data == YT.PlayerState.ENDED) isLooping ? player.playVideo() : nextVideo();
     }
 
     function updateMarqueeText(title) {
-        const content = `正在放送中: ${title} // `.repeat(5);
+        // 重複15次確保覆蓋率
+        const content = `正在放送中: ${title} // `.repeat(15);
         document.getElementById('top-marquee').innerText = content;
-    }
-
-    function togglePlay() {
-        player.getPlayerState() == 1 ? player.pauseVideo() : player.playVideo();
-    }
-
-    function nextVideo() {
-        currentIndex = (currentIndex + 1) % playlist.length;
-        player.loadVideoById(playlist[currentIndex]);
-    }
-
-    function prevVideo() {
-        currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
-        player.loadVideoById(playlist[currentIndex]);
-    }
-
-    function shuffleVideo() {
-        let newIndex;
-        do {
-            newIndex = Math.floor(Math.random() * playlist.length);
-        } while (newIndex === currentIndex);
-        currentIndex = newIndex;
-        player.loadVideoById(playlist[currentIndex]);
-    }
-
-    function toggleLoop() {
-        isLooping = !isLooping;
-        document.getElementById('loopBtn').classList.toggle('active-mode');
-    }
-
-    function setVolume(val) {
-        player.setVolume(val);
-    }
-
-    function updateProgress() {
-        if (player && player.getCurrentTime) {
-            const curr = player.getCurrentTime();
-            const dur = player.getDuration();
-            if (dur > 0) {
-                document.getElementById('progress-bar').style.width = (curr / dur * 100) + "%";
-            }
-        }
-        setTimeout(updateProgress, 1000);
-    }
-
-    function seek(event) {
-        const container = document.getElementById('progress-container');
-        const rect = container.getBoundingClientRect();
-        const percent = (event.clientX - rect.left) / rect.width;
-        player.seekTo(percent * player.getDuration());
     }
 
     function updateTime() {
         const now = new Date();
-        const year = now.getFullYear();
+        const year = now.getFullYear(); // 取得年份
         const month = String(now.getMonth() + 1).padStart(2, '0');
         const day = String(now.getDate()).padStart(2, '0');
         const hours = String(now.getHours()).padStart(2, '0');
@@ -396,14 +272,45 @@
         const seconds = String(now.getSeconds()).padStart(2, '0');
         
         const timeStr = `${month}/${day} ${hours}:${minutes}:${seconds}`;
+        
+        // 恢復你原本要求的文字格式
         const fullText = `果宝音乐机 ${year} - 已启用Youtube隐私模式 - ${timeStr} // `;
         
         const target = document.getElementById('bottom-marquee');
         if (target) {
-            target.innerText = fullText.repeat(6); 
+            target.innerText = fullText.repeat(15);
         }
         setTimeout(updateTime, 1000);
     }
+
+    function startStation() {
+        document.getElementById('overlay').style.opacity = '0';
+        setTimeout(() => {
+            document.getElementById('overlay').style.display = 'none';
+            document.getElementById('main-ui').style.display = 'block';
+            if (player && player.playVideo) player.playVideo();
+            updateTime();
+        }, 500);
+    }
+
+    function togglePlay() { player.getPlayerState() == 1 ? player.pauseVideo() : player.playVideo(); }
+    function nextVideo() { currentIndex = (currentIndex + 1) % playlist.length; player.loadVideoById(playlist[currentIndex]); }
+    function prevVideo() { currentIndex = (currentIndex - 1 + playlist.length) % playlist.length; player.loadVideoById(playlist[currentIndex]); }
+    function shuffleVideo() { currentIndex = Math.floor(Math.random() * playlist.length); player.loadVideoById(playlist[currentIndex]); }
+    function toggleLoop() { isLooping = !isLooping; document.getElementById('loopBtn').classList.toggle('active-mode'); }
+    function setVolume(val) { player.setVolume(val); }
+    function updateProgress() {
+        if (player && player.getCurrentTime) {
+            const dur = player.getDuration();
+            if (dur > 0) document.getElementById('progress-bar').style.width = (player.getCurrentTime() / dur * 100) + "%";
+        }
+        setTimeout(updateProgress, 1000);
+    }
+    function seek(event) {
+        const rect = document.getElementById('progress-container').getBoundingClientRect();
+        player.seekTo(((event.clientX - rect.left) / rect.width) * player.getDuration());
+    }
 </script>
+
 </body>
 </html>
