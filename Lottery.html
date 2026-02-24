@@ -204,16 +204,30 @@
         function goHome() { document.getElementById('home-view').style.display = 'block'; document.getElementById('game-view').style.display = 'none'; }
 
         function init() {
-            const grid = document.getElementById('menu-grid'); grid.innerHTML = "";
+            const grid = document.getElementById('menu-grid'); 
+            grid.innerHTML = "";
+    
             [100, 200, 300, 500, 1000, 2000].forEach(p => {
-                const d = document.createElement('div'); d.className = 'ticket-option';
-                // 您可以在這裡修改選單上的「千萬」等文字
-                let topText = (p >= 1000) ? (p/100 + " 千萬") : "200 萬"; 
-                if(p == 300) topText = "500 萬";
+                const d = document.createElement('div'); 
+                d.className = 'ticket-option';
+
+                // --- 在這裡修改最高獎金文字 ---
+                let topText = "";
+                if (p == 100)  topText = "30 萬";
+                if (p == 200)  topText = "200 萬";
+                if (p == 300)  topText = "500 萬";
+                if (p == 500)  topText = "500 萬";
+                if (p == 1000) topText = "1,000 萬";
+                if (p == 2000) topText = "2,000 萬";
+                // ----------------------------
+
                 d.innerHTML = `<h3>$${p}</h3><p>最高獎金 ${topText}</p>`;
+        
                 d.onclick = () => {
                     if(balance < p) return alert("餘額不足！");
-                    balance -= p; updateBalance(); isFinished = false;
+                    balance -= p; 
+                    updateBalance(); 
+                    isFinished = false;
                     document.getElementById('home-view').style.display = 'none';
                     document.getElementById('game-view').style.display = 'block';
                     document.getElementById('game-title').innerText = `$${p} 刮刮樂`;
