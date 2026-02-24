@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>絕境拉霸：時空倖存者 🎰 - 生存挑戰中</title>
+    <title>絕境拉霸：時空倖存者 🎰 - 強化版</title>
     <style>
         :root { --slot-size: 28vw; --neon-gold: #ffd700; --neon-cyan: #00ffcc; }
         body { 
@@ -13,77 +13,41 @@
             margin: 0; padding: 10px; min-height: 100vh;
         }
         
-        /* 遊戲大標題 */
         .game-title {
-            font-size: 1.8rem;
-            font-weight: 900;
-            margin: 10px 0;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            color: white;
-            text-shadow: 0 0 10px var(--neon-gold), 0 0 20px var(--neon-gold);
+            font-size: 1.8rem; font-weight: 900; margin: 10px 0; letter-spacing: 2px;
             background: linear-gradient(to bottom, #fff, #f1c40f);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 10px var(--neon-gold);
         }
 
-        /* 頂部資訊欄 */
-        .header-info { 
-            display: flex; flex-direction: column; align-items: center;
-            width: 95%; max-width: 400px; margin-bottom: 10px; gap: 8px;
-        }
-        .stats { font-size: 2rem; color: #ffeb3b; font-weight: bold; text-shadow: 0 0 10px rgba(255,235,59,0.5); }
-        .timer-display { 
-            font-size: 1.1rem; color: var(--neon-cyan); font-family: 'Courier New', monospace; 
-            background: rgba(0, 255, 204, 0.1); padding: 5px 20px; border-radius: 20px; 
-            border: 1px solid var(--neon-cyan); box-shadow: inset 0 0 10px rgba(0,255,204,0.2);
-        }
+        .header-info { display: flex; flex-direction: column; align-items: center; width: 95%; max-width: 400px; margin-bottom: 10px; gap: 8px; }
+        .stats { font-size: 2rem; color: #ffeb3b; font-weight: bold; }
+        .timer-display { font-size: 1.1rem; color: var(--neon-cyan); font-family: monospace; background: rgba(0,255,204,0.1); padding: 5px 20px; border-radius: 20px; border: 1px solid var(--neon-cyan); }
         
-        .reward-btn { 
-            padding: 8px 15px; background: #2ecc71; border: none; color: white; 
-            border-radius: 20px; font-weight: bold; cursor: pointer; display: none;
-            box-shadow: 0 0 15px #2ecc71;
-        }
-
-        /* 主容器 */
-        .container { 
-            background: #1a1a1a; width: 95%; max-width: 400px; padding: 20px; 
-            border-radius: 25px; border: 2px solid var(--neon-gold); 
-            box-shadow: 0 0 30px rgba(0,0,0,0.9), 0 0 15px rgba(255,215,0,0.2); 
-            text-align: center; box-sizing: border-box;
-        }
+        .container { background: #1a1a1a; width: 95%; max-width: 400px; padding: 20px; border-radius: 25px; border: 2px solid var(--neon-gold); box-shadow: 0 0 30px rgba(0,0,0,0.9); text-align: center; box-sizing: border-box; }
         
-        .slot-machine { 
-            display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 12px; 
-            background: #000; padding: 15px; border-radius: 15px; 
-            overflow: hidden; border: 1px solid #333; margin-bottom: 20px;
-        }
+        .slot-machine { display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 10px; background: #000; padding: 12px; border-radius: 15px; overflow: hidden; margin-bottom: 15px; }
         .slot-window { aspect-ratio: 1/1; background: white; border-radius: 10px; overflow: hidden; position: relative; }
         .slot-strip { position: absolute; top: 0; left: 0; width: 100%; display: flex; flex-direction: column; }
         .symbol { aspect-ratio: 1/1; font-size: 12vw; display: flex; align-items: center; justify-content: center; color: black; }
         @media(min-width: 400px) { .symbol { font-size: 50px; } }
 
-        .spinning { animation: scroll 0.2s linear infinite; }
+        .spinning { animation: scroll 0.15s linear infinite; }
         @keyframes scroll { 0% { transform: translateY(0); } 100% { transform: translateY(-300%); } }
 
-        .controls { display: flex; flex-direction: column; gap: 15px; margin-bottom: 10px; }
-        input { 
-            width: 100px; background: #222; color: #fff; border: 1px solid var(--neon-gold); 
-            padding: 8px; text-align: center; border-radius: 10px; font-size: 1.2rem;
-        }
+        .controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; }
+        .btn-group { display: flex; gap: 10px; justify-content: center; }
         
-        button#spinBtn { 
-            padding: 16px; font-size: 1.5rem; cursor: pointer; 
-            background: linear-gradient(135deg, #f1c40f, #e67e22); 
-            color: #000; font-weight: 900; border: none; border-radius: 15px; 
-            box-shadow: 0 5px 0 #95a5a6; transition: 0.1s;
-        }
-        button#spinBtn:active { transform: translateY(4px); box-shadow: 0 1px 0 #95a5a6; }
-        button#spinBtn:disabled { filter: grayscale(1); opacity: 0.5; }
+        button { cursor: pointer; color: #000; font-weight: 900; border: none; border-radius: 12px; transition: 0.1s; }
+        button:active { transform: translateY(3px); box-shadow: none; }
+        button:disabled { filter: grayscale(1); opacity: 0.5; }
 
-        .log { font-weight: bold; height: 60px; color: #2ecc71; font-size: 1.1rem; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.3; }
+        .btn-single { flex: 1; padding: 15px; font-size: 1.2rem; background: linear-gradient(135deg, #f1c40f, #e67e22); box-shadow: 0 4px 0 #95a5a6; }
+        .btn-multi { flex: 1.2; padding: 15px; font-size: 1.2rem; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; box-shadow: 0 4px 0 #7f8c8d; }
+
+        .log { font-weight: bold; height: 70px; color: #2ecc71; font-size: 1rem; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.4; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 5px; }
         
-        .rules-grid { margin-top: 15px; font-size: 0.8rem; color: #666; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; border-top: 1px solid #333; padding-top: 15px; text-align: left; }
+        .rules-grid { margin-top: 15px; font-size: 0.8rem; color: #666; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; border-top: 1px solid #333; padding-top: 10px; text-align: left; }
         #player { display: none; }
     </style>
 </head>
@@ -94,7 +58,6 @@
     <div class="header-info">
         <div class="stats">💰 <span id="balance">5000</span></div>
         <div class="timer-display">⏱ SURVIVAL: <span id="timer">00:00:00</span></div>
-        <button id="rewardBtn" class="reward-btn" onclick="claimReward()">🎁 領取補給 $1000</button>
     </div>
 
     <div class="container">
@@ -111,11 +74,14 @@
         </div>
 
         <div class="controls">
-            <div style="font-size: 1.1rem; color: #888;">投注額：<input type="number" id="betAmount" value="100" step="50"></div>
-            <button id="spinBtn" onclick="handleSpin()">🎰 轉動拉霸</button>
+            <div style="font-size: 1.1rem; color: #888;">投注額：<input type="number" id="betAmount" value="100" step="50" style="width:80px; background:#222; color:#fff; border:1px solid #ffd700; padding:5px; border-radius:5px; text-align:center;"></div>
+            <div class="btn-group">
+                <button id="spinBtn" class="btn-single" onclick="handleSpin(1)">單次啟動</button>
+                <button id="multiSpinBtn" class="btn-multi" onclick="handleSpin(10)">十連抽 🔥</button>
+            </div>
         </div>
 
-        <div class="log" id="gameLog">系統已上線。準備開始生存挑戰。</div>
+        <div class="log" id="gameLog">系統已就緒。</div>
 
         <div class="rules-grid">
             <div>• 中橫/直: 2x (🍍5x)</div><div>• 上下橫: 1.75x</div>
@@ -128,49 +94,31 @@
     <script>
         const symbols = ['🍓', '🍎', '🍌', '🍍', '🍇'];
         let balance = parseInt(localStorage.getItem('slot_balance')) || 5000;
-        let lastRewardTime = localStorage.getItem('slot_reward_time') || 0;
         let seconds = parseInt(localStorage.getItem('slot_timer_seconds')) || 0;
         let timerInterval = null;
 
         const winConfigs = [
-            { line: [0, 1, 2], name: "上橫線", mult: 1.75, sp: 1.75 },
-            { line: [3, 4, 5], name: "中橫線", mult: 2.0,  sp: 5.0 },
-            { line: [6, 7, 8], name: "下橫線", mult: 1.75, sp: 1.75 },
-            { line: [0, 3, 6], name: "左直線", mult: 1.5,  sp: 1.5 },
-            { line: [1, 4, 7], name: "中直線", mult: 2.0,  sp: 5.0 },
-            { line: [2, 5, 8], name: "右直線", mult: 1.5,  sp: 1.5 },
-            { line: [0, 4, 8], name: "斜線",   mult: 1.2,  sp: 1.2 },
-            { line: [2, 4, 6], name: "斜線",   mult: 1.2,  sp: 1.2 }
+            { line: [0, 1, 2], name: "上橫", mult: 1.75, sp: 1.75 },
+            { line: [3, 4, 5], name: "中橫", mult: 2.0,  sp: 5.0 },
+            { line: [6, 7, 8], name: "下橫", mult: 1.75, sp: 1.75 },
+            { line: [0, 3, 6], name: "左直", mult: 1.5,  sp: 1.5 },
+            { line: [1, 4, 7], name: "中直", mult: 2.0,  sp: 5.0 },
+            { line: [2, 5, 8], name: "右直", mult: 1.5,  sp: 1.5 },
+            { line: [0, 4, 8], name: "斜線", mult: 1.2,  sp: 1.2 },
+            { line: [2, 4, 6], name: "斜線", mult: 1.2,  sp: 1.2 }
         ];
 
-        // YouTube API
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         var player;
         function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                height: '0', width: '0',
-                videoId: '8nz_BWvCF_4',
-                events: { 'onReady': (e) => e.target.setVolume(50) }
-            });
+            player = new YT.Player('player', { height: '0', width: '0', videoId: '8nz_BWvCF_4', events: { 'onReady': (e) => e.target.setVolume(40) } });
         }
 
-        function startTimer() {
-            if (timerInterval) return;
-            timerInterval = setInterval(() => {
-                seconds++;
-                updateTimerDisplay();
-                localStorage.setItem('slot_timer_seconds', seconds);
-            }, 1000);
-        }
-
-        function stopTimer() {
-            clearInterval(timerInterval);
-            timerInterval = null;
-        }
-
+        function startTimer() { if (!timerInterval) timerInterval = setInterval(() => { seconds++; updateTimerDisplay(); localStorage.setItem('slot_timer_seconds', seconds); }, 1000); }
+        function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
         function updateTimerDisplay() {
             const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
             const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
@@ -192,107 +140,82 @@
             updateDisplay();
             updateTimerDisplay();
             startTimer();
-            checkReward();
-            setInterval(checkReward, 10000); 
         }
 
-        async function handleSpin() {
+        async function handleSpin(count) {
             const bet = parseInt(document.getElementById('betAmount').value);
             const log = document.getElementById('gameLog');
-            if (balance < bet) { log.innerText = "❌ 資源不足以啟動系統！"; return; }
+            if (balance < (bet * count)) { log.innerText = "❌ 資源不足以支援次數！"; return; }
 
             if (player && player.getPlayerState() !== 1) player.playVideo();
 
-            balance -= bet;
-            saveData();
-            updateDisplay();
             document.getElementById('spinBtn').disabled = true;
-            log.style.color = "#888";
-            log.innerText = "⚡ 系統運算中...";
+            document.getElementById('multiSpinBtn').disabled = true;
 
-            const results = [];
-            for (let i = 0; i < 9; i++) {
-                document.getElementById(`strip${i}`).classList.add('spinning');
-                results[i] = symbols[Math.floor(Math.random() * symbols.length)];
-            }
+            let totalWonInSession = 0;
+            let totalSpentInSession = 0;
 
-            await new Promise(r => setTimeout(r, 1200));
+            for (let c = 0; c < count; c++) {
+                if (balance < bet) break;
 
-            for (let i = 0; i < 9; i++) {
-                const strip = document.getElementById(`strip${i}`);
-                strip.classList.remove('spinning');
-                strip.firstChild.innerText = results[i];
-                if (i % 3 === 2) await new Promise(r => setTimeout(r, 60));
-            }
-
-            let totalWin = 0;
-            let wins = [];
-            winConfigs.forEach(c => {
-                if (results[c.line[0]] === results[c.line[1]] && results[c.line[1]] === results[c.line[2]]) {
-                    const mult = (results[c.line[0]] === '🍍') ? c.sp : c.mult;
-                    totalWin += bet * mult;
-                    wins.push(c.name);
-                }
-            });
-
-            if (totalWin > 0) {
-                balance += totalWin;
-                log.style.color = "#00ffcc";
-                log.innerHTML = `🏆 倖存回饋 $${Math.floor(totalWin)}！<br><span style='font-size:0.8rem'>偵測連線：${wins.join(', ')}</span>`;
-            } else {
+                balance -= bet;
+                totalSpentInSession += bet;
+                updateDisplay();
                 log.style.color = "#888";
-                log.innerText = "未發現有效連線，繼續生存。";
+                log.innerText = count > 1 ? `⚡ 十連抽進行中 (${c+1}/10)...` : "⚡ 系統運算中...";
+
+                // 動畫開始
+                const results = [];
+                for (let i = 0; i < 9; i++) {
+                    document.getElementById(`strip${i}`).classList.add('spinning');
+                    results[i] = symbols[Math.floor(Math.random() * symbols.length)];
+                }
+
+                await new Promise(r => setTimeout(r, count > 1 ? 300 : 1000)); // 十連抽縮短動畫時間
+
+                for (let i = 0; i < 9; i++) {
+                    const strip = document.getElementById(`strip${i}`);
+                    strip.classList.remove('spinning');
+                    strip.firstChild.innerText = results[i];
+                }
+
+                // 判斷中獎
+                let currentSpinWin = 0;
+                winConfigs.forEach(conf => {
+                    if (results[conf.line[0]] === results[conf.line[1]] && results[conf.line[1]] === results[conf.line[2]]) {
+                        currentSpinWin += bet * (results[conf.line[0]] === '🍍' ? conf.sp : conf.mult);
+                    }
+                });
+
+                balance += currentSpinWin;
+                totalWonInSession += currentSpinWin;
+                updateDisplay();
+                
+                if (balance <= 0) break;
+                if (count > 1) await new Promise(r => setTimeout(r, 100)); // 間隔
             }
 
-            updateDisplay();
+            // 最終結算顯示
+            const profit = totalWonInSession - totalSpentInSession;
+            log.style.color = profit >= 0 ? "#00ffcc" : "#e74c3c";
+            log.innerHTML = count > 1 ? 
+                `📊 十連抽結算：<br>總得 $${Math.floor(totalWonInSession)} (盈虧: ${profit >= 0 ? '+' : ''}${Math.floor(profit)})` :
+                (totalWonInSession > 0 ? `🏆 倖存回饋 $${Math.floor(totalWonInSession)}！` : "未發現連線。");
+
             document.getElementById('spinBtn').disabled = false;
+            document.getElementById('multiSpinBtn').disabled = false;
 
             if (balance <= 0) {
                 stopTimer();
                 const finalTime = document.getElementById('timer').innerText;
-                setTimeout(() => {
-                    alert(`【 任務失敗 】\n\n您的資源已耗盡。\n生存時長：${finalTime}\n\n點擊確定將重啟新的挑戰指令。`);
-                    resetGame();
-                }, 500);
+                setTimeout(() => { alert(`【 任務失敗 】\n生存時長：${finalTime}\n系統將重置。`); resetGame(); }, 500);
             }
             saveData();
         }
 
-        function resetGame() {
-            balance = 5000;
-            seconds = 0;
-            updateTimerDisplay();
-            updateDisplay();
-            startTimer();
-            saveData();
-            document.getElementById('gameLog').innerText = "系統已重置，啟動備用資源 $5000。";
-        }
-
-        function checkReward() {
-            const now = Date.now();
-            if (now - lastRewardTime >= 3600000) {
-                document.getElementById('rewardBtn').style.display = 'block';
-            }
-        }
-
-        function claimReward() {
-            balance += 1000;
-            lastRewardTime = Date.now();
-            saveData();
-            updateDisplay();
-            document.getElementById('rewardBtn').style.display = 'none';
-            document.getElementById('gameLog').innerText = "✅ 領取補給成功：$1000 加入餘額。";
-        }
-
-        function saveData() {
-            localStorage.setItem('slot_balance', balance);
-            localStorage.setItem('slot_reward_time', lastRewardTime);
-            localStorage.setItem('slot_timer_seconds', seconds);
-        }
-
-        function updateDisplay() {
-            document.getElementById('balance').innerText = Math.floor(balance).toLocaleString();
-        }
+        function resetGame() { balance = 5000; seconds = 0; updateTimerDisplay(); updateDisplay(); startTimer(); saveData(); }
+        function saveData() { localStorage.setItem('slot_balance', balance); localStorage.setItem('slot_timer_seconds', seconds); }
+        function updateDisplay() { document.getElementById('balance').innerText = Math.floor(balance).toLocaleString(); }
 
         window.onload = initSlots;
     </script>
