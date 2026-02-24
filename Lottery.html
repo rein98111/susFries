@@ -1,229 +1,208 @@
 <!DOCTYPE html>
-<html lang="zh-TW">
+<html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>王牌刮刮樂 v14.0</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Internal server error | twitter.com</title>
     <style>
-        :root { --primary: #e74c3c; --gold: #f1c40f; --dark: #2c3e50; --bg: #f8f9fa; }
-        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; }
-
-        .header { width: 100%; display: flex; justify-content: center; padding: 15px 0; position: sticky; top: 0; z-index: 100; background: var(--bg); }
-        .balance-card { background: var(--dark); color: white; padding: 12px 30px; border-radius: 50px; border: 3px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 10px; }
-        .balance-card span { color: var(--gold); font-size: 26px; font-weight: 900; }
-
-        .menu-grid { display: grid; gap: 15px; width: 100%; max-width: 1000px; margin-top: 10px; }
-        @media (min-width: 768px) { .menu-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (max-width: 767px) { .menu-grid { grid-template-columns: repeat(2, 1fr); } }
-
-        .ticket-option { background: white; border-radius: 18px; padding: 25px 15px; cursor: pointer; border: 1px solid #eee; text-align: center; box-shadow: 0 6px 12px rgba(0,0,0,0.05); }
-
-        #game-view { display: none; width: 100%; text-align: center; }
-        .canvas-container { 
-            position: relative; margin: 0 auto; border-radius: 20px; overflow: hidden; 
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3); background: #fff; border: 5px solid #fff;
+        body {
+            font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            color: #313131;
+            background-color: #ffffff;
         }
 
-        .prize-underlay { width: 100%; background: #fff; display: grid; padding: 20px; box-sizing: border-box; gap: 15px; visibility: hidden; }
-
-        @media (min-width: 768px) {
-            .canvas-container { width: 950px; } 
-            .prize-underlay { grid-template-columns: 1fr 1fr; }
-            .zone-full { grid-column: span 2; }
-        }
-        @media (max-width: 767px) {
-            .canvas-container { width: 350px; }
-            .prize-underlay { grid-template-columns: 1fr; }
+        /* 上方區域 */
+        .header {
+            padding: 40px 10%;
+            border-bottom: 1px solid #f2f2f2;
         }
 
-        .game-zone { width: 100%; border: 2px solid #f39c12; padding: 15px; border-radius: 14px; background: #fffdf5; box-sizing: border-box; }
-        .zone-title { font-size: 14px; color: #fff; background: #f39c12; border-radius: 7px; padding: 5px 0; margin-bottom: 12px; font-weight: bold; }
+        .header h1 {
+            font-size: 48px;
+            font-weight: 300;
+            margin: 0;
+            display: inline-block;
+        }
+
+        .error-code {
+            background: #cdcdcd;
+            color: #595959;
+            font-size: 12px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            vertical-align: middle;
+            margin-left: 10px;
+            position: relative;
+            top: -5px;
+        }
+
+        .header p {
+            color: #666;
+            margin: 15px 0 5px 0;
+        }
+
+        .header a {
+            color: #0051c3;
+            text-decoration: none;
+        }
+
+        .timestamp {
+            color: #999;
+            font-size: 13px;
+            font-family: monospace; /* 讓數字對齊不抖動 */
+        }
+
+        /* 中間狀態區域 */
+        .status-container {
+            background-color: #f7f7f7;
+            padding: 60px 10%;
+            display: flex;
+            justify-content: space-around;
+            text-align: center;
+            position: relative;
+        }
+
+        .status-container::after {
+            content: "";
+            position: absolute;
+            bottom: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-left: 15px solid transparent;
+            border-right: 15px solid transparent;
+            border-top: 15px solid #f7f7f7;
+        }
+
+        .status-item { flex: 1; }
+
+        .icon-wrapper {
+            position: relative;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        .icon-main { font-size: 80px; color: #999; line-height: 1; }
+
+        .badge {
+            position: absolute;
+            bottom: -5px;
+            right: -5px;
+            width: 35px;
+            height: 35px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            border: 3px solid #f7f7f7;
+        }
+
+        .success { background-color: #97bf0d; }
+        .failure { background-color: #bd2424; }
+
+        .label-top { color: #999; font-size: 14px; margin-bottom: 5px; }
+        .label-mid { font-size: 22px; margin-bottom: 5px; }
+        .label-status { font-size: 22px; font-weight: 400; }
         
-        canvas { position: absolute; top: 0; left: 0; z-index: 5; cursor: crosshair; }
-        
-        .btn { padding: 15px 0; font-size: 18px; cursor: pointer; border: none; border-radius: 15px; background: var(--dark); color: white; margin: 20px 0; width: 100%; max-width: 350px; font-weight: bold; }
-        .num-box { border: 1.5px solid #eee; font-size: 18px; padding: 10px; background: #fff; border-radius: 10px; font-weight: 900; }
-        .match-bingo { color: white !important; background: var(--primary) !important; }
-        #status { font-weight: bold; font-size: 22px; margin: 15px 0; min-height: 30px; color: var(--dark); }
-        
-        /* 載入遮罩 */
-        #loading-overlay { 
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(255,255,255,0.9); display: none; justify-content: center; 
-            align-items: center; z-index: 1000; font-weight: bold; 
+        .text-green { color: #97bf0d; }
+        .text-red { color: #bd2424; }
+        .text-blue { color: #0051c3; }
+
+        /* 下方文字區域 */
+        .info-container {
+            padding: 50px 10%;
+            display: flex;
+            gap: 100px;
+        }
+
+        .info-box { flex: 1; }
+        .info-box h2 { font-size: 32px; font-weight: 400; margin-bottom: 20px; }
+        .info-box p { color: #313131; line-height: 1.5; }
+
+        @media (max-width: 768px) {
+            .status-container, .info-container { flex-direction: column; gap: 40px; }
         }
     </style>
 </head>
 <body>
 
-    <div id="loading-overlay">發牌中...</div>
-
     <div class="header">
-        <div class="balance-card">我的錢包 <span>$ <span id="balance-display">10,000</span></span></div>
+        <h1>Internal server error</h1>
+        <span class="error-code">Error code 500</span>
+        <p>Visit <a href="#">cloudflare.com</a> for more information.</p>
+        <div class="timestamp" id="live-clock">Loading time...</div>
     </div>
 
-    <div id="home-view">
-        <div class="menu-grid" id="menu-grid"></div>
-    </div>
-
-    <div id="game-view">
-        <h2 id="game-title" style="color: var(--primary); margin: 10px 0;"></h2>
-        <div class="canvas-container">
-            <div class="prize-underlay" id="prize-zone"></div>
-            <canvas id="scratch-canvas"></canvas>
+    <div class="status-container">
+        <div class="status-item">
+            <div class="icon-wrapper">
+                <div class="icon-main">💻</div>
+                <div class="badge success">✓</div>
+            </div>
+            <div class="label-top">You</div>
+            <div class="label-mid" style="color:#999">Browser</div>
+            <div class="label-status text-green">Working</div>
         </div>
-        <div id="status"></div>
-        <button class="btn" onclick="goHome()">⬅ 返回選單</button>
+
+        <div class="status-item">
+            <div class="icon-wrapper">
+                <div class="icon-main">☁️</div>
+                <div class="badge failure">×</div>
+            </div>
+            <div class="label-top">Taipei</div>
+            <div class="label-mid text-blue">Cloudflare</div>
+            <div class="label-status text-red">Error</div>
+        </div>
+
+        <div class="status-item">
+            <div class="icon-wrapper">
+                <div class="icon-main">💾</div>
+                <div class="badge success">✓</div>
+            </div>
+            <div class="label-top">twitter.com</div>
+            <div class="label-mid" style="color:#999">Host</div>
+            <div class="label-status text-green">Working</div>
+        </div>
+    </div>
+
+    <div class="info-container">
+        <div class="info-box">
+            <h2>What happened?</h2>
+            <p>There is an internal server error on Cloudflare's network.</p>
+        </div>
+        <div class="info-box">
+            <h2>What can I do?</h2>
+            <p>Please try again in a few minutes.</p>
+        </div>
     </div>
 
     <script>
-        let balance = localStorage.getItem('wallet_v14') ? parseInt(localStorage.getItem('wallet_v14')) : 10000;
-        const canvas = document.getElementById('scratch-canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        let isDrawing = false, isFinished = false, currentPrice = 0;
-
-        const PRIZE_DATA = {
-            100:  { lv: [100, 1000, 300000], wt: [600, 20, 1] },
-            200:  { lv: [200, 2000, 2000000], wt: [600, 15, 1] },
-            300:  { lv: [100, 300, 1000, 10000, 5000000], wt: [400, 100, 20, 5, 1] },
-            500:  { lv: [500, 10000, 5000000], wt: [500, 10, 1] },
-            1000: { lv: [1000, 50000, 10000000], wt: [400, 5, 0.2] },
-            2000: { lv: [2000, 100000, 20000000], wt: [400, 2, 0.1] }
-        };
-
-        // 區域 HTML 生成 (省略重複代碼，保持邏輯不變)
-        function createA(win) {
-            let nums = Array.from({length:9}, () => Math.floor(Math.random()*89)+10);
-            if(win > 0){ let v=nums[0]; nums[1]=v; nums[2]=v; }
-            return `<div class="game-zone"><div class="zone-title">A區：賓果連線</div><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">${nums.map((n,i)=>`<div class="num-box ${win>0 && i<3?'match-bingo':''}">${n}</div>`).join('')}</div></div>`;
-        }
-        function createD(win, price) {
-            const lucky = Math.floor(Math.random()*89)+10;
-            let items = Array.from({length:10}, () => ({n: Math.floor(Math.random()*89)+10, m: false, amt: Math.floor(price/2)}));
-            if(win > 0) { items[0].n = lucky; items[0].m = true; items[0].amt = win; }
-            items.sort(()=>Math.random()-0.5);
-            return `<div class="game-zone zone-full"><div class="zone-title">D區：幸運對獎</div><div style="margin-bottom:8px;">幸運號: <b style="color:red;font-size:20px;">${lucky}</b></div><div style="display:grid; grid-template-columns:repeat(5,1fr); gap:10px;">${items.map(it=>`<div class="num-box ${it.m?'match-bingo':''}" style="font-size:12px;">${it.n}<br>$${it.amt.toLocaleString()}</div>`).join('')}</div></div>`;
-        }
-
-        async function startNewGame(price) {
-            currentPrice = price;
-            document.getElementById('loading-overlay').style.display = 'flex';
+        function updateClock() {
+            const now = new Date();
             
-            // 1. 計算獎金
-            let totalWin = 0;
-            if(Math.random() < 0.6) {
-                let data = PRIZE_DATA[price];
-                let r = Math.random() * data.wt.reduce((a,b)=>a+b,0);
-                for(let i=0; i<data.lv.length; i++) { if(r < data.wt[i]) { totalWin = data.lv[i]; break; } r -= data.wt[i]; }
-            }
+            // 取得 UTC 時間各個部分
+            const year = now.getUTCFullYear();
+            const month = String(now.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(now.getUTCDate()).padStart(2, '0');
+            const hours = String(now.getUTCHours()).padStart(2, '0');
+            const minutes = String(now.getUTCMinutes()).padStart(2, '0');
+            const seconds = String(now.getUTCSeconds()).padStart(2, '0');
 
-            // 2. 渲染內容但保持不可見
-            const zone = document.getElementById('prize-zone');
-            zone.style.visibility = "hidden";
+            // 格式化字串: 2024-05-20 12:00:00 UTC
+            const timeString = `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`;
             
-            if (price == 300) {
-                let luckyNums = []; while(luckyNums.length < 15) { let n = Math.floor(Math.random()*89)+10; if(!luckyNums.includes(n)) luckyNums.push(n); }
-                let matchCount = totalWin === 0 ? Math.floor(Math.random()*4) : (totalWin <= 100 ? 4 : (totalWin <= 300 ? 5 : (totalWin <= 1000 ? 8 : (totalWin <= 10000 ? 12 : 15))));
-                let myNums = []; let tempLucky = [...luckyNums].sort(()=>Math.random()-0.5);
-                for(let i=0; i<matchCount; i++) myNums.push(tempLucky.pop());
-                while(myNums.length < 20) { let n = Math.floor(Math.random()*89)+10; if(!luckyNums.includes(n) && !myNums.includes(n)) myNums.push(n); }
-                myNums.sort(()=>Math.random()-0.5);
-                zone.innerHTML = `<div class="game-zone zone-full"><div class="zone-title">數字派對：累積對獎 (最高 $5,000,000)</div><div style="display:flex; gap:10px; flex-wrap:wrap; justify-content:center;"><div style="flex:1; min-width:250px;"><p style="font-weight:bold; margin:5px;">【幸運號碼】</p><div style="display:grid; grid-template-columns:repeat(5,1fr); gap:5px; border:2px dashed #f39c12; padding:8px; background:#fff;">${luckyNums.map(n => `<div>${n}</div>`).join('')}</div></div><div style="width:110px; font-size:10px; border:1px solid #ddd; padding:5px; background:#fff;"><b>獎金表</b><br>4個:$100<br>8個:$1,000<br>15個:500萬</div></div><p style="font-weight:bold; margin:10px 0 5px;">【你的號碼】</p><div style="display:grid; grid-template-columns:repeat(5,1fr); gap:8px;">${myNums.map(n => `<div class="num-box ${luckyNums.includes(n)?'match-bingo':''}">${n}</div>`).join('')}</div></div>`;
-            } else {
-                let p = [0,0,0,0]; p[Math.floor(Math.random()*(price>=2000?4:price>=1000?3:price>=500?2:1))] = totalWin;
-                zone.innerHTML = (price>=100?createA(p[0]):"") + (price>=2000?createD(p[3], price):"");
-            }
-            zone.dataset.value = totalWin;
-
-            // 3. 準備畫布
-            setTimeout(() => {
-                canvas.width = zone.offsetWidth;
-                canvas.height = zone.offsetHeight;
-                fillCanvas();
-                
-                // 4. 全部就緒後顯示
-                document.getElementById('home-view').style.display = 'none';
-                document.getElementById('game-view').style.display = 'block';
-                document.getElementById('loading-overlay').style.display = 'none';
-                zone.style.visibility = "visible";
-                isFinished = false;
-                canvas.style.opacity = "1";
-            }, 300);
+            document.getElementById('live-clock').textContent = timeString;
         }
 
-        function fillCanvas() {
-            ctx.globalCompositeOperation = 'source-over';
-            const g = ctx.createLinearGradient(0,0,canvas.width,canvas.height);
-            g.addColorStop(0, '#d4af37'); g.addColorStop(0.5, '#f1c40f'); g.addColorStop(1, '#d4af37');
-            ctx.fillStyle = g; ctx.fillRect(0,0,canvas.width,canvas.height);
-            ctx.globalCompositeOperation = 'destination-out';
-            ctx.lineWidth = 60; ctx.lineCap = 'round';
-        }
-
-        function scratch(e) {
-            if (!isDrawing || isFinished) return;
-            e.preventDefault();
-            const r = canvas.getBoundingClientRect();
-            const x = (e.clientX || (e.touches ? e.touches[0].clientX : 0)) - r.left;
-            const y = (e.clientY || (e.touches ? e.touches[0].clientY : 0)) - r.top;
-            ctx.beginPath(); ctx.arc(x, y, 35, 0, Math.PI*2); ctx.fill();
-            
-            // 優化：每刮 10 次才檢查一次進度，節省效能
-            if(Math.random() > 0.9) checkProg();
-        }
-
-        function checkProg() {
-            const pix = ctx.getImageData(0,0,canvas.width,canvas.height).data;
-            let trans = 0; for(let i=3; i<pix.length; i+=4) if(pix[i]<128) trans++;
-            if(trans > (pix.length/4)*0.85) {
-                isFinished = true;
-                canvas.style.opacity = "0";
-                const win = parseInt(document.getElementById('prize-zone').dataset.value);
-                if(win > 0) {
-                    balance += win; 
-                    updateBalance();
-                    document.getElementById('status').innerText = `🎉 恭喜中獎 $${win.toLocaleString()}！`;
-                } else {
-                    document.getElementById('status').innerText = "銘謝惠顧，下次會更好！";
-                }
-            }
-        }
-
-        function updateBalance() {
-            document.getElementById('balance-display').innerText = balance.toLocaleString();
-            localStorage.setItem('wallet_v14', balance);
-        }
-
-        function goHome() {
-            document.getElementById('home-view').style.display = 'block';
-            document.getElementById('game-view').style.display = 'none';
-            document.getElementById('status').innerText = "";
-        }
-
-        function init() {
-            const grid = document.getElementById('menu-grid'); grid.innerHTML = "";
-            [100, 200, 300, 500, 1000, 2000].forEach(p => {
-                const d = document.createElement('div'); d.className = 'ticket-option';
-                let top = (p==100?"30萬":(p==300||p==500?"500萬":(p==1000?"1000萬":(p==2000?"2000萬":"200萬"))));
-                d.innerHTML = `<h3>$${p}</h3><p>最高獎金 ${top}</p>`;
-                d.onclick = () => {
-                    if(balance < p) return alert("餘額不足！");
-                    balance -= p; updateBalance();
-                    document.getElementById('game-title').innerText = `$${p} 刮刮樂`;
-                    startNewGame(p);
-                };
-                grid.appendChild(d);
-            });
-            updateBalance();
-        }
-
-        canvas.addEventListener('mousedown', () => isDrawing = true);
-        window.addEventListener('mouseup', () => isDrawing = false);
-        canvas.addEventListener('mousemove', scratch);
-        canvas.addEventListener('touchstart', (e) => { isDrawing = true; scratch(e); }, {passive:false});
-        canvas.addEventListener('touchmove', (e) => { scratch(e); }, {passive:false});
-        canvas.addEventListener('touchend', () => isDrawing = false);
-        init();
+        // 每秒更新一次
+        setInterval(updateClock, 1000);
+        // 初始化調用一次避免空白
+        updateClock();
     </script>
+
 </body>
 </html>
