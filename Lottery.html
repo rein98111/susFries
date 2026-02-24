@@ -1,100 +1,373 @@
-// --- 輔助函數：取得不重複的隨機數組 ---
-function getRandomNums(count, max, min = 1) {
-    let set = new Set();
-    while(set.size < count) set.add(Math.floor(Math.random() * (max - min + 1)) + min);
-    return Array.from(set);
-}
-
-// 1. A區：賓果連線 (徹底隨機化)
-function createBingoZone(winAmt) {
-    const isWin = winAmt > 0;
-    let nums = getRandomNums(9, 30); // 隨機抽9個號碼
-    if (isWin) {
-        // 強制讓第一橫列連線 (真實情況會隨機連線，這裡先保證視覺中獎)
-        const winLine = getRandomNums(3, 30);
-        nums[0] = winLine[0]; nums[1] = winLine[1]; nums[2] = winLine[2];
-    }
-    return `<div class="game-zone">
-        <div class="zone-title">A區：賓果連線</div>
-        <div class="bingo-grid">${nums.map((n,i)=>`<div class="num-box ${isWin && i<3?'match':''}">${n}</div>`).join('')}</div>
-        <div style="font-size:12px; margin-top:5px;">獎金: $${winAmt.toLocaleString()}</div>
-    </div>`;
-}
-
-// 2. B區：幸運符號 (擴充圖案池)
-function createSymbolZone(winAmt) {
-    const pool = ['💎','🍀','🍎','🍒','🔔','🍋','💰','⭐','🧧'];
-    let syms = [];
-    if (winAmt > 0) {
-        const winSym = pool[Math.floor(Math.random()*pool.length)];
-        syms = [winSym, winSym, winSym];
-        while(syms.length < 5) syms.push(pool[Math.floor(Math.random()*pool.length)]);
-    } else {
-        syms = getRandomNums(5, pool.length-1, 0).map(idx => pool[idx]);
-    }
-    syms.sort(() => Math.random() - 0.5);
-    return `<div class="game-zone">
-        <div class="zone-title">B區：幸運符號 (3個相同即中)</div>
-        <div style="font-size:24px; letter-spacing:10px;">${syms.join('')}</div>
-        <div style="font-size:12px; margin-top:5px;">獎金: $${winAmt.toLocaleString()}</div>
-    </div>`;
-}
-
-// 3. AB區：300元專用 (大池子抽號碼)
-function createNumberZone(winAmt) {
-    const luckyPool = getRandomNums(15, 99);
-    let myPool = getRandomNums(20, 99);
-    
-    if (winAmt > 0) {
-        const matchCount = winAmt >= 1000 ? 6 : 4;
-        for(let i=0; i<matchCount; i++) myPool[i] = luckyPool[i];
-    } else {
-        // 確保不中獎 (過濾掉幸運號碼)
-        myPool = myPool.filter(n => !luckyPool.includes(n));
-        while(myPool.length < 20) {
-            let n = Math.floor(Math.random()*99)+1;
-            if(!luckyPool.includes(n)) myPool.push(n);
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>王牌刮刮樂：置中優化版</title>
+    <style>
+        :root { --primary: #e74c3c; --gold: #f1c40f; --dark: #2c3e50; --bg: #ecf0f1; }
+        
+        /* 基本排版：確保主體置中 */
+        body { 
+            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
+            background: var(--bg); 
+            margin: 0; 
+            padding: 20px 10px; 
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 水平置中 */
+            min-height: 100vh;
         }
-    }
-    myPool.sort(() => Math.random() - 0.5);
-    
-    return `<div class="game-zone">
-        <div class="zone-title">AB區：幸運對獎</div>
-        <div style="font-size:10px; color:#666;">幸運號碼：${luckyPool.join(', ')}</div>
-        <div class="number-pool" style="margin-top:8px;">
-            ${myPool.map(n => `<span class="${luckyPool.includes(n)?'match':''}">${n}</span>`).join(' ')}
+        
+        /* 錢包樣式 */
+        .balance-card { 
+            background: var(--dark); 
+            color: white; 
+            padding: 15px 30px; 
+            border-radius: 50px; 
+            border: 2px solid var(--gold); 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
+            width: fit-content;
+        }
+        .balance-card span { color: var(--gold); font-size: 28px; font-weight: bold; }
+        
+        .timer-info { font-size: 12px; color: #666; margin-bottom: 20px; }
+
+        /* 首頁選單網格 */
+        .grid { 
+            display: grid; 
+            grid-template-columns: repeat(2, 1fr); 
+            gap: 15px; 
+            max-width: 400px; 
+            width: 100%;
+            margin: 0 auto; 
+        }
+        .ticket-option { 
+            background: white; 
+            border-radius: 12px; 
+            padding: 15px; 
+            cursor: pointer; 
+            border: 2px solid #ddd; 
+            transition: 0.2s;
+            text-align: center;
+        }
+        .ticket-option:hover { border-color: var(--primary); transform: translateY(-3px); }
+
+        /* 遊戲視圖：確保畫布置中 */
+        #game-view { 
+            display: none; 
+            width: 100%;
+            max-width: 350px;
+            margin: 0 auto;
+        }
+        
+        .canvas-container { 
+            position: relative; 
+            width: 350px; 
+            margin: 0 auto; /* 核心置中 */
+            border-radius: 15px; 
+            overflow: hidden; 
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3); 
+            background: #fff;
+        }
+        
+        .prize-underlay { 
+            position: absolute; 
+            width: 100%; 
+            height: 100%; 
+            background: #fff; 
+            z-index: 1; 
+            display: flex; 
+            flex-direction: column; 
+            padding: 10px; 
+            box-sizing: border-box; 
+            overflow-y: auto;
+            align-items: center; /* 內容置中 */
+        }
+
+        .game-zone { 
+            width: 100%; /* 寬度撐滿 */
+            border: 2px solid #e67e22; 
+            margin-bottom: 12px; 
+            padding: 10px; 
+            border-radius: 10px; 
+            background: #fffaf0; 
+            box-sizing: border-box;
+            text-align: center;
+        }
+        
+        .zone-title { 
+            font-size: 12px; 
+            color: #fff; 
+            font-weight: bold; 
+            margin-bottom: 8px; 
+            background: #e67e22; 
+            border-radius: 4px; 
+            padding: 3px 0; 
+            width: 100%;
+        }
+        
+        canvas { 
+            position: absolute; 
+            top: 0; 
+            left: 0; 
+            z-index: 2; 
+            cursor: crosshair; 
+        }
+
+        .btn { 
+            padding: 12px 40px; 
+            font-size: 16px; 
+            cursor: pointer; 
+            border: none; 
+            border-radius: 8px; 
+            background: #7f8c8d; 
+            color: white; 
+            margin-top: 20px;
+            width: 100%;
+        }
+        
+        #status { font-weight: bold; font-size: 20px; margin: 15px 0; color: var(--dark); min-height: 30px; }
+
+        /* 玩法內部排版 */
+        .bingo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 100%; }
+        .num-box { border: 1px solid #ddd; font-size: 16px; padding: 8px; background: #fff; }
+        .match { color: white !important; font-weight: bold; background: #e74c3c !important; }
+        .number-pool { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
+        .number-pool span { width: 28px; height: 28px; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; border-radius: 50%; font-size: 12px; }
+    </style>
+</head>
+<body>
+
+    <div class="balance-card">錢包餘額 <span>$ <span id="balance-display">10000</span></span></div>
+    <div class="timer-info">⏳ 30秒救濟金 | 下次：<span id="timer">30</span>s</div>
+
+    <div id="home-view">
+        <h2 style="color: var(--dark); margin-bottom: 20px;">🎰 真實感刮刮樂</h2>
+        <div class="grid" id="menu-grid"></div>
+    </div>
+
+    <div id="game-view">
+        <h2 id="game-title" style="color: var(--primary); margin-bottom: 10px;"></h2>
+        <div class="canvas-container" id="container">
+            <div class="prize-underlay" id="prize-zone"></div>
+            <canvas id="scratch-canvas" width="350" height="400"></canvas>
         </div>
-        <div style="font-size:12px; margin-top:5px;">獎金: $${winAmt.toLocaleString()}</div>
-    </div>`;
-}
+        <div id="status"></div>
+        <button class="btn" onclick="goHome()">返回選單</button>
+    </div>
 
-// 4. D區：2000元專用 (號碼+金額隨機化)
-function createDZone(winAmt) {
-    const lucky = getRandomNums(2, 99);
-    const myNums = getRandomNums(9, 99);
-    const amounts = [100, 200, 500, 1000, 2000, 5000, 10000];
-    
-    if (winAmt > 0) {
-        myNums[0] = lucky[0]; // 保證第一個號碼中獎
-    } else {
-        // 確保不中獎
-        for(let i=0; i<myNums.length; i++) {
-            if(lucky.includes(myNums[i])) myNums[i] = (myNums[i]+1)%100;
+    <script>
+        let balance = localStorage.getItem('wallet_v8_1') ? parseInt(localStorage.getItem('wallet_v8_1')) : 10000;
+        let timerSeconds = 30;
+        const canvas = document.getElementById('scratch-canvas');
+        const ctx = canvas.getContext('2d', { willReadFrequently: true });
+        let isDrawing = false, isFinished = false;
+
+        function getRandomNums(count, max, min = 1) {
+            let set = new Set();
+            while(set.size < count) set.add(Math.floor(Math.random() * (max - min + 1)) + min);
+            return Array.from(set);
         }
-    }
 
-    let html = `<div class="game-zone"><div class="zone-title">D區：幸運號碼</div>`;
-    html += `<div style="font-size:14px; margin-bottom:5px;">幸運：<b style="color:red">${lucky.join(' ')}</b></div>`;
-    html += `<div class="number-pool" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">`;
-    
-    myNums.forEach((n, i) => {
-        const isMatch = lucky.includes(n);
-        const displayAmt = isMatch ? winAmt : amounts[Math.floor(Math.random()*amounts.length)];
-        html += `<div style="border:1px solid #ddd; padding:4px; ${isMatch?'background:#fff9c4':''}">
-                    <b style="${isMatch?'color:red':''}">${n}</b><br>
-                    <small style="color:#777">$${displayAmt.toLocaleString()}</small>
-                 </div>`;
-    });
-    html += `</div></div>`;
-    return html;
-}
+        // --- 玩法生成 ---
+        function createBingoZone(winAmt) {
+            const isWin = winAmt > 0;
+            let nums = getRandomNums(9, 40);
+            if (isWin) {
+                const winLine = getRandomNums(3, 40);
+                nums[0] = winLine[0]; nums[1] = winLine[1]; nums[2] = winLine[2];
+            }
+            return `<div class="game-zone">
+                <div class="zone-title">賓果連線</div>
+                <div class="bingo-grid">${nums.map((n,i)=>`<div class="num-box ${isWin && i<3?'match':''}">${n}</div>`).join('')}</div>
+                <div style="font-size:12px; margin-top:8px;">獎金: $${winAmt.toLocaleString()}</div>
+            </div>`;
+        }
+
+        function createSymbolZone(winAmt) {
+            const pool = ['💎','🍀','🍎','🍒','🔔','🍋','💰','⭐','🧧'];
+            let syms = [];
+            if (winAmt > 0) {
+                const winSym = pool[Math.floor(Math.random()*pool.length)];
+                syms = [winSym, winSym, winSym];
+                while(syms.length < 5) syms.push(pool[Math.floor(Math.random()*pool.length)]);
+            } else {
+                syms = getRandomNums(5, pool.length-1, 0).map(idx => pool[idx]);
+            }
+            syms.sort(() => Math.random() - 0.5);
+            return `<div class="game-zone">
+                <div class="zone-title">幸運符號</div>
+                <div style="font-size:28px; letter-spacing:10px;">${syms.join('')}</div>
+                <div style="font-size:12px; margin-top:8px;">獎金: $${winAmt.toLocaleString()}</div>
+            </div>`;
+        }
+
+        function createNumberZone(winAmt) {
+            const lucky = getRandomNums(15, 99);
+            let mine = getRandomNums(20, 99);
+            if (winAmt > 0) {
+                const count = winAmt >= 1000 ? 6 : 4;
+                for(let i=0; i<count; i++) mine[i] = lucky[i];
+            } else {
+                mine = mine.filter(n => !lucky.includes(n));
+                while(mine.length < 20) {
+                    let n = Math.floor(Math.random()*99)+1;
+                    if(!lucky.includes(n)) mine.push(n);
+                }
+            }
+            mine.sort(() => Math.random() - 0.5);
+            return `<div class="game-zone">
+                <div class="zone-title">幸運對獎 (AB區)</div>
+                <div style="font-size:11px; margin-bottom:8px;">幸運號：${lucky.join(', ')}</div>
+                <div class="number-pool">${mine.map(n=>`<span class="${lucky.includes(n)?'match':''}">${n}</span>`).join('')}</div>
+                <div style="font-size:12px; margin-top:8px;">獎金: $${winAmt.toLocaleString()}</div>
+            </div>`;
+        }
+
+        function createAmountZone(winAmt) {
+            const amts = winAmt > 0 ? [winAmt, winAmt, winAmt] : [100, 500, 1000];
+            return `<div class="game-zone">
+                <div class="zone-title">三額一致 (C區)</div>
+                <div style="font-size:20px; font-weight:bold;">${amts.map(a=>`$${a.toLocaleString()}`).join(' ')}</div>
+            </div>`;
+        }
+
+        function createDZone(winAmt) {
+            const lucky = getRandomNums(2, 99);
+            let mine = getRandomNums(9, 99);
+            const fakeAmts = [100, 200, 500, 1000, 2000];
+            if (winAmt > 0) mine[0] = lucky[0];
+            else mine = mine.filter(n => !lucky.includes(n)).slice(0,9);
+            
+            let html = `<div class="game-zone"><div class="zone-title">號碼對比 (D區)</div>`;
+            html += `<div style="font-size:14px; margin-bottom:8px;">中獎號：<b style="color:red">${lucky.join(' ')}</b></div>`;
+            html += `<div style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">`;
+            mine.forEach(n => {
+                const isM = lucky.includes(n);
+                html += `<div style="border:1px solid #ddd; padding:5px; background:${isM?'#fff9c4':'#fff'}">
+                            <b style="${isM?'color:red':''}">${n}</b><br>
+                            <small>$${isM?winAmt.toLocaleString():fakeAmts[Math.floor(Math.random()*5)]}</small>
+                         </div>`;
+            });
+            return html + `</div></div>`;
+        }
+
+        // --- 核心運作 ---
+        function setupGame(price) {
+            const prob = price === 500 ? 0.5 : 0.7;
+            const isWinner = Math.random() < prob;
+            const totalWin = isWinner ? calculatePrice(price) : 0;
+            const zone = document.getElementById('prize-zone');
+            zone.dataset.value = totalWin;
+            zone.innerHTML = "";
+
+            let h = 250;
+            if(price == 300) h = 350;
+            if(price == 500) h = 480;
+            if(price == 1000) h = 600;
+            if(price == 2000) h = 850;
+            document.getElementById('container').style.height = h + "px";
+            canvas.height = h;
+
+            if(price == 100) zone.innerHTML = createBingoZone(totalWin);
+            else if(price == 200) zone.innerHTML = createSymbolZone(totalWin);
+            else if(price == 300) zone.innerHTML = createNumberZone(totalWin);
+            else if(price == 500) zone.innerHTML = createBingoZone(totalWin/2) + createSymbolZone(totalWin/2);
+            else if(price == 1000) zone.innerHTML = createBingoZone(0) + createSymbolZone(0) + createAmountZone(totalWin);
+            else if(price == 2000) zone.innerHTML = createBingoZone(0) + createSymbolZone(0) + createAmountZone(0) + createDZone(totalWin);
+        }
+
+        function calculatePrice(p) {
+            let pool = [[100,500],[500,100],[1000,50],[1000000,0.1]];
+            if(p >= 1000) pool = [[1000,500],[10000,50],[10000000,0.2],[20000000,0.1]];
+            const total = pool.reduce((s,i)=>s+i[1], 0);
+            let r = Math.random() * total;
+            for(let [a, w] of pool) { if(r<w) return a; r-=w; }
+            return pool[0][0];
+        }
+
+        function startGame(price) {
+            if (balance < price) return alert("錢不夠了！");
+            balance -= price; updateBalance();
+            isFinished = false;
+            document.getElementById('home-view').style.display = 'none';
+            document.getElementById('game-view').style.display = 'block';
+            document.getElementById('game-title').innerText = `$${price} 刮刮樂`;
+            document.getElementById('status').innerText = "動手刮開獎金吧！";
+            setupGame(price);
+            setupCanvas();
+        }
+
+        function setupCanvas() {
+            canvas.style.opacity = "1";
+            ctx.globalCompositeOperation = 'source-over';
+            const g = ctx.createLinearGradient(0,0,0,canvas.height);
+            g.addColorStop(0, '#e67e22'); g.addColorStop(1, '#f1c40f');
+            ctx.fillStyle = g; ctx.fillRect(0,0,350,canvas.height);
+            ctx.globalCompositeOperation = 'destination-out';
+        }
+
+        function scratch(e) {
+            if (!isDrawing || isFinished) return;
+            const r = canvas.getBoundingClientRect();
+            const x = (e.clientX || (e.touches ? e.touches[0].clientX : 0)) - r.left;
+            const y = (e.clientY || (e.touches ? e.touches[0].clientY : 0)) - r.top;
+            ctx.beginPath(); ctx.arc(x, y, 25, 0, Math.PI*2); ctx.fill();
+            
+            const pix = ctx.getImageData(0,0,canvas.width,canvas.height).data;
+            let trans = 0;
+            for(let i=3; i<pix.length; i+=4) if(pix[i]<128) trans++;
+            if(trans > (pix.length/4)*0.5) {
+                isFinished = true;
+                canvas.style.opacity = "0";
+                const win = parseInt(document.getElementById('prize-zone').dataset.value);
+                if(win > 0) {
+                    balance += win; updateBalance();
+                    document.getElementById('status').innerHTML = `<span style="color:#e74c3c">🎉 恭喜中獎 $${win.toLocaleString()}！</span>`;
+                } else {
+                    document.getElementById('status').innerText = "沒中獎，再接再厲。";
+                }
+            }
+        }
+
+        function updateBalance() {
+            document.getElementById('balance-display').innerText = balance.toLocaleString();
+            localStorage.setItem('wallet_v8_1', balance);
+        }
+
+        setInterval(() => {
+            timerSeconds--;
+            if(timerSeconds <= 0) { balance += 500; timerSeconds = 30; updateBalance(); }
+            document.getElementById('timer').innerText = timerSeconds;
+        }, 1000);
+
+        function goHome() {
+            document.getElementById('home-view').style.display = 'block';
+            document.getElementById('game-view').style.display = 'none';
+        }
+
+        function init() {
+            const grid = document.getElementById('menu-grid');
+            grid.innerHTML = "";
+            [100, 200, 300, 500, 1000, 2000].forEach(p => {
+                const d = document.createElement('div');
+                d.className = 'ticket-option';
+                d.innerHTML = `<h3>$${p}</h3><p style="font-size:12px; color:#e74c3c">中獎率 ${p==500?50:70}%</p>`;
+                d.onclick = () => startGame(p);
+                grid.appendChild(d);
+            });
+            updateBalance();
+        }
+
+        canvas.addEventListener('mousedown', ()=>isDrawing=true);
+        window.addEventListener('mouseup', ()=>isDrawing=false);
+        canvas.addEventListener('mousemove', scratch);
+        canvas.addEventListener('touchstart', (e)=>{isDrawing=true; e.preventDefault();}, {passive:false});
+        canvas.addEventListener('touchend', ()=>isDrawing=false);
+        canvas.addEventListener('touchmove', (e)=>{scratch(e); e.preventDefault();}, {passive:false});
+        init();
+    </script>
+</body>
+</html>
