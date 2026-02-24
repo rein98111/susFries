@@ -3,50 +3,79 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>王牌刮刮樂：全玩法置中版</title>
+    <title>王牌刮刮樂：完整刮開版</title>
     <style>
-        :root { --primary: #e74c3c; --gold: #f1c40f; --dark: #2c3e50; --bg: #ecf0f1; }
+        :root { --primary: #e74c3c; --gold: #f1c40f; --dark: #2c3e50; --bg: #f0f4f5; }
+        
         body { 
             font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
             background: var(--bg); margin: 0; padding: 20px 10px; 
             display: flex; flex-direction: column; align-items: center; min-height: 100vh;
         }
+
         .balance-card { 
-            background: var(--dark); color: white; padding: 15px 30px; border-radius: 50px; 
-            border: 2px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.3); margin-bottom: 10px;
+            background: var(--dark); color: white; padding: 15px 35px; border-radius: 50px; 
+            border: 2px solid var(--gold); box-shadow: 0 4px 15px rgba(0,0,0,0.2); margin-bottom: 10px;
+            text-align: center;
         }
         .balance-card span { color: var(--gold); font-size: 28px; font-weight: bold; }
-        
-        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 400px; width: 100%; }
-        .ticket-option { background: white; border-radius: 12px; padding: 15px; cursor: pointer; border: 2px solid #ddd; text-align: center; transition: 0.2s; }
-        .ticket-option:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .timer-info { font-size: 13px; color: #7f8c8d; margin-bottom: 20px; }
 
-        #game-view { display: none; width: 100%; max-width: 350px; text-align: center; }
-        .canvas-container { position: relative; width: 350px; margin: 0 auto; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); background: #fff; }
+        .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; max-width: 400px; width: 100%; }
+        .ticket-option { 
+            background: white; border-radius: 15px; padding: 20px; cursor: pointer; 
+            border: 2px solid #eee; text-align: center; transition: 0.3s;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+        .ticket-option:hover { border-color: var(--primary); transform: translateY(-3px); }
+        .ticket-option h3 { margin: 0; color: var(--primary); font-size: 24px; }
+
+        #game-view { display: none; width: 100%; max-width: 360px; text-align: center; }
+        .canvas-container { 
+            position: relative; width: 350px; margin: 0 auto; border-radius: 15px; 
+            overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.2); background: #fff;
+            border: 5px solid #fff;
+        }
         
-        .prize-underlay { position: absolute; width: 100%; height: 100%; background: #fff; z-index: 1; display: flex; flex-direction: column; padding: 10px; box-sizing: border-box; overflow-y: auto; align-items: center; }
-        .game-zone { width: 100%; border: 2px solid #e67e22; margin-bottom: 12px; padding: 10px; border-radius: 10px; background: #fffaf0; box-sizing: border-box; text-align: center; }
-        .zone-title { font-size: 12px; color: #fff; background: #e67e22; border-radius: 4px; padding: 3px 0; width: 100%; margin-bottom: 8px; font-weight: bold; }
+        .prize-underlay { 
+            position: absolute; width: 100%; height: 100%; background: #fff; z-index: 1; 
+            display: flex; flex-direction: column; padding: 10px; box-sizing: border-box; 
+            overflow-y: auto; align-items: center;
+        }
+
+        .game-zone { 
+            width: 100%; border: 2px solid #f39c12; margin-bottom: 12px; 
+            padding: 8px; border-radius: 12px; background: #fffcf5; box-sizing: border-box; 
+        }
+        .zone-title { 
+            font-size: 13px; color: #fff; background: #f39c12; border-radius: 6px; 
+            padding: 4px 0; width: 100%; margin-bottom: 10px; font-weight: bold;
+        }
         
-        canvas { position: absolute; top: 0; left: 0; z-index: 2; cursor: crosshair; }
-        .btn { padding: 12px 40px; font-size: 16px; cursor: pointer; border: none; border-radius: 8px; background: #7f8c8d; color: white; margin-top: 20px; width: 100%; }
+        canvas { position: absolute; top: 0; left: 0; z-index: 2; cursor: crosshair; transition: opacity 0.5s; }
         
-        /* 內部元件樣式 */
-        .bingo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; width: 100%; }
-        .num-box { border: 1px solid #ddd; font-size: 16px; padding: 8px; background: #fff; }
-        .match { color: white !important; background: #e74c3c !important; border-radius: 50%; }
-        .number-pool { display: flex; flex-wrap: wrap; justify-content: center; gap: 4px; }
-        .number-pool span { width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; border: 1px solid #ccc; border-radius: 50%; font-size: 11px; }
-        #status { font-weight: bold; font-size: 20px; margin: 15px 0; min-height: 30px; }
+        .btn { 
+            padding: 12px 0; font-size: 16px; cursor: pointer; border: none; 
+            border-radius: 10px; background: #95a5a6; color: white; margin-top: 20px; width: 100%;
+            font-weight: bold;
+        }
+
+        .bingo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
+        .num-box { border: 1px solid #ddd; font-size: 18px; padding: 8px; background: #fff; }
+        .match { color: white !important; background: #e74c3c !important; border-radius: 4px; }
+        .number-pool { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; width: 100%; }
+        .number-item { border: 1px solid #eee; padding: 6px; border-radius: 4px; background: #fff; }
+        
+        #status { font-weight: bold; font-size: 20px; margin: 15px 0; min-height: 30px; color: var(--dark); }
     </style>
 </head>
 <body>
 
     <div class="balance-card">錢包餘額 <span>$ <span id="balance-display">10000</span></span></div>
-    <div style="font-size:12px; color:#666; margin-bottom:10px;">⏳ 30秒救濟金 | 下次：<span id="timer">30</span>s</div>
+    <div class="timer-info">💎 獎勵金發放倒數：<span id="timer">30</span> 秒 (+$500)</div>
 
     <div id="home-view">
-        <h2 style="color: var(--dark); margin-bottom: 20px;">🎰 王牌刮刮樂：大集合版</h2>
+        <h2 style="color: var(--dark); margin-bottom: 20px;">🎰 請選擇面額試試手氣</h2>
         <div class="grid" id="menu-grid"></div>
     </div>
 
@@ -61,7 +90,7 @@
     </div>
 
     <script>
-        let balance = localStorage.getItem('wallet_v8_3') ? parseInt(localStorage.getItem('wallet_v8_3')) : 10000;
+        let balance = localStorage.getItem('wallet_v8_5') ? parseInt(localStorage.getItem('wallet_v8_5')) : 10000;
         let timerSeconds = 30;
         const canvas = document.getElementById('scratch-canvas');
         const ctx = canvas.getContext('2d');
@@ -73,83 +102,83 @@
             return Array.from(set);
         }
 
-        // --- 玩法生成模組 ---
-
-        function createBingoZone(winAmt) {
-            const isWin = winAmt > 0;
-            let nums = getRandomNums(9, 40);
-            if (isWin) { nums[0]=7; nums[1]=7; nums[2]=7; }
-            return `<div class="game-zone">
-                <div class="zone-title">賓果連線</div>
-                <div class="bingo-grid">${nums.map((n,i)=>`<div class="num-box ${isWin && i<3?'match':''}">${n}</div>`).join('')}</div>
-                <div style="font-size:12px; margin-top:8px;">獎金: $${winAmt.toLocaleString()}</div>
-            </div>`;
-        }
-
-        function createSymbolZone(winAmt) {
-            const pool = ['💎','🍀','🍎','🍒','🔔','🍋','💰','⭐','🧧'];
-            let syms = [];
-            if (winAmt > 0) {
-                const winSym = pool[Math.floor(Math.random()*pool.length)];
-                syms = [winSym, winSym, winSym];
-                while(syms.length < 5) syms.push(pool[Math.floor(Math.random()*pool.length)]);
-            } else { syms = getRandomNums(5, pool.length-1, 0).map(idx => pool[idx]); }
-            syms.sort(() => Math.random() - 0.5);
-            return `<div class="game-zone"><div class="zone-title">幸運符號</div><div style="font-size:28px; letter-spacing:10px;">${syms.join('')}</div><div style="font-size:12px; margin-top:8px;">獎金: $${winAmt.toLocaleString()}</div></div>`;
-        }
-
-        function createAmountZone(winAmt) {
-            const amts = winAmt > 0 ? [winAmt, winAmt, winAmt] : [100, 500, 1000];
-            return `<div class="game-zone"><div class="zone-title">三額一致</div><div style="font-size:18px; font-weight:bold;">${amts.map(a=>`$${a.toLocaleString()}`).join(' ')}</div></div>`;
-        }
-
+        // --- D區：幸運對獎 (累加獎金邏輯) ---
         function createDZone(winAmt) {
             const lucky = getRandomNums(2, 99);
-            let mine = getRandomNums(9, 99);
-            const fakeAmts = [100, 200, 500, 1000, 2000];
-            if (winAmt > 0) mine[0] = lucky[0];
-            else mine = mine.filter(n => !lucky.includes(n)).slice(0,9);
-            let html = `<div class="game-zone"><div class="zone-title">幸運對獎 (D區)</div><div style="font-size:14px; margin-bottom:8px;">中獎號：<b style="color:red">${lucky.join(' ')}</b></div><div style="display:grid; grid-template-columns:repeat(3,1fr); gap:5px;">`;
-            mine.forEach(n => {
-                const isM = lucky.includes(n);
-                html += `<div style="border:1px solid #ddd; padding:4px; background:${isM?'#fff9c4':'#fff'}"><b style="${isM?'color:red':''}">${n}</b><br><small>$${isM?winAmt.toLocaleString():fakeAmts[Math.floor(Math.random()*5)].toLocaleString()}</small></div>`;
+            const fakeAmts = [100, 200, 500, 1000, 2000, 5000];
+            let myItems = [];
+            if (winAmt > 0) {
+                let matchCount = (winAmt > 1000 && Math.random() > 0.5) ? 2 : 1;
+                let winParts = [];
+                if (matchCount === 2) {
+                    let p1 = Math.floor((Math.random() * 0.5 + 0.25) * winAmt);
+                    winParts = [p1, winAmt - p1];
+                } else { winParts = [winAmt]; }
+                for(let i=0; i<9; i++) {
+                    if(i < matchCount) {
+                        myItems.push({ num: lucky[i], amt: winParts[i], isMatch: true });
+                    } else {
+                        let n = Math.floor(Math.random()*99)+1;
+                        while(lucky.includes(n)) n = Math.floor(Math.random()*99)+1;
+                        myItems.push({ num: n, amt: fakeAmts[Math.floor(Math.random()*fakeAmts.length)], isMatch: false });
+                    }
+                }
+            } else {
+                let mine = getRandomNums(9, 99);
+                mine.forEach(n => {
+                    let num = lucky.includes(n) ? (n+1)%100 : n;
+                    myItems.push({ num: num, amt: fakeAmts[Math.floor(Math.random()*fakeAmts.length)], isMatch: false });
+                });
+            }
+            myItems.sort(() => Math.random() - 0.5);
+            let html = `<div class="game-zone"><div class="zone-title">D區：幸運對獎</div>`;
+            html += `<div style="font-size:14px; margin-bottom:10px;">中獎號：<b style="color:red">${lucky.join(' ')}</b></div><div class="number-pool">`;
+            myItems.forEach(item => {
+                html += `<div class="number-item" style="background:${item.isMatch?'#fff9c4':''}"><b>${item.num}</b><small>$${item.amt.toLocaleString()}</small></div>`;
             });
             return html + `</div></div>`;
         }
 
-        // --- $300 專用加碼邏輯 ---
-        function createNumberZone300(isWinner) {
-            const configs = [[15,5000000,5],[14,1000000,10],[13,100000,20],[12,30000,40],[11,10000,60],[10,5000,80],[9,2000,100],[8,1000,150],[7,500,200],[6,300,300],[5,200,400],[4,100,600]];
-            const totalWeight = configs.reduce((s, c) => s + c[2], 0);
-            let r = Math.random() * totalWeight, winCfg = isWinner ? configs[configs.length-1] : [0,0,0];
-            if(isWinner) { for(let c of configs) { if(r < c[2]) { winCfg = c; break; } r -= c[2]; } }
-            
-            const lucky = getRandomNums(15, 99);
-            let mine = getRandomNums(20, 99);
-            if(isWinner) { for(let i=0; i<winCfg[0]; i++) mine[i] = lucky[i]; }
-            else { mine = mine.filter(n => !lucky.includes(n)).slice(0,17); mine.push(lucky[0], lucky[1]); }
-            mine.sort(() => Math.random() - 0.5);
-            const matchCount = mine.filter(n => lucky.includes(n)).length;
-            
-            return { amount: winCfg[1], html: `<div class="game-zone"><div class="zone-title">數字派對</div><div style="font-size:10px; margin-bottom:8px;">幸運號：${lucky.join(', ')}</div><div class="number-pool">${mine.map(n=>`<span class="${lucky.includes(n)?'match':''}">${n}</span>`).join('')}</div><div style="font-size:12px; margin-top:10px; color:#e67e22; font-weight:bold;">對中 ${matchCount} 個：$${winCfg[1].toLocaleString()}</div></div>` };
+        // --- 其他區域模組 ---
+        function createBingoZone(winAmt) {
+            let nums = getRandomNums(9, 40);
+            if (winAmt > 0) { nums[0]=7; nums[1]=7; nums[2]=7; }
+            return `<div class="game-zone"><div class="zone-title">A區：賓果連線</div><div class="bingo-grid">${nums.map((n,i)=>`<div class="num-box ${winAmt>0 && i<3?'match':''}">${n}</div>`).join('')}</div></div>`;
         }
 
-        // --- 核心系統邏輯 ---
+        function createSymbolZone(winAmt) {
+            const pool = ['💎','🍀','🍎','🍒','🔔','🍋','💰','⭐','🧧'];
+            let syms = winAmt > 0 ? ['💰','💰','💰','🍒','🔔'] : getRandomNums(5, 8, 0).map(i=>pool[i]);
+            syms.sort(() => Math.random() - 0.5);
+            return `<div class="game-zone"><div class="zone-title">B區：幸運符號</div><div style="font-size:28px; letter-spacing:10px;">${syms.join('')}</div></div>`;
+        }
+
+        function createAmountZone(winAmt) {
+            const amts = winAmt > 0 ? [winAmt, winAmt, winAmt] : [100, 500, 1000];
+            return `<div class="game-zone"><div class="zone-title">C區：三額一致</div><div style="font-size:20px; font-weight:bold;">${amts.map(a=>`$${a.toLocaleString()}`).join(' ')}</div></div>`;
+        }
+
         function setupGame(price) {
             const isWinner = Math.random() < (price === 500 ? 0.5 : 0.7);
             const zone = document.getElementById('prize-zone');
-            zone.innerHTML = "";
             let totalWin = 0;
 
-            if (price == 100) { totalWin = isWinner ? 500 : 0; zone.innerHTML = createBingoZone(totalWin); }
-            else if (price == 200) { totalWin = isWinner ? 1000 : 0; zone.innerHTML = createSymbolZone(totalWin); }
-            else if (price == 300) { const res = createNumberZone300(isWinner); totalWin = res.amount; zone.innerHTML = res.html; }
-            else if (price == 500) { totalWin = isWinner ? 2000 : 0; zone.innerHTML = createBingoZone(totalWin/2) + createSymbolZone(totalWin/2); }
-            else if (price == 1000) { totalWin = isWinner ? 5000 : 0; zone.innerHTML = createBingoZone(0) + createSymbolZone(0) + createAmountZone(totalWin); }
-            else if (price == 2000) { totalWin = isWinner ? 20000 : 0; zone.innerHTML = createBingoZone(0) + createSymbolZone(0) + createAmountZone(0) + createDZone(totalWin); }
+            if (price == 300) {
+                const cfgs = [[15,5000000,2],[10,5000,50],[4,100,500]];
+                let cfg = isWinner ? cfgs[Math.floor(Math.random()*cfgs.length)] : [0,0];
+                totalWin = cfg[1];
+                zone.innerHTML = `<div class="game-zone"><div class="zone-title">數字派對</div><div style="font-size:20px;">對中 ${cfg[0]} 個號碼</div><div style="color:red; font-weight:bold;">獎金 $${totalWin.toLocaleString()}</div></div>`;
+            } else {
+                totalWin = isWinner ? (price * (Math.random() > 0.8 ? 10 : 2)) : 0;
+                if(price == 100) zone.innerHTML = createBingoZone(totalWin);
+                if(price == 200) zone.innerHTML = createSymbolZone(totalWin);
+                if(price == 500) zone.innerHTML = createBingoZone(0) + createSymbolZone(totalWin);
+                if(price == 1000) zone.innerHTML = createBingoZone(0) + createSymbolZone(0) + createAmountZone(totalWin);
+                if(price == 2000) zone.innerHTML = createBingoZone(0) + createSymbolZone(0) + createAmountZone(0) + createDZone(totalWin);
+            }
             
             zone.dataset.value = totalWin;
-            let h = price == 2000 ? 800 : (price == 1000 ? 600 : (price == 500 ? 450 : 350));
+            let h = price == 2000 ? 750 : (price >= 1000 ? 550 : 350);
             document.getElementById('container').style.height = h + "px";
             canvas.height = h;
             setupCanvas();
@@ -169,28 +198,70 @@
             const r = canvas.getBoundingClientRect();
             const x = (e.clientX || (e.touches ? e.touches[0].clientX : 0)) - r.left;
             const y = (e.clientY || (e.touches ? e.touches[0].clientY : 0)) - r.top;
-            ctx.beginPath(); ctx.arc(x, y, 25, 0, Math.PI*2); ctx.fill();
+            ctx.beginPath(); ctx.arc(x, y, 30, 0, Math.PI*2); ctx.fill();
+            
+            checkScratchProgress();
+        }
+
+        function checkScratchProgress() {
             const pix = ctx.getImageData(0,0,canvas.width,canvas.height).data;
             let trans = 0;
             for(let i=3; i<pix.length; i+=4) if(pix[i]<128) trans++;
-            if(trans > (pix.length/4)*0.5) {
-                isFinished = true; canvas.style.opacity = "0";
-                const win = parseInt(document.getElementById('prize-zone').dataset.value);
-                if(win > 0) { balance += win; updateBalance(); document.getElementById('status').innerHTML = `<span style="color:#e74c3c">🎉 恭喜中獎 $${win.toLocaleString()}！</span>`; }
-                else { document.getElementById('status').innerText = "沒中獎，再接再厲。"; }
+            
+            // 提高門檻到 90%，確保幾乎刮完
+            if(trans > (pix.length/4)*0.9) {
+                isFinished = true;
+                showResult();
             }
         }
 
-        function updateBalance() { document.getElementById('balance-display').innerText = balance.toLocaleString(); localStorage.setItem('wallet_v8_3', balance); }
-        setInterval(() => { timerSeconds--; if(timerSeconds <= 0) { balance += 500; timerSeconds = 30; updateBalance(); } document.getElementById('timer').innerText = timerSeconds; }, 1000);
-        function goHome() { document.getElementById('home-view').style.display = 'block'; document.getElementById('game-view').style.display = 'none'; }
-        
+        function showResult() {
+            // 自動清除殘餘塗層
+            canvas.style.opacity = "0";
+            
+            setTimeout(() => {
+                const win = parseInt(document.getElementById('prize-zone').dataset.value);
+                if(win > 0) {
+                    balance += win; updateBalance();
+                    document.getElementById('status').innerHTML = `<span style="color:#e74c3c">🎊 刮開完畢！恭喜中獎 $${win.toLocaleString()}！</span>`;
+                } else { 
+                    document.getElementById('status').innerText = "刮開完畢，沒中獎，再接再厲。"; 
+                }
+            }, 500); // 延遲半秒顯示結果，增加真實感
+        }
+
+        function updateBalance() {
+            document.getElementById('balance-display').innerText = balance.toLocaleString();
+            localStorage.setItem('wallet_v8_5', balance);
+        }
+
+        setInterval(() => {
+            timerSeconds--;
+            if(timerSeconds <= 0) { balance += 500; timerSeconds = 30; updateBalance(); }
+            document.getElementById('timer').innerText = timerSeconds;
+        }, 1000);
+
+        function goHome() {
+            document.getElementById('home-view').style.display = 'block';
+            document.getElementById('game-view').style.display = 'none';
+        }
+
         function init() {
-            const grid = document.getElementById('menu-grid'); grid.innerHTML = "";
+            const grid = document.getElementById('menu-grid');
             [100, 200, 300, 500, 1000, 2000].forEach(p => {
-                const d = document.createElement('div'); d.className = 'ticket-option';
-                d.innerHTML = `<h3>$${p}</h3><p style="font-size:12px; color:#e74c3c">中獎率 ${p==500?50:70}%</p>`;
-                d.onclick = () => { if(balance < p) return alert("餘額不足"); balance -= p; updateBalance(); isFinished = false; document.getElementById('home-view').style.display = 'none'; document.getElementById('game-view').style.display = 'block'; document.getElementById('game-title').innerText = `$${p} 刮刮樂`; document.getElementById('status').innerText = "動手刮開它！"; setupGame(p); };
+                const d = document.createElement('div');
+                d.className = 'ticket-option';
+                d.innerHTML = `<h3>$${p}</h3><p>中獎率 ${p==500?50:70}%</p>`;
+                d.onclick = () => {
+                    if(balance < p) return alert("錢不夠了！");
+                    balance -= p; updateBalance();
+                    isFinished = false;
+                    document.getElementById('home-view').style.display = 'none';
+                    document.getElementById('game-view').style.display = 'block';
+                    document.getElementById('game-title').innerText = `$${p} 刮刮樂`;
+                    document.getElementById('status').innerText = "請刮開整個刮刮樂...";
+                    setupGame(p);
+                };
                 grid.appendChild(d);
             });
             updateBalance();
