@@ -1,250 +1,100 @@
-<!DOCTYPE html>
-<html lang="zh-TW">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>王牌刮刮樂：台彩規則實踐版</title>
-    <style>
-        :root { --primary: #e74c3c; --gold: #f1c40f; --dark: #2c3e50; --bg: #ecf0f1; }
-        body { font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; background: var(--bg); margin: 0; padding: 20px; text-align: center; }
-        
-        .balance-card { background: var(--dark); color: white; padding: 15px 30px; border-radius: 50px; display: inline-block; margin-bottom: 10px; border: 2px solid var(--gold); box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
-        .balance-card span { color: var(--gold); font-size: 28px; font-weight: bold; }
-        
-        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 15px; max-width: 800px; margin: 20px auto; }
-        .ticket-option { background: white; border-radius: 12px; padding: 15px; cursor: pointer; border: 2px solid #ddd; transition: 0.2s; }
-        .ticket-option:hover { border-color: var(--primary); transform: translateY(-3px); }
+// --- 輔助函數：取得不重複的隨機數組 ---
+function getRandomNums(count, max, min = 1) {
+    let set = new Set();
+    while(set.size < count) set.add(Math.floor(Math.random() * (max - min + 1)) + min);
+    return Array.from(set);
+}
 
-        #game-view { display: none; }
-        .canvas-container { position: relative; width: 350px; margin: 10px auto; border-radius: 15px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.3); background: #fff; }
-        
-        .prize-underlay { position: absolute; width: 100%; height: 100%; background: #fff; z-index: 1; display: flex; flex-direction: column; padding: 5px; box-sizing: border-box; overflow-y: auto; }
-        .game-zone { border: 1.5px solid #e67e22; margin-bottom: 8px; padding: 8px; border-radius: 8px; background: #fffaf0; }
-        .zone-title { font-size: 11px; color: #d35400; font-weight: bold; margin-bottom: 3px; background: #ffcc80; border-radius: 4px; }
-        
-        canvas { position: absolute; top: 0; left: 0; z-index: 2; cursor: crosshair; }
-        .btn { padding: 12px 30px; font-size: 16px; cursor: pointer; border: none; border-radius: 8px; background: #7f8c8d; color: white; margin-top: 10px; }
-        
-        /* 賓果與號碼樣式 */
-        .bingo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 4px; }
-        .num-box { border: 1px solid #ccc; font-size: 14px; padding: 2px; }
-        .match { color: red; font-weight: bold; background: #ffeb3b; }
-        .number-pool { display: flex; flex-wrap: wrap; justify-content: center; gap: 3px; font-size: 11px; }
-    </style>
-</head>
-<body>
+// 1. A區：賓果連線 (徹底隨機化)
+function createBingoZone(winAmt) {
+    const isWin = winAmt > 0;
+    let nums = getRandomNums(9, 30); // 隨機抽9個號碼
+    if (isWin) {
+        // 強制讓第一橫列連線 (真實情況會隨機連線，這裡先保證視覺中獎)
+        const winLine = getRandomNums(3, 30);
+        nums[0] = winLine[0]; nums[1] = winLine[1]; nums[2] = winLine[2];
+    }
+    return `<div class="game-zone">
+        <div class="zone-title">A區：賓果連線</div>
+        <div class="bingo-grid">${nums.map((n,i)=>`<div class="num-box ${isWin && i<3?'match':''}">${n}</div>`).join('')}</div>
+        <div style="font-size:12px; margin-top:5px;">獎金: $${winAmt.toLocaleString()}</div>
+    </div>`;
+}
 
-    <div class="balance-card">餘額 <span>$ <span id="balance-display">10000</span></span></div>
-    <div style="font-size:12px; color:#666;">⏳ 30秒自動加幣 | 下次：<span id="timer">30</span>s</div>
+// 2. B區：幸運符號 (擴充圖案池)
+function createSymbolZone(winAmt) {
+    const pool = ['💎','🍀','🍎','🍒','🔔','🍋','💰','⭐','🧧'];
+    let syms = [];
+    if (winAmt > 0) {
+        const winSym = pool[Math.floor(Math.random()*pool.length)];
+        syms = [winSym, winSym, winSym];
+        while(syms.length < 5) syms.push(pool[Math.floor(Math.random()*pool.length)]);
+    } else {
+        syms = getRandomNums(5, pool.length-1, 0).map(idx => pool[idx]);
+    }
+    syms.sort(() => Math.random() - 0.5);
+    return `<div class="game-zone">
+        <div class="zone-title">B區：幸運符號 (3個相同即中)</div>
+        <div style="font-size:24px; letter-spacing:10px;">${syms.join('')}</div>
+        <div style="font-size:12px; margin-top:5px;">獎金: $${winAmt.toLocaleString()}</div>
+    </div>`;
+}
 
-    <div id="home-view">
-        <h2 style="color: var(--dark);">🎰 真實台彩玩法體驗</h2>
-        <div class="grid" id="menu-grid"></div>
-    </div>
-
-    <div id="game-view">
-        <h2 id="game-title" style="color: var(--primary); margin: 5px;"></h2>
-        <div class="canvas-container" id="container">
-            <div class="prize-underlay" id="prize-zone"></div>
-            <canvas id="scratch-canvas" width="350" height="400"></canvas>
+// 3. AB區：300元專用 (大池子抽號碼)
+function createNumberZone(winAmt) {
+    const luckyPool = getRandomNums(15, 99);
+    let myPool = getRandomNums(20, 99);
+    
+    if (winAmt > 0) {
+        const matchCount = winAmt >= 1000 ? 6 : 4;
+        for(let i=0; i<matchCount; i++) myPool[i] = luckyPool[i];
+    } else {
+        // 確保不中獎 (過濾掉幸運號碼)
+        myPool = myPool.filter(n => !luckyPool.includes(n));
+        while(myPool.length < 20) {
+            let n = Math.floor(Math.random()*99)+1;
+            if(!luckyPool.includes(n)) myPool.push(n);
+        }
+    }
+    myPool.sort(() => Math.random() - 0.5);
+    
+    return `<div class="game-zone">
+        <div class="zone-title">AB區：幸運對獎</div>
+        <div style="font-size:10px; color:#666;">幸運號碼：${luckyPool.join(', ')}</div>
+        <div class="number-pool" style="margin-top:8px;">
+            ${myPool.map(n => `<span class="${luckyPool.includes(n)?'match':''}">${n}</span>`).join(' ')}
         </div>
-        <div id="status" style="font-weight:bold; font-size:18px; margin:10px;"></div>
-        <button class="btn" onclick="goHome()">返回大廳</button>
-    </div>
+        <div style="font-size:12px; margin-top:5px;">獎金: $${winAmt.toLocaleString()}</div>
+    </div>`;
+}
 
-    <script>
-        let balance = localStorage.getItem('wallet_v7') ? parseInt(localStorage.getItem('wallet_v7')) : 10000;
-        let timerSeconds = 30;
-        const canvas = document.getElementById('scratch-canvas');
-        const ctx = canvas.getContext('2d', { willReadFrequently: true });
-        let isDrawing = false, isFinished = false;
-
-        // --- 玩法區塊生成函數 ---
-        
-        // 100元：賓果連線
-        function createBingoZone(winAmt) {
-            const isWin = winAmt > 0;
-            const nums = isWin ? [7,14,21,1,2,3,4,5,6] : [1,5,9,12,15,18,21,24,27]; // 簡化連線邏輯示範
-            return `<div class="game-zone">
-                <div class="zone-title">A區：賓果連線 (中1條得獎)</div>
-                <div class="bingo-grid">${nums.map((n,i)=>`<div class="num-box ${isWin && i<3?'match':''}">${n}</div>`).join('')}</div>
-                <div style="font-size:12px">獎金: $${winAmt}</div>
-            </div>`;
+// 4. D區：2000元專用 (號碼+金額隨機化)
+function createDZone(winAmt) {
+    const lucky = getRandomNums(2, 99);
+    const myNums = getRandomNums(9, 99);
+    const amounts = [100, 200, 500, 1000, 2000, 5000, 10000];
+    
+    if (winAmt > 0) {
+        myNums[0] = lucky[0]; // 保證第一個號碼中獎
+    } else {
+        // 確保不中獎
+        for(let i=0; i<myNums.length; i++) {
+            if(lucky.includes(myNums[i])) myNums[i] = (myNums[i]+1)%100;
         }
+    }
 
-        // 200元：幸運符號 (5選3)
-        function createSymbolZone(winAmt) {
-            const syms = winAmt > 0 ? ['💎','💎','💎','🍀','🍎'] : ['🍒','🔔','🍎','🍀','🍋'];
-            return `<div class="game-zone">
-                <div class="zone-title">B區：幸運符號 (3個相同即中)</div>
-                <div style="font-size:24px">${syms.join(' ')}</div>
-                <div style="font-size:12px">獎金: $${winAmt}</div>
-            </div>`;
-        }
-
-        // 300元：對號碼 (AB區)
-        function createNumberZone(winAmt) {
-            const luckyNums = [1,2,3,4,5,6,7,8,9,10,11,12,13,14,15];
-            let myNums = [];
-            // 根據獎金反推要中幾個號碼 (4個100, 更多獎金更多號)
-            const matchCount = winAmt >= 1000 ? 8 : (winAmt >= 100 ? 4 : 2);
-            for(let i=0; i<20; i++) {
-                myNums.push(i < matchCount ? luckyNums[i] : 20+i);
-            }
-            myNums.sort(() => Math.random() - 0.5);
-            return `<div class="game-zone">
-                <div class="zone-title">AB區：對號碼 (中4個起獎)</div>
-                <div style="font-size:10px">幸運號碼：${luckyNums.join(',')}</div>
-                <div class="number-pool" style="margin-top:5px">您的號碼：${myNums.map(n=>`<span class="${luckyNums.includes(n)?'match':''}">${n}</span>`).join(' ')}</div>
-                <div style="font-size:12px">獎金: $${winAmt}</div>
-            </div>`;
-        }
-
-        // 1000元：C區 (3個金額一樣)
-        function createAmountZone(winAmt) {
-            const amts = winAmt > 0 ? [winAmt, winAmt, winAmt] : [100, 500, 1000];
-            return `<div class="game-zone">
-                <div class="zone-title">C區：三額一致</div>
-                <div style="font-size:16px">${amts.map(a=>`$${a}`).join(' ')}</div>
-            </div>`;
-        }
-
-        // 2000元：D區 (號碼對比+下方金額)
-        function createDZone(winAmt) {
-            const lucky = [8, 88];
-            const myItems = [
-                {n:8, v:winAmt}, {n:1, v:100}, {n:2, v:200}, 
-                {n:3, v:300}, {n:4, v:400}, {n:5, v:500},
-                {n:6, v:600}, {n:7, v:700}, {n:9, v:900}
-            ];
-            return `<div class="game-zone">
-                <div class="zone-title">D區：幸運對獎 (號碼對中即得下方獎金)</div>
-                <div style="font-size:11px">幸運：${lucky.join(' ')}</div>
-                <div class="number-pool">${myItems.map(item=>`<div>${item.n}<br><small style="color:blue">$${winAmt>0 && item.n==8?winAmt:item.v}</small></div>`).join(' ')}</div>
-            </div>`;
-        }
-
-        // --- 遊戲邏輯 ---
-
-        function setupGameContent(price) {
-            const prob = (price === 500) ? 0.5 : 0.7;
-            const isWinner = Math.random() < prob;
-            const totalWin = isWinner ? calculatePoolAmount(price) : 0;
-            const zone = document.getElementById('prize-zone');
-            zone.dataset.value = totalWin;
-            zone.innerHTML = "";
-
-            // 動態高度調整
-            let h = 250;
-            if(price == 300) h = 300;
-            if(price == 500) h = 400;
-            if(price == 1000) h = 500;
-            if(price == 2000) h = 700;
-            document.getElementById('container').style.height = h + "px";
-            canvas.height = h;
-
-            // 根據面額組合玩法
-            if (price == 100) zone.innerHTML = createBingoZone(totalWin);
-            if (price == 200) zone.innerHTML = createSymbolZone(totalWin);
-            if (price == 300) zone.innerHTML = createNumberZone(totalWin);
-            if (price == 500) zone.innerHTML = createBingoZone(totalWin/2) + createSymbolZone(totalWin/2);
-            if (price == 1000) zone.innerHTML = createBingoZone(0) + createSymbolZone(0) + createAmountZone(totalWin);
-            if (price == 2000) zone.innerHTML = createBingoZone(0) + createSymbolZone(0) + createAmountZone(0) + createDZone(totalWin);
-        }
-
-        function calculatePoolAmount(p) {
-            let pool = [[100,500],[500,100],[1000,50],[1000000,0.1]];
-            if(p >= 1000) pool = [[1000,500],[10000,50],[10000000,0.2],[20000000,0.1]];
-            const totalWeight = pool.reduce((s, i) => s + i[1], 0);
-            let rand = Math.random() * totalWeight;
-            for (const [amt, weight] of pool) {
-                if (rand < weight) return amt;
-                rand -= weight;
-            }
-            return pool[0][0];
-        }
-
-        // --- 基礎框架 (延用 v6 優化版) ---
-        function startGame(price) {
-            if (balance < price) return alert("餘額不足！");
-            balance -= price; updateBalance();
-            isFinished = false;
-            document.getElementById('home-view').style.display = 'none';
-            document.getElementById('game-view').style.display = 'block';
-            document.getElementById('game-title').innerText = `$${price} 刮刮樂`;
-            document.getElementById('status').innerText = "開始刮獎！";
-            setupGameContent(price);
-            setupCanvas();
-        }
-
-        function setupCanvas() {
-            canvas.style.opacity = "1";
-            ctx.globalCompositeOperation = 'source-over';
-            const g = ctx.createLinearGradient(0,0,0,canvas.height);
-            g.addColorStop(0, '#c0392b'); g.addColorStop(1, '#f1c40f');
-            ctx.fillStyle = g;
-            ctx.fillRect(0,0,canvas.width,canvas.height);
-            ctx.globalCompositeOperation = 'destination-out';
-        }
-
-        function scratch(e) {
-            if (!isDrawing || isFinished) return;
-            const r = canvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - r.left;
-            const y = (e.clientY || e.touches[0].clientY) - r.top;
-            ctx.beginPath(); ctx.arc(x, y, 25, 0, Math.PI*2); ctx.fill();
-            
-            const pix = ctx.getImageData(0,0,canvas.width,canvas.height).data;
-            let trans = 0;
-            for(let i=3; i<pix.length; i+=4) if(pix[i]<128) trans++;
-            if(trans > (pix.length/4)*0.55) {
-                isFinished = true;
-                canvas.style.opacity = "0";
-                const win = parseInt(document.getElementById('prize-zone').dataset.value);
-                if(win > 0) {
-                    balance += win; updateBalance();
-                    document.getElementById('status').innerText = `🎉 恭喜中獎 $${win.toLocaleString()}！`;
-                } else {
-                    document.getElementById('status').innerText = "沒中獎，再試一張！";
-                }
-            }
-        }
-
-        function updateBalance() {
-            document.getElementById('balance-display').innerText = balance.toLocaleString();
-            localStorage.setItem('wallet_v7', balance);
-        }
-
-        setInterval(() => {
-            timerSeconds--;
-            if(timerSeconds <= 0) { balance += 500; timerSeconds = 30; updateBalance(); }
-            document.getElementById('timer').innerText = timerSeconds;
-        }, 1000);
-
-        function goHome() {
-            document.getElementById('home-view').style.display = 'block';
-            document.getElementById('game-view').style.display = 'none';
-        }
-
-        function init() {
-            const grid = document.getElementById('menu-grid');
-            [100, 200, 300, 500, 1000, 2000].forEach(p => {
-                const d = document.createElement('div');
-                d.className = 'ticket-option';
-                d.innerHTML = `<h3>$${p}</h3><p style="font-size:11px">專屬台彩玩法</p>`;
-                d.onclick = () => startGame(p);
-                grid.appendChild(d);
-            });
-            updateBalance();
-        }
-
-        canvas.addEventListener('mousedown', ()=>isDrawing=true);
-        window.addEventListener('mouseup', ()=>isDrawing=false);
-        canvas.addEventListener('mousemove', scratch);
-        canvas.addEventListener('touchstart', (e)=>{isDrawing=true; e.preventDefault();}, {passive:false});
-        canvas.addEventListener('touchend', ()=>isDrawing=false);
-        canvas.addEventListener('touchmove', (e)=>{scratch(e); e.preventDefault();}, {passive:false});
-        init();
-    </script>
-</body>
-</html>
+    let html = `<div class="game-zone"><div class="zone-title">D區：幸運號碼</div>`;
+    html += `<div style="font-size:14px; margin-bottom:5px;">幸運：<b style="color:red">${lucky.join(' ')}</b></div>`;
+    html += `<div class="number-pool" style="display:grid; grid-template-columns:repeat(3,1fr); gap:8px;">`;
+    
+    myNums.forEach((n, i) => {
+        const isMatch = lucky.includes(n);
+        const displayAmt = isMatch ? winAmt : amounts[Math.floor(Math.random()*amounts.length)];
+        html += `<div style="border:1px solid #ddd; padding:4px; ${isMatch?'background:#fff9c4':''}">
+                    <b style="${isMatch?'color:red':''}">${n}</b><br>
+                    <small style="color:#777">$${displayAmt.toLocaleString()}</small>
+                 </div>`;
+    });
+    html += `</div></div>`;
+    return html;
+}
