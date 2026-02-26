@@ -20,7 +20,6 @@
             text-shadow: 0 0 15px var(--neon-gold);
         }
 
-        /* 修正後的文字效果：平穩呼吸燈，不再眼花 */
         .status-text {
             font-weight: bold;
             transition: 0.3s;
@@ -42,12 +41,12 @@
         .spinning { animation: scroll 0.4s linear infinite; }
         @keyframes scroll { 0% { transform: translateY(0); } 100% { transform: translateY(-300%); } }
 
-        /* 按鈕效果 */
         .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
         button { cursor: pointer; color: #000; font-weight: 900; border: none; border-radius: 12px; flex: 1; padding: 15px; font-size: 1.1rem; transition: 0.1s; min-width: 120px; -webkit-tap-highlight-color: transparent; }
         .btn-single { background: linear-gradient(135deg, #f1c40f, #e67e22); box-shadow: 0 6px 0 #95a5a6; }
         .btn-multi { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; box-shadow: 0 6px 0 #7f8c8d; }
         button:active { transform: translateY(4px); box-shadow: 0 2px 0 #333 !important; }
+        button:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
         .btn-ad { background: #000; color: var(--neon-cyan); border: 2px solid var(--neon-cyan); flex: 1 1 100%; font-size: 1rem; padding: 12px; margin-top: 5px; display: none; animation: glow 2s infinite; font-weight: bold; }
         @keyframes glow { 0%, 100% { box-shadow: 0 0 5px var(--neon-cyan); } 50% { box-shadow: 0 0 20px var(--neon-cyan); } }
@@ -56,7 +55,6 @@
         .modal-box { background: #1a1a1a; padding: 25px; border-radius: 20px; border: 2px solid var(--neon-gold); text-align: left; max-width: 85%; width: 320px; }
         .btn-confirm { background: var(--neon-cyan); color: black; padding: 12px; border-radius: 10px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; }
 
-        /* 排行榜加回去 */
         .leaderboard { width: 95%; max-width: 400px; margin-top: 20px; background: #111; border-radius: 15px; padding: 15px; border: 1px solid #444; box-sizing: border-box; margin-bottom: 30px; }
         .leaderboard h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: var(--neon-gold); text-align: center; }
         .leaderboard table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
@@ -67,13 +65,13 @@
 
     <div id="newsOverlay" class="overlay" style="display: flex;">
         <div class="modal-box">
-            <h2 style="color:var(--neon-gold); margin-top:0; text-align:center;">🛠️ 更新日誌 v1.3</h2>
+            <h2 style="color:var(--neon-gold); margin-top:0; text-align:center;">🛠️ 更新日誌 v1.31</h2>
             <div style="font-size: 0.9rem; line-height: 1.6; color: #ccc; margin: 15px 0;">
-                <div style="margin-bottom:8px;">▶ <b>介面簡化</b>：移除閃爍的故障風文字，改為舒適的呼吸感。</div>
-                <div style="margin-bottom:8px;">▶ <b>排行回歸</b>：重新找回消失的本地生存排行榜。</div>
-                <div style="margin-bottom:8px;">▶ <b>結構穩定</b>：最佳化 HTML 佈局，確保所有組件正確載入。</div>
+                <div style="margin-bottom:8px;">▶ <b>十連鏈接修復</b>：解決連續掃描時可能發生的中斷問題。</div>
+                <div style="margin-bottom:8px;">▶ <b>動畫同步</b>：最佳化轉軸停止與對獎邏輯的銜接。</div>
+                <div style="margin-bottom:8px;">▶ <b>按鈕狀態控制</b>：運算期間會正確鎖定所有控制項。</div>
             </div>
-            <button class="btn-confirm" onclick="closeNews()">進入時空掃描</button>
+            <button class="btn-confirm" onclick="closeNews()">啟動生存掃描</button>
         </div>
     </div>
 
@@ -206,29 +204,41 @@
             document.getElementById('timer').innerText = `${h}:${m}:${s}`;
         }
 
+        // --- 修復 handleSpin 邏輯 ---
         async function handleSpin(count) {
             const bet = parseInt(document.getElementById('betAmount').value);
             if (balance < (bet * count)) return;
+
+            // 鎖定按鈕
             document.getElementById('spinBtn').disabled = true;
             document.getElementById('multiSpinBtn').disabled = true;
             
             for (let c = 0; c < count; c++) {
-                if (balance < bet) break;
-                balance -= bet; updateDisplay();
+                if (balance < bet) {
+                    document.getElementById('gameLog').innerText = "📡 餘額不足，鏈接中斷";
+                    break;
+                }
                 
+                balance -= bet; 
+                updateDisplay();
+                
+                // 視覺效果啟動
                 for (let i = 0; i < 9; i++) document.getElementById(`strip${i}`).classList.add('spinning');
+                
                 const resultSymbols = Array.from({length:9}, () => symbols[Math.floor(Math.random()*symbols.length)]);
                 
+                // 逐欄停止動畫
                 for (let col = 0; col < 3; col++) {
-                    await new Promise(r => setTimeout(r, 600));
+                    await new Promise(r => setTimeout(r, 400)); // 縮短單次動畫感，提升流暢度
                     [0, 3, 6].map(offset => {
                         const idx = offset + col;
                         const s = document.getElementById(`strip${idx}`);
                         s.classList.remove('spinning');
-                        s.firstChild.innerText = resultSymbols[idx];
+                        s.querySelector('.symbol').innerText = resultSymbols[idx];
                     });
                 }
 
+                // 計算中獎
                 let currentWin = 0;
                 let pLines = { h: 0, v: 0, d: 0 }, otherWin = 0;
 
@@ -249,15 +259,22 @@
                     currentWin = (bet * pMult) + otherWin;
                 } else currentWin = otherWin;
 
-                balance += currentWin; updateDisplay();
-                document.getElementById('gameLog').innerHTML = currentWin > 0 ? 
-                    `<span style="color:var(--neon-cyan); text-shadow:0 0 10px var(--neon-cyan);">🏆 獲得補給: $${Math.floor(currentWin)}</span>` : 
-                    `<span style="color:#666;">❌ 無匹配訊號</span>`;
+                balance += currentWin; 
+                updateDisplay();
                 
-                if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 400));
+                // 顯示日誌
+                document.getElementById('gameLog').innerHTML = currentWin > 0 ? 
+                    `<span style="color:var(--neon-cyan); text-shadow:0 0 10px var(--neon-cyan);">🏆 [${c+1}/${count}] 獲得: $${Math.floor(currentWin)}</span>` : 
+                    `<span style="color:#666;">❌ [${c+1}/${count}] 無匹配</span>`;
+                
+                // 如果是十連抽，每次抽完等一下
+                if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 600));
             }
+            
+            // 解鎖按鈕
             document.getElementById('spinBtn').disabled = false;
             document.getElementById('multiSpinBtn').disabled = false;
+            
             if (balance < 10) forceGameOver();
             saveData();
         }
@@ -292,11 +309,8 @@
             renderLeaderboard();
             for (let i = 0; i < 9; i++) {
                 const strip = document.getElementById(`strip${i}`);
-                for (let j = 0; j < 5; j++) {
-                    const div = document.createElement('div'); div.className = 'symbol';
-                    div.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-                    strip.appendChild(div);
-                }
+                // 預填符號，確保動畫流暢
+                strip.innerHTML = '<div class="symbol">🍓</div><div class="symbol">🍎</div><div class="symbol">🍌</div><div class="symbol">🍍</div><div class="symbol">🍇</div>';
             }
             updateDisplay();
         };
