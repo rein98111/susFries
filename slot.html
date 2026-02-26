@@ -65,13 +65,12 @@
 
     <div id="newsOverlay" class="overlay" style="display: flex;">
         <div class="modal-box">
-            <h2 style="color:var(--neon-gold); margin-top:0; text-align:center;">🛠️ 更新日誌 v1.31</h2>
+            <h2 style="color:var(--neon-gold); margin-top:0; text-align:center;">🛠️ 更新日誌 v1.32</h2>
             <div style="font-size: 0.9rem; line-height: 1.6; color: #ccc; margin: 15px 0;">
-                <div style="margin-bottom:8px;">▶ <b>十連鏈接修復</b>：解決連續掃描時可能發生的中斷問題。</div>
-                <div style="margin-bottom:8px;">▶ <b>動畫同步</b>：最佳化轉軸停止與對獎邏輯的銜接。</div>
-                <div style="margin-bottom:8px;">▶ <b>按鈕狀態控制</b>：運算期間會正確鎖定所有控制項。</div>
+                <div style="margin-bottom:8px;">▶ <b>錯誤提示強化</b>：點擊掃描時若餘額不足，系統會立即給出紅字提示。</div>
+                <div style="margin-bottom:8px;">▶ <b>十連邏輯優化</b>：確保一次扣款完成或判定，提升操作反應。</div>
             </div>
-            <button class="btn-confirm" onclick="closeNews()">啟動生存掃描</button>
+            <button class="btn-confirm" onclick="closeNews()">進入掃描終端</button>
         </div>
     </div>
 
@@ -127,8 +126,8 @@
 
     <script>
         const symbols = ['🍓', '🍎', '🍌', '🍍', '🍇'];
-        const BG_VIDEO_ID = '8nz_BWvCF_4';
-        const AD_VIDEO_IDS = ['cgS_xcj8c4c', '-Jbob4X-Gzc', 'H9S2Ycj4v7Q', 'asXF6XI9Rvk'];
+        const BG_VIDEO_ID = 'Mcz3yZSUVI8';
+        const AD_VIDEO_IDS = ['cgS_xcj8c4c', '-Jbob4X-Gzc', 'H9S2Ycj4v7Q', 'asXF6XI9Rvk', 'HhJIJ4OD6ls', 'd-bNThVuIlc', '_Q-i5CA0ogM'];
         
         let balance = parseInt(localStorage.getItem('slot_balance')) || 5000;
         let seconds = parseInt(localStorage.getItem('slot_timer_seconds')) || 0;
@@ -204,32 +203,34 @@
             document.getElementById('timer').innerText = `${h}:${m}:${s}`;
         }
 
-        // --- 修復 handleSpin 邏輯 ---
+        // --- 修復：餘額不足提示邏輯 ---
         async function handleSpin(count) {
             const bet = parseInt(document.getElementById('betAmount').value);
-            if (balance < (bet * count)) return;
+            const totalCost = bet * count;
+
+            // 檢查餘額
+            if (balance < totalCost) {
+                document.getElementById('gameLog').innerHTML = `<span style="color:var(--neon-red);">⚠ 餘額不足以進行${count === 10 ? '十連鏈接' : '單次掃描'}</span>`;
+                return;
+            }
 
             // 鎖定按鈕
             document.getElementById('spinBtn').disabled = true;
             document.getElementById('multiSpinBtn').disabled = true;
             
             for (let c = 0; c < count; c++) {
-                if (balance < bet) {
-                    document.getElementById('gameLog').innerText = "📡 餘額不足，鏈接中斷";
-                    break;
-                }
+                // 安全檢查：雖然開頭查過了，但為了邏輯嚴密
+                if (balance < bet) break;
                 
                 balance -= bet; 
                 updateDisplay();
                 
-                // 視覺效果啟動
                 for (let i = 0; i < 9; i++) document.getElementById(`strip${i}`).classList.add('spinning');
                 
                 const resultSymbols = Array.from({length:9}, () => symbols[Math.floor(Math.random()*symbols.length)]);
                 
-                // 逐欄停止動畫
                 for (let col = 0; col < 3; col++) {
-                    await new Promise(r => setTimeout(r, 400)); // 縮短單次動畫感，提升流暢度
+                    await new Promise(r => setTimeout(r, 400));
                     [0, 3, 6].map(offset => {
                         const idx = offset + col;
                         const s = document.getElementById(`strip${idx}`);
@@ -238,7 +239,6 @@
                     });
                 }
 
-                // 計算中獎
                 let currentWin = 0;
                 let pLines = { h: 0, v: 0, d: 0 }, otherWin = 0;
 
@@ -262,16 +262,13 @@
                 balance += currentWin; 
                 updateDisplay();
                 
-                // 顯示日誌
                 document.getElementById('gameLog').innerHTML = currentWin > 0 ? 
                     `<span style="color:var(--neon-cyan); text-shadow:0 0 10px var(--neon-cyan);">🏆 [${c+1}/${count}] 獲得: $${Math.floor(currentWin)}</span>` : 
                     `<span style="color:#666;">❌ [${c+1}/${count}] 無匹配</span>`;
                 
-                // 如果是十連抽，每次抽完等一下
                 if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 600));
             }
             
-            // 解鎖按鈕
             document.getElementById('spinBtn').disabled = false;
             document.getElementById('multiSpinBtn').disabled = false;
             
@@ -309,7 +306,6 @@
             renderLeaderboard();
             for (let i = 0; i < 9; i++) {
                 const strip = document.getElementById(`strip${i}`);
-                // 預填符號，確保動畫流暢
                 strip.innerHTML = '<div class="symbol">🍓</div><div class="symbol">🍎</div><div class="symbol">🍌</div><div class="symbol">🍍</div><div class="symbol">🍇</div>';
             }
             updateDisplay();
