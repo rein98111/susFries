@@ -39,23 +39,49 @@
         button { cursor: pointer; color: #000; font-weight: 900; border: none; border-radius: 12px; flex: 1; padding: 15px; font-size: 1.1rem; transition: 0.1s; min-width: 120px; }
         .btn-single { background: linear-gradient(135deg, #f1c40f, #e67e22); box-shadow: 0 4px 0 #95a5a6; }
         .btn-multi { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; box-shadow: 0 4px 0 #7f8c8d; }
-        .btn-reset { background: #333; color: var(--neon-red); border: 1px solid var(--neon-red); font-size: 0.9rem; padding: 10px; box-shadow: none; flex: 1 1 100%; margin-top: 5px; }
         
-        button:active { transform: translateY(3px); box-shadow: none; }
-        button:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
+        .btn-ad { background: #000; color: var(--neon-cyan); border: 2px solid var(--neon-cyan); flex: 1 1 100%; font-size: 1rem; padding: 12px; margin-top: 5px; display: none; animation: glow 2s infinite; }
+        @keyframes glow { 0%, 100% { box-shadow: 0 0 5px var(--neon-cyan); } 50% { box-shadow: 0 0 20px var(--neon-cyan); } }
+        
+        .btn-reset { background: #222; color: #888; border: 1px solid #444; font-size: 0.8rem; padding: 8px; flex: 1 1 100%; margin-top: 5px; }
+        
+        button:active { transform: translateY(3px); }
+        button:disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
 
         .log { font-weight: bold; height: 90px; color: #2ecc71; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(0,0,0,0.4); border-radius: 10px; margin-top: 10px; padding: 10px; font-size: 1rem; border: 1px solid #444; line-height: 1.4; }
+
+        /* 廣告遮罩層 */
+        #adOverlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.98); z-index: 9999;
+            display: none; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .ad-container { width: 95%; max-width: 640px; aspect-ratio: 16/9; background: #000; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); }
+        #skipBtn {
+            margin-top: 20px; padding: 15px 40px; border-radius: 30px;
+            background: var(--neon-cyan); color: #000; font-weight: bold; font-size: 1.1rem;
+            border: none; cursor: pointer; transition: 0.3s;
+        }
+        #skipBtn:disabled { background: #333; color: #666; }
 
         .leaderboard { width: 95%; max-width: 400px; margin-top: 20px; background: #111; border-radius: 15px; padding: 15px; border: 1px solid #444; box-sizing: border-box; margin-bottom: 30px; }
         .leaderboard h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: var(--neon-gold); text-align: center; }
         .leaderboard table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .leaderboard td, .leaderboard th { padding: 8px 5px; text-align: center; border-bottom: 1px solid #222; }
-        .rank-1 { color: #ffd700; font-weight: bold; }
         
-        #player { display: none; }
+        #player, #adVideoFrame { display: none; }
     </style>
 </head>
 <body>
+
+    <div id="adOverlay">
+        <div style="color:var(--neon-cyan); margin-bottom:15px; font-weight:bold; font-size:1.2rem; letter-spacing:2px;">📡 正在接收補給頻道訊號...</div>
+        <div class="ad-container" id="adVideoPlaceholder">
+            <div id="adVideoFrame"></div>
+        </div>
+        <button id="skipBtn" disabled onclick="closeAd()">觀看中 (30s)</button>
+        <div style="font-size: 0.8rem; color: #555; margin-top: 15px;">觀看滿 30 秒後可獲得 $1,000 補給</div>
+    </div>
 
     <div class="game-title">絕境拉霸：時空倖存者</div>
 
@@ -78,11 +104,12 @@
         </div>
 
         <div class="controls">
-            <div style="font-size: 1.1rem; color: #aaa;">下注：<input type="number" id="betAmount" value="100" min="10" step="10" style="width:75px; background:#000; color:var(--neon-gold); border:2px solid var(--neon-gold); border-radius:8px; text-align:center; padding:5px; font-weight:bold;"></div>
+            <div style="font-size: 1.1rem; color: #aaa;">下注金額：<input type="number" id="betAmount" value="100" min="10" step="10" style="width:80px; background:#000; color:var(--neon-gold); border:2px solid var(--neon-gold); border-radius:8px; text-align:center; padding:5px; font-weight:bold;"></div>
             <div class="btn-group">
                 <button id="spinBtn" class="btn-single" onclick="handleSpin(1)">單次掃描</button>
                 <button id="multiSpinBtn" class="btn-multi" onclick="handleSpin(10)">十連鏈接</button>
-                <button id="resetBtn" class="btn-reset" onclick="manualReset()">💀 放棄當前任務 (Reset)</button>
+                <button id="adBtn" class="btn-ad" onclick="startAd()">📡 請求補給 (+$1,000)</button>
+                <button id="resetBtn" class="btn-reset" onclick="manualReset()">💀 放棄當前任務</button>
             </div>
         </div>
 
@@ -101,6 +128,16 @@
 
     <script>
         const symbols = ['🍓', '🍎', '🍌', '🍍', '🍇'];
+        const BG_VIDEO_ID = '8nz_BWvCF_4';
+        
+        // 已帶入你提供的影片連結 ID
+        const AD_VIDEO_IDS = [
+            'cgS_xcj8c4c', // Shorts 1
+            '-Jbob4X-Gzc', // Shorts 2
+            'H9S2Ycj4v7Q', // 一般影片 1
+            'asXF6XI9Rvk'  // 一般影片 2
+        ];
+        
         let balance = parseInt(localStorage.getItem('slot_balance')) || 5000;
         let seconds = parseInt(localStorage.getItem('slot_timer_seconds')) || 0;
         let timerInterval = null;
@@ -116,15 +153,59 @@
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         
-        var player;
-        const videoId = '8nz_BWvCF_4';
+        var bgPlayer, adPlayer;
+        let adTimer;
+        let adSecondsLeft = 30;
 
         function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', {
-                height: '0', width: '0', videoId: videoId,
-                playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': videoId, 'controls': 0 },
-                events: { 'onReady': (e) => e.target.setVolume(40) }
+            bgPlayer = new YT.Player('player', {
+                height: '0', width: '0', videoId: BG_VIDEO_ID,
+                playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': BG_VIDEO_ID, 'controls': 0 },
+                events: { 'onReady': (e) => e.target.setVolume(30) }
             });
+
+            adPlayer = new YT.Player('adVideoFrame', {
+                height: '100%', width: '100%', videoId: AD_VIDEO_IDS[0],
+                playerVars: { 'autoplay': 0, 'controls': 1, 'rel': 0, 'modestbranding': 1 }
+            });
+        }
+
+        function startAd() {
+            const randomIndex = Math.floor(Math.random() * AD_VIDEO_IDS.length);
+            const selectedID = AD_VIDEO_IDS[randomIndex];
+            
+            document.getElementById('adOverlay').style.display = 'flex';
+            adPlayer.loadVideoById(selectedID);
+            
+            adSecondsLeft = 30;
+            const skipBtn = document.getElementById('skipBtn');
+            skipBtn.disabled = true;
+            skipBtn.innerText = `觀看中 (${adSecondsLeft}s)`;
+            
+            if (bgPlayer) bgPlayer.pauseVideo();
+
+            clearInterval(adTimer);
+            adTimer = setInterval(() => {
+                adSecondsLeft--;
+                if (adSecondsLeft <= 0) {
+                    clearInterval(adTimer);
+                    skipBtn.disabled = false;
+                    skipBtn.innerText = "✅ 領取 $1,000 補給並離開";
+                } else {
+                    skipBtn.innerText = `觀看中 (${adSecondsLeft}s)`;
+                }
+            }, 1000);
+        }
+
+        function closeAd() {
+            adPlayer.stopVideo();
+            document.getElementById('adOverlay').style.display = 'none';
+            balance += 1000;
+            updateDisplay();
+            saveData();
+            document.getElementById('gameLog').style.color = "var(--neon-cyan)";
+            document.getElementById('gameLog').innerText = "✅ 補給成功！已匯入 $1,000。";
+            if (bgPlayer) bgPlayer.playVideo();
         }
 
         function startTimer() { if (!timerInterval) timerInterval = setInterval(() => { seconds++; updateTimerDisplay(); localStorage.setItem('slot_timer_seconds', seconds); }, 1000); }
@@ -139,29 +220,23 @@
         async function handleSpin(count) {
             const bet = parseInt(document.getElementById('betAmount').value);
             const log = document.getElementById('gameLog');
-            
             if (isNaN(bet) || bet < 10) { log.style.color = "#ff4444"; log.innerText = "❌ 警告：投注不可低於 10！"; return; }
             if (balance < (bet * count)) { log.style.color = "#ff4444"; log.innerText = "❌ 警告：資源不足！"; return; }
 
-            if (player && player.getPlayerState() !== 1) player.playVideo();
-
+            if (bgPlayer && bgPlayer.getPlayerState() !== 1) bgPlayer.playVideo();
             document.getElementById('spinBtn').disabled = true;
             document.getElementById('multiSpinBtn').disabled = true;
             document.getElementById('resetBtn').disabled = true;
 
             let totalSessionWin = 0;
-
             for (let c = 0; c < count; c++) {
                 if (balance < bet) break;
                 balance -= bet;
                 updateDisplay();
                 log.style.color = "#888";
                 log.innerText = count > 1 ? `📡 鏈接傳輸中 (${c+1}/10)...` : "⚡ 啟動掃描程序...";
-
                 for (let i = 0; i < 9; i++) document.getElementById(`strip${i}`).classList.add('spinning');
-
                 const res = Array.from({length:9}, () => symbols[Math.floor(Math.random()*symbols.length)]);
-                
                 for (let col = 0; col < 3; col++) {
                     await new Promise(r => setTimeout(r, 1000));
                     [0, 3, 6].map(offset => {
@@ -171,83 +246,55 @@
                         s.firstChild.innerText = res[idx];
                     });
                 }
-
-                let currentWin = 0;
-                let pineappleLines = { h: 0, v: 0, d: 0 };
-                let otherWin = 0;
-
+                let currentWin = 0, pMult = 0;
+                let pineappleLines = { h: 0, v: 0, d: 0 }, otherWin = 0;
                 winConfigs.forEach(conf => {
                     if (res[conf.line[0]] === res[conf.line[1]] && res[conf.line[1]] === res[conf.line[2]]) {
-                        if (res[conf.line[0]] === '🍍') {
-                            pineappleLines[conf.type]++;
-                        } else {
-                            const baseMult = (conf.type === 'h' || conf.type === 'v') ? 2.0 : 1.2;
-                            otherWin += bet * baseMult;
-                        }
+                        if (res[conf.line[0]] === '🍍') pineappleLines[conf.type]++;
+                        else otherWin += bet * ((conf.type === 'h' || conf.type === 'v') ? 2.0 : 1.2);
                     }
                 });
-
-                let pMult = 0;
                 let pCount = pineappleLines.h + pineappleLines.v + pineappleLines.d;
                 if (pCount > 0) {
-                    if (pineappleLines.d > 0 && pCount === pineappleLines.d) { pMult = 2.5 * pineappleLines.d; }
-                    else if (pCount === 1 && (pineappleLines.h === 1 || pineappleLines.v === 1)) { pMult = 5; }
-                    else if (pCount === 2 && pineappleLines.h === 1 && pineappleLines.v === 1) { pMult = 10; }
-                    else if (pCount >= 2) { pMult = 100; }
-                    else { pMult = 5; }
+                    if (pineappleLines.d > 0 && pCount === pineappleLines.d) pMult = 2.5 * pineappleLines.d;
+                    else if (pCount === 1) pMult = 5;
+                    else if (pCount === 2 && pineappleLines.h === 1 && pineappleLines.v === 1) pMult = 10;
+                    else if (pCount >= 2) pMult = 100;
                     currentWin = (bet * pMult) + otherWin;
-                } else {
-                    currentWin = otherWin;
-                }
-
-                balance += currentWin;
-                totalSessionWin += currentWin;
+                } else currentWin = otherWin;
+                balance += currentWin; totalSessionWin += currentWin;
                 updateDisplay();
-                
                 if (count === 1) {
-                    if (currentWin > 0) {
-                        log.style.color = pMult >= 5 ? "var(--neon-gold)" : "#2ecc71";
-                        log.innerHTML = `🏆 獲得金幣：$${Math.floor(currentWin)}<br>${pMult > 0 ? '【 🍍 鳳梨倍率 x' + pMult + ' 】' : '【 水果連線成功 】'}`;
-                    } else {
-                        log.style.color = "#ff4444";
-                        log.innerText = "❌ 未發現匹配連線";
-                    }
+                    log.style.color = pMult >= 5 ? "var(--neon-gold)" : (currentWin > 0 ? "#2ecc71" : "#ff4444");
+                    log.innerHTML = currentWin > 0 ? `🏆 獲得：$${Math.floor(currentWin)}<br>${pMult > 0 ? '【 🍍 鳳梨倍率 x' + pMult + ' 】' : '【 水果連線成功 】'}` : "❌ 未發現匹配連線";
                 }
-
-                if (balance < 10) break; 
+                if (balance < 10) break;
                 if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 400));
             }
-
             if (count > 1) {
                 const netProfit = totalSessionWin - (bet * count);
                 log.style.color = totalSessionWin > 0 ? "var(--neon-cyan)" : "#ff4444";
-                log.innerHTML = `📊 十連抽結算：<br>總獲得：$${Math.floor(totalSessionWin)}<br>淨損益：${netProfit >= 0 ? '+' : ''}${Math.floor(netProfit)}`;
+                log.innerHTML = `📊 十連抽結算：<br>獲得：$${Math.floor(totalSessionWin)}<br>損益：${netProfit >= 0 ? '+' : ''}${Math.floor(netProfit)}`;
             }
-
             document.getElementById('spinBtn').disabled = false;
             document.getElementById('multiSpinBtn').disabled = false;
             document.getElementById('resetBtn').disabled = false;
-
-            if (balance < 10) {
-                forceGameOver();
-            }
+            if (balance < 10) forceGameOver();
             saveData();
         }
 
-        function manualReset() {
-            if (confirm("確定要放棄目前的生存進度並結算成績嗎？")) {
-                forceGameOver();
-            }
+        function updateDisplay() {
+            document.getElementById('balance').innerText = Math.floor(balance).toLocaleString();
+            document.getElementById('adBtn').style.display = (balance < 100) ? 'block' : 'none';
         }
-
+        function manualReset() { if (confirm("確定要放棄並重新開始嗎？")) forceGameOver(); }
         function forceGameOver() {
             const timeStr = document.getElementById('timer').innerText;
             saveToLeaderboard(seconds, timeStr);
             stopTimer();
-            alert(`【 任務終止 】\n最終生存時間：${timeStr}\n\n系統將重置初始金幣。`);
-            resetGame();
+            alert(`【 任務終止 】\n生存時間：${timeStr}`);
+            balance = 5000; seconds = 0; updateTimerDisplay(); updateDisplay(); startTimer(); saveData();
         }
-
         function saveToLeaderboard(sec, str) {
             let board = JSON.parse(localStorage.getItem('slot_leaderboard')) || [];
             board.push({ sec: sec, timeStr: str, date: new Date().toLocaleDateString() });
@@ -256,27 +303,12 @@
             localStorage.setItem('slot_leaderboard', JSON.stringify(board));
             renderLeaderboard();
         }
-
         function renderLeaderboard() {
             const board = JSON.parse(localStorage.getItem('slot_leaderboard')) || [];
             const body = document.getElementById('rankBody');
-            body.innerHTML = board.length ? board.map((item, idx) => `
-                <tr class="${idx === 0 ? 'rank-1' : ''}"><td>${idx + 1}</td><td>${item.timeStr}</td><td>${item.date}</td></tr>
-            `).join('') : '<tr><td colspan="3">尚無數據</td></tr>';
+            body.innerHTML = board.length ? board.map((item, idx) => `<tr class="${idx === 0 ? 'rank-1' : ''}"><td>${idx + 1}</td><td>${item.timeStr}</td><td>${item.date}</td></tr>`).join('') : '<tr><td colspan="3">尚無數據</td></tr>';
         }
-
-        function resetGame() { 
-            balance = 5000; 
-            seconds = 0; 
-            updateTimerDisplay(); 
-            updateDisplay(); 
-            document.getElementById('gameLog').innerText = "系統已重新啟動，祝好運。";
-            startTimer(); 
-            saveData(); 
-        }
-
         function saveData() { localStorage.setItem('slot_balance', balance); localStorage.setItem('slot_timer_seconds', seconds); }
-        function updateDisplay() { document.getElementById('balance').innerText = Math.floor(balance).toLocaleString(); }
 
         window.onload = () => {
             renderLeaderboard();
