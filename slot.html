@@ -32,7 +32,6 @@
         .symbol { aspect-ratio: 1/1; font-size: 12vw; display: flex; align-items: center; justify-content: center; color: black; }
         @media(min-width: 400px) { .symbol { font-size: 50px; } }
 
-        /* 再次放慢滾動速度：0.4s 一圈，讓視覺更沉穩 */
         .spinning { animation: scroll 0.4s linear infinite; }
         @keyframes scroll { 0% { transform: translateY(0); } 100% { transform: translateY(-300%); } }
 
@@ -43,13 +42,13 @@
         button:active { transform: translateY(3px); box-shadow: none; }
         button:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
 
-        .log { font-weight: bold; height: 60px; color: #2ecc71; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(0,0,0,0.3); border-radius: 10px; margin-top: 10px; padding: 5px; font-size: 0.9rem; border: 1px solid #333; }
+        .log { font-weight: bold; height: 80px; color: #2ecc71; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(0,0,0,0.3); border-radius: 10px; margin-top: 10px; padding: 10px; font-size: 0.9rem; border: 1px solid #333; overflow: hidden; }
 
         .leaderboard { width: 95%; max-width: 400px; margin-top: 20px; background: #111; border-radius: 15px; padding: 15px; border: 1px solid #444; box-sizing: border-box; margin-bottom: 30px; }
         .leaderboard h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: var(--neon-gold); text-align: center; }
         .leaderboard table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .leaderboard td, .leaderboard th { padding: 8px 5px; text-align: center; border-bottom: 1px solid #222; }
-        .rank-1 { color: #ffd700; font-weight: bold; text-shadow: 0 0 5px rgba(255,215,0,0.5); }
+        .rank-1 { color: #ffd700; font-weight: bold; }
         
         #player { display: none; }
     </style>
@@ -77,14 +76,14 @@
         </div>
 
         <div class="controls">
-            <div style="font-size: 1.1rem; color: #aaa;">投注金額：<input type="number" id="betAmount" value="100" min="10" step="10" style="width:80px; background:#000; color:var(--neon-gold); border:2px solid var(--neon-gold); border-radius:8px; text-align:center; padding:5px; font-weight:bold;"></div>
+            <div style="font-size: 1.1rem; color: #aaa;">投注：<input type="number" id="betAmount" value="100" min="10" step="10" style="width:70px; background:#000; color:var(--neon-gold); border:2px solid var(--neon-gold); border-radius:8px; text-align:center; padding:5px;"></div>
             <div class="btn-group">
                 <button id="spinBtn" class="btn-single" onclick="handleSpin(1)">單次掃描</button>
                 <button id="multiSpinBtn" class="btn-multi" onclick="handleSpin(10)">十連鏈接</button>
             </div>
         </div>
 
-        <div class="log" id="gameLog">系統穩定，等待授權啟動。</div>
+        <div class="log" id="gameLog">系統穩定，等待授權。</div>
     </div>
 
     <div class="leaderboard">
@@ -104,23 +103,52 @@
         let timerInterval = null;
 
         const winConfigs = [
-            { line: [0, 1, 2], mult: 1.75, sp: 1.75 }, { line: [3, 4, 5], mult: 2.0, sp: 5.0 },
-            { line: [6, 7, 8], mult: 1.75, sp: 1.75 }, { line: [0, 3, 6], mult: 1.5, sp: 1.5 },
-            { line: [1, 4, 7], mult: 2.0, sp: 5.0 }, { line: [2, 5, 8], mult: 1.5, sp: 1.5 },
-            { line: [0, 4, 8], mult: 1.2, sp: 1.2 }, { line: [2, 4, 6], mult: 1.2, sp: 1.2 }
+            { line: [0, 1, 2], type: 'h' }, { line: [3, 4, 5], type: 'h' }, { line: [6, 7, 8], type: 'h' },
+            { line: [0, 3, 6], type: 'v' }, { line: [1, 4, 7], type: 'v' }, { line: [2, 5, 8], type: 'v' },
+            { line: [0, 4, 8], type: 'd' }, { line: [2, 4, 6], type: 'd' }
         ];
 
+        // YouTube API 循環播放設定
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+        
         var player;
+        const videoId = '8nz_BWvCF_4';
+
         function onYouTubeIframeAPIReady() {
-            player = new YT.Player('player', { height: '0', width: '0', videoId: '8nz_BWvCF_4', events: { 'onReady': (e) => e.target.setVolume(40) } });
+            player = new YT.Player('player', {
+                height: '0',
+                width: '0',
+                videoId: videoId,
+                playerVars: {
+                    'autoplay': 0,
+                    'loop': 1,
+                    'playlist': videoId, // 循環播放必須加上 playlist 指向同一個 ID
+                    'controls': 0
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            event.target.setVolume(40);
+        }
+
+        function onPlayerStateChange(event) {
+            // 如果音樂結束（意外狀況），重新播放
+            if (event.data === YT.PlayerState.ENDED) {
+                player.playVideo();
+            }
         }
 
         function startTimer() { if (!timerInterval) timerInterval = setInterval(() => { seconds++; updateTimerDisplay(); localStorage.setItem('slot_timer_seconds', seconds); }, 1000); }
         function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
+        
         function updateTimerDisplay() {
             const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
             const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
@@ -129,24 +157,17 @@
         }
 
         async function handleSpin(count) {
-            const betInput = document.getElementById('betAmount');
-            const bet = parseInt(betInput.value);
+            const bet = parseInt(document.getElementById('betAmount').value);
             const log = document.getElementById('gameLog');
+            
+            if (isNaN(bet) || bet < 10) { log.style.color = "#ff4444"; log.innerText = "❌ 警告：投注不可低於 10！"; return; }
+            if (balance < (bet * count)) { log.style.color = "#ff4444"; log.innerText = "❌ 警告：資源不足！"; return; }
 
-            // --- 強制限制：下注不可小於等於 0 ---
-            if (isNaN(bet) || bet < 10) {
-                log.style.color = "#ff4444";
-                log.innerText = "❌ 警告：投注金額不可低於 10！";
-                return;
+            // 強制觸發音樂播放（循環模式）
+            if (player) {
+                const state = player.getPlayerState();
+                if (state !== 1) player.playVideo(); 
             }
-
-            if (balance < (bet * count)) {
-                log.style.color = "#ff4444";
-                log.innerText = "❌ 警告：資源不足以執行指令！";
-                return;
-            }
-
-            if (player && player.getPlayerState() !== 1) player.playVideo();
 
             document.getElementById('spinBtn').disabled = true;
             document.getElementById('multiSpinBtn').disabled = true;
@@ -162,47 +183,65 @@
 
                 const res = Array.from({length:9}, () => symbols[Math.floor(Math.random()*symbols.length)]);
                 
-                // --- 慢速停頓邏輯 ---
-                await new Promise(r => setTimeout(r, 1000)); // 左排停頓延遲 1 秒
-                stopColumn([0, 3, 6], res);
-                
-                await new Promise(r => setTimeout(r, 1000)); // 中排停頓延遲 1 秒
-                stopColumn([1, 4, 7], res);
-                
-                await new Promise(r => setTimeout(r, 1000)); // 右排停頓延遲 1 秒
-                stopColumn([2, 5, 8], res);
+                for (let col = 0; col < 3; col++) {
+                    await new Promise(r => setTimeout(r, 1000));
+                    [0, 3, 6].map(offset => {
+                        const idx = offset + col;
+                        const s = document.getElementById(`strip${idx}`);
+                        s.classList.remove('spinning');
+                        s.firstChild.innerText = res[idx];
+                    });
+                }
 
-                let win = 0;
+                let totalWin = 0;
+                let pineappleLines = { h: 0, v: 0, d: 0 };
+                let otherWin = 0;
+
                 winConfigs.forEach(conf => {
                     if (res[conf.line[0]] === res[conf.line[1]] && res[conf.line[1]] === res[conf.line[2]]) {
-                        win += bet * (res[conf.line[0]] === '🍍' ? conf.sp : conf.mult);
+                        if (res[conf.line[0]] === '🍍') {
+                            pineappleLines[conf.type]++;
+                        } else {
+                            const baseMult = (conf.type === 'h' || conf.type === 'v') ? 2.0 : 1.2;
+                            otherWin += bet * baseMult;
+                        }
                     }
                 });
-                balance += win;
+
+                let pMult = 0;
+                let pCount = pineappleLines.h + pineappleLines.v + pineappleLines.d;
+                if (pCount > 0) {
+                    if (pineappleLines.d > 0 && pCount === pineappleLines.d) { pMult = 2.5 * pineappleLines.d; }
+                    else if (pCount === 1 && (pineappleLines.h === 1 || pineappleLines.v === 1)) { pMult = 5; }
+                    else if (pCount === 2 && pineappleLines.h === 1 && pineappleLines.v === 1) { pMult = 10; }
+                    else if (pCount >= 2) { pMult = 100; }
+                    else { pMult = 5; }
+                    totalWin = (bet * pMult) + otherWin;
+                } else {
+                    totalWin = otherWin;
+                }
+
+                balance += totalWin;
                 updateDisplay();
                 
+                if (totalWin >= bet * 10) {
+                    log.style.color = "#ffd700";
+                    log.innerHTML = `🌟 超級連線！獲得 $${Math.floor(totalWin)}<br>【鳳梨加成 x${pMult || '?' }】`;
+                }
+
                 if (balance <= 0) break;
-                if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 500)); // 十連抽間隔
+                if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 500));
             }
 
             document.getElementById('spinBtn').disabled = false;
             document.getElementById('multiSpinBtn').disabled = false;
-
             if (balance <= 0) {
                 const timeStr = document.getElementById('timer').innerText;
                 saveToLeaderboard(seconds, timeStr);
                 stopTimer();
-                setTimeout(() => { alert(`【 任務失敗 】\n生存時間：${timeStr}\n\n資源已耗盡，即將重置系統。`); resetGame(); }, 500);
+                setTimeout(() => { alert(`【 任務失敗 】\n生存時間：${timeStr}`); resetGame(); }, 500);
             }
             saveData();
-        }
-
-        function stopColumn(indices, results) {
-            indices.forEach(i => {
-                const s = document.getElementById(`strip${i}`);
-                s.classList.remove('spinning');
-                s.firstChild.innerText = results[i];
-            });
         }
 
         function saveToLeaderboard(sec, str) {
