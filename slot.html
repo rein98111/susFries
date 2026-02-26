@@ -13,11 +13,24 @@
             margin: 0; padding: 10px; min-height: 100vh;
         }
         
+        /* 標題與文字效果修復 */
         .game-title {
             font-size: 1.8rem; font-weight: 900; margin: 10px 0;
             background: linear-gradient(to bottom, #fff, #f1c40f);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-shadow: 0 0 15px var(--neon-gold), 0 0 5px #fff;
+        }
+
+        /* 截圖中的故障風效果文字 (Glitch Effect) */
+        .glitch-text {
+            color: var(--neon-gold);
+            font-weight: 900;
+            text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff;
+            animation: textGlitch 2s infinite;
+        }
+        @keyframes textGlitch {
+            0%, 100% { text-shadow: 2px 0 #ff00ff, -2px 0 #00ffff; }
+            50% { text-shadow: -2px 0 #ff00ff, 2px 0 #00ffff; }
         }
 
         .header-info { display: flex; flex-direction: column; align-items: center; width: 95%; max-width: 400px; margin-bottom: 10px; gap: 8px; }
@@ -35,98 +48,47 @@
         .spinning { animation: scroll 0.4s linear infinite; }
         @keyframes scroll { 0% { transform: translateY(0); } 100% { transform: translateY(-300%); } }
 
-        /* --- 修正按鈕動畫效果 --- */
+        /* 按鈕實體感修復 */
         .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
         button { 
             cursor: pointer; color: #000; font-weight: 900; border: none; 
             border-radius: 12px; flex: 1; padding: 15px; font-size: 1.1rem; 
             transition: all 0.1s; min-width: 120px; position: relative;
-            outline: none; -webkit-tap-highlight-color: transparent;
+            -webkit-tap-highlight-color: transparent;
         }
+        .btn-single { background: linear-gradient(135deg, #f1c40f, #e67e22); box-shadow: 0 6px 0 #95a5a6; }
+        .btn-multi { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; box-shadow: 0 6px 0 #7f8c8d; }
+        button:active { transform: translateY(4px); box-shadow: 0 2px 0 #333 !important; }
+        button:disabled { opacity: 0.6; filter: grayscale(1); transform: none !important; box-shadow: none !important; }
 
-        .btn-single { 
-            background: linear-gradient(135deg, #f1c40f, #e67e22); 
-            box-shadow: 0 6px 0 #95a5a6, 0 8px 15px rgba(0,0,0,0.4); 
-        }
-        .btn-multi { 
-            background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; 
-            box-shadow: 0 6px 0 #7f8c8d, 0 8px 15px rgba(0,0,0,0.4); 
-        }
+        .btn-ad { background: #000; color: var(--neon-cyan); border: 2px solid var(--neon-cyan); flex: 1 1 100%; font-size: 1rem; padding: 12px; margin-top: 5px; display: none; animation: glow 2s infinite; font-weight: bold; }
+        @keyframes glow { 0%, 100% { box-shadow: 0 0 5px var(--neon-cyan); } 50% { box-shadow: 0 0 20px var(--neon-cyan); } }
         
-        /* 點擊時的下壓動畫 */
-        button:active { 
-            transform: translateY(4px); 
-            box-shadow: 0 2px 0 #333 !important; 
-        }
-
-        .btn-ad { 
-            background: #000; color: var(--neon-cyan); border: 2px solid var(--neon-cyan); 
-            flex: 1 1 100%; font-size: 1rem; padding: 12px; margin-top: 5px; 
-            display: none; animation: glow 2s infinite; font-weight: bold;
-        }
-        @keyframes glow { 
-            0%, 100% { box-shadow: 0 0 5px var(--neon-cyan); } 
-            50% { box-shadow: 0 0 20px var(--neon-cyan); } 
-        }
-        
-        .btn-reset { background: #222; color: #888; border: 1px solid #444; font-size: 0.8rem; padding: 8px; flex: 1 1 100%; margin-top: 5px; box-shadow: 0 3px 0 #111; }
-        .btn-reset:active { transform: translateY(2px); box-shadow: 0 1px 0 #000 !important; }
-
-        /* 彈窗樣式 */
-        .overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.95); z-index: 9999;
-            display: none; flex-direction: column; align-items: center; justify-content: center;
-        }
-        .modal-box { 
-            background: #1a1a1a; padding: 25px; border-radius: 20px; 
-            border: 2px solid var(--neon-gold); text-align: left; 
-            max-width: 85%; width: 320px; box-shadow: 0 0 30px rgba(0,0,0,1);
-        }
-        .btn-confirm { 
-            background: var(--neon-cyan); color: black; padding: 12px; 
-            border-radius: 10px; font-weight: 800; border: none; 
-            width: 100%; margin-top: 10px; cursor: pointer;
-            box-shadow: 0 4px 0 #008a6e;
-        }
-        .btn-confirm:active { transform: translateY(3px); box-shadow: 0 1px 0 #005a48; }
-
-        .ad-container { width: 95%; max-width: 640px; aspect-ratio: 16/9; background: #000; border: 2px solid var(--neon-cyan); position: relative; overflow: hidden; }
-        #adVideoFrame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
-
-        .leaderboard { width: 95%; max-width: 400px; margin-top: 20px; background: #111; border-radius: 15px; padding: 15px; border: 1px solid #444; box-sizing: border-box; margin-bottom: 30px; }
-        .leaderboard h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: var(--neon-gold); text-align: center; }
-        .leaderboard table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-        .leaderboard td, .leaderboard th { padding: 8px 5px; text-align: center; border-bottom: 1px solid #222; }
+        .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        .modal-box { background: #1a1a1a; padding: 25px; border-radius: 20px; border: 2px solid var(--neon-gold); text-align: left; max-width: 85%; width: 320px; }
+        .btn-confirm { background: var(--neon-cyan); color: black; padding: 12px; border-radius: 10px; font-weight: 800; border: none; width: 100%; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div id="newsOverlay" class="overlay" style="display: flex;">
         <div class="modal-box">
-            <h2 style="color:var(--neon-gold); margin-top:0; text-align:center;">🛠️ 更新日誌 V1.2.1</h2>
+            <h2 style="color:var(--neon-gold); margin-top:0; text-align:center;">🛠️ 更新日誌 v1.2.2</h2>
             <div style="font-size: 0.9rem; line-height: 1.6; color: #ccc; margin: 15px 0;">
-                <div style="margin-bottom:8px;">▶ <b>物理觸感修復</b>：恢復按鈕點擊時的下壓動畫與陰影效果。</div>
-                <div style="margin-bottom:8px;">▶ <b>音訊授權最佳化</b>：點擊下方按鈕後自動同步背景音樂。</div>
-                <div style="margin-bottom:8px;">▶ <b>補給站穩定</b>：解決廣告黑屏並支援 Shorts 自動續播。</div>
-                <div style="margin-bottom:8px;">▶ <b>掛機偵測</b>：3分鐘未操作將暫停時空生存計時。</div>
+                <div style="margin-bottom:8px;">▶ <b>核心判定修復</b>：補回中獎機制與多線對獎算法。</div>
+                <div style="margin-bottom:8px;">▶ <b>視覺效果重製</b>：強化「掃描完成」與中獎時的霓虹故障風文字。</div>
+                <div style="margin-bottom:8px;">▶ <b>音訊同步穩定</b>：確保進入遊戲後背景音樂 100% 啟動。</div>
             </div>
-            <button class="btn-confirm" onclick="closeNews()">確認並啟動連線</button>
+            <button class="btn-confirm" onclick="closeNews()">啟動生存掃描</button>
         </div>
     </div>
 
     <div id="adOverlay" class="overlay">
         <div style="color:var(--neon-cyan); margin-bottom:15px; font-weight:bold;">📡 正在接收補給頻道訊號...</div>
-        <div class="ad-container"><div id="adVideoFrame"></div></div>
-        <button id="skipBtn" disabled style="margin-top:20px; padding:15px 40px; border-radius:30px; background:var(--neon-cyan); font-weight:bold;" onclick="closeAd()">觀看中 (30s)</button>
-    </div>
-
-    <div id="idleOverlay" class="overlay">
-        <div class="modal-box" style="text-align:center; border-color:var(--neon-red);">
-            <h2 style="color:white; font-size:2rem; margin:0;">你還在嗎 🤔</h2>
-            <p style="color:#888;">計時已暫停</p>
-            <button class="btn-confirm" style="background:var(--neon-red); color:white; box-shadow: 0 4px 0 #800;" onclick="resumeFromIdle()">我在！</button>
+        <div style="width: 95%; max-width: 640px; aspect-ratio: 16/9; background: #000; border: 2px solid var(--neon-cyan); position: relative; overflow: hidden;">
+            <div id="adVideoFrame" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
         </div>
+        <button id="skipBtn" disabled style="margin-top:20px; padding:15px 40px; border-radius:30px; background:var(--neon-cyan); font-weight:bold;" onclick="closeAd()">觀看中 (30s)</button>
     </div>
 
     <div class="game-title">絕境拉霸：時空倖存者</div>
@@ -155,18 +117,10 @@
                 <button id="spinBtn" class="btn-single" onclick="handleSpin(1)">單次掃描</button>
                 <button id="multiSpinBtn" class="btn-multi" onclick="handleSpin(10)">十連鏈接</button>
                 <button id="adBtn" class="btn-ad" onclick="startAd()">📡 請求補給 (+$1,000)</button>
-                <button id="resetBtn" class="btn-reset" onclick="manualReset()">💀 放棄任務</button>
+                <button id="resetBtn" style="background:#222; color:#888; border:1px solid #444; font-size:0.8rem; padding:8px; flex:1 1 100%; margin-top:5px;" onclick="manualReset()">💀 放棄任務</button>
             </div>
         </div>
-        <div id="gameLog" style="margin-top:15px; font-weight:bold; color:var(--neon-gold); height:24px;">系統待機中...</div>
-    </div>
-
-    <div class="leaderboard">
-        <h3>🏆 本地生存殿堂</h3>
-        <table>
-            <thead><tr><th>名次</th><th>生存時間</th><th>最終日期</th></tr></thead>
-            <tbody id="rankBody"></tbody>
-        </table>
+        <div id="gameLog" class="glitch-text" style="margin-top:15px; height:24px;">系統待機中...</div>
     </div>
 
     <div id="bgPlayerContainer" style="display:none;"><div id="player"></div></div>
@@ -178,8 +132,13 @@
         
         let balance = parseInt(localStorage.getItem('slot_balance')) || 5000;
         let seconds = parseInt(localStorage.getItem('slot_timer_seconds')) || 0;
-        let timerInterval = null, idleSeconds = 0;
-        const IDLE_LIMIT = 180;
+        let timerInterval = null;
+
+        const winConfigs = [
+            { line: [0, 1, 2], type: 'h' }, { line: [3, 4, 5], type: 'h' }, { line: [6, 7, 8], type: 'h' },
+            { line: [0, 3, 6], type: 'v' }, { line: [1, 4, 7], type: 'v' }, { line: [2, 5, 8], type: 'v' },
+            { line: [0, 4, 8], type: 'd' }, { line: [2, 4, 6], type: 'd' }
+        ];
 
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
@@ -237,29 +196,7 @@
             if (bgPlayer) bgPlayer.playVideo();
         }
 
-        function resetIdleTimer() { idleSeconds = 0; }
-        window.addEventListener('mousedown', resetIdleTimer);
-        window.addEventListener('keypress', resetIdleTimer);
-        window.addEventListener('touchstart', resetIdleTimer);
-
-        function checkIdle() {
-            idleSeconds++;
-            if (idleSeconds >= IDLE_LIMIT) {
-                stopTimer();
-                document.getElementById('idleOverlay').style.display = 'flex';
-                if (bgPlayer) bgPlayer.pauseVideo();
-            }
-        }
-
-        function resumeFromIdle() {
-            resetIdleTimer();
-            document.getElementById('idleOverlay').style.display = 'none';
-            startTimer();
-            if (bgPlayer) bgPlayer.playVideo();
-        }
-
-        function startTimer() { if (!timerInterval) timerInterval = setInterval(() => { seconds++; updateTimerDisplay(); checkIdle(); }, 1000); }
-        function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
+        function startTimer() { if (!timerInterval) timerInterval = setInterval(() => { seconds++; updateTimerDisplay(); }, 1000); }
         function updateTimerDisplay() {
             const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
             const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
@@ -272,23 +209,50 @@
             if (balance < (bet * count)) return;
             document.getElementById('spinBtn').disabled = true;
             document.getElementById('multiSpinBtn').disabled = true;
+            
             for (let c = 0; c < count; c++) {
                 if (balance < bet) break;
                 balance -= bet; updateDisplay();
+                
                 for (let i = 0; i < 9; i++) document.getElementById(`strip${i}`).classList.add('spinning');
-                const res = Array.from({length:9}, () => symbols[Math.floor(Math.random()*symbols.length)]);
+                const resultSymbols = Array.from({length:9}, () => symbols[Math.floor(Math.random()*symbols.length)]);
+                
                 for (let col = 0; col < 3; col++) {
                     await new Promise(r => setTimeout(r, 600));
                     [0, 3, 6].map(offset => {
                         const idx = offset + col;
                         const s = document.getElementById(`strip${idx}`);
                         s.classList.remove('spinning');
-                        s.firstChild.innerText = res[idx];
+                        s.firstChild.innerText = resultSymbols[idx];
                     });
                 }
-                document.getElementById('gameLog').innerText = "掃描完成";
-                balance += 0; // 簡化贏錢邏輯，此處應放入之前的贏錢判定
+
+                // --- 補回中獎機制 ---
+                let currentWin = 0;
+                let pineappleLines = { h: 0, v: 0, d: 0 }, otherWin = 0;
+
+                winConfigs.forEach(conf => {
+                    if (resultSymbols[conf.line[0]] === resultSymbols[conf.line[1]] && resultSymbols[conf.line[1]] === resultSymbols[conf.line[2]]) {
+                        if (resultSymbols[conf.line[0]] === '🍍') pineappleLines[conf.type]++;
+                        else otherWin += bet * ((conf.type === 'h' || conf.type === 'v') ? 2.0 : 1.2);
+                    }
+                });
+
+                let pCount = pineappleLines.h + pineappleLines.v + pineappleLines.d;
+                if (pCount > 0) {
+                    let pMult = 0;
+                    if (pineappleLines.d > 0 && pCount === pineappleLines.d) pMult = 2.5 * pineappleLines.d;
+                    else if (pCount === 1) pMult = 5;
+                    else if (pCount === 2 && pineappleLines.h === 1 && pineappleLines.v === 1) pMult = 10;
+                    else if (pCount >= 2) pMult = 100;
+                    currentWin = (bet * pMult) + otherWin;
+                } else currentWin = otherWin;
+
+                balance += currentWin;
                 updateDisplay();
+                document.getElementById('gameLog').innerHTML = currentWin > 0 ? `<span style="color:#00ff00">🏆 獲得: $${Math.floor(currentWin)}</span>` : `<span style="color:#ff4444">❌ 未中獎</span>`;
+                
+                if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 400));
             }
             document.getElementById('spinBtn').disabled = false;
             document.getElementById('multiSpinBtn').disabled = false;
@@ -301,13 +265,8 @@
         }
         function manualReset() { if (confirm("放棄任務？")) { balance=5000; seconds=0; updateDisplay(); updateTimerDisplay(); saveData(); } }
         function saveData() { localStorage.setItem('slot_balance', balance); localStorage.setItem('slot_timer_seconds', seconds); }
-        function renderLeaderboard() {
-            const board = JSON.parse(localStorage.getItem('slot_leaderboard')) || [];
-            document.getElementById('rankBody').innerHTML = board.map((item, idx) => `<tr><td>${idx+1}</td><td>${item.timeStr}</td><td>${item.date}</td></tr>`).join('');
-        }
 
         window.onload = () => {
-            renderLeaderboard();
             for (let i = 0; i < 9; i++) {
                 const strip = document.getElementById(`strip${i}`);
                 for (let j = 0; j < 5; j++) {
