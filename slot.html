@@ -65,21 +65,29 @@
 
     <div id="newsOverlay" class="overlay" style="display: flex;">
         <div class="modal-box">
-            <h2 style="color:var(--neon-gold); margin-top:0; text-align:center;">🛠️ 更新日誌 v1.32</h2>
+            <h2 style="color:var(--neon-gold); margin-top:0; text-align:center;">🛠️ 更新日誌 v1.35</h2>
             <div style="font-size: 0.9rem; line-height: 1.6; color: #ccc; margin: 15px 0;">
-                <div style="margin-bottom:8px;">▶ <b>錯誤提示強化</b>：點擊掃描時若餘額不足，系統會立即給出紅字提示。</div>
-                <div style="margin-bottom:8px;">▶ <b>十連邏輯優化</b>：確保一次扣款完成或判定，提升操作反應。</div>
+                <div style="margin-bottom:8px;">▶ <b>廣告介面沉浸化</b>：移除補給影片的進度條、標題與控制項，外觀更趨向遊戲內置終端。</div>
+                <div style="margin-bottom:8px;">▶ <b>防干擾遮罩</b>：新增透明交互遮罩層，防止在補給期間誤點影片導致視窗跳轉。</div>
+                <div style="margin-bottom:8px;">▶ <b>UI 比例修復</b>：優化補給按鈕尺寸，解決在部分螢幕下按鈕過長的問題，恢復精緻膠囊造型。</div>
+                <div style="margin-bottom:8px;">▶ <b>資源池擴充</b>：同步更新背景音樂與補給影片清單，包含個人創作與新番預告。</div>
             </div>
             <button class="btn-confirm" onclick="closeNews()">進入掃描終端</button>
         </div>
     </div>
 
     <div id="adOverlay" class="overlay">
-        <div style="color:var(--neon-cyan); margin-bottom:15px; font-weight:bold;">📡 正在接收補給頻道訊號...</div>
+        <div style="color:var(--neon-cyan); margin-bottom:15px; font-weight:bold;">📡 正在接收補給頻道訊號...</div> 
         <div style="width: 95%; max-width: 640px; aspect-ratio: 16/9; background: #000; border: 2px solid var(--neon-cyan); position: relative; overflow: hidden;">
             <div id="adVideoFrame" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
+            <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: rgba(0,0,0,0);"></div>
         </div>
-        <button id="skipBtn" disabled style="margin-top:20px; padding:15px 40px; border-radius:30px; background:var(--neon-cyan); font-weight:bold;" onclick="closeAd()">觀看中 (30s)</button>
+
+        <button id="skipBtn" disabled 
+            style="margin-top:20px; padding:12px 35px; border-radius:30px; background:var(--neon-cyan); font-weight:bold; color:#000; width:auto; min-width:180px; flex:none; cursor:pointer;" 
+            onclick="closeAd()">
+            觀看中 (30s)
+        </button>
     </div>
 
     <div class="game-title">絕境拉霸：時空倖存者</div>
@@ -155,7 +163,16 @@
             });
             adPlayer = new YT.Player('adVideoFrame', {
                 videoId: AD_VIDEO_IDS[0],
-                playerVars: { 'autoplay': 0, 'controls': 1, 'rel': 0, 'modestbranding': 1, 'playsinline': 1 },
+                playerVars: { 
+                    'autoplay': 0, 
+                    'controls': 0,          // 關鍵：隱藏進度條、音量、全螢幕按鈕等所有控制項
+                    'rel': 0,               // 結束後不顯示相關推薦影片
+                    'modestbranding': 1,    // 隱藏播放條上的 YouTube Logo
+                    'showinfo': 0,          // (舊版參數) 隱藏標題與上傳者
+                    'iv_load_policy': 3,    // 隱藏影片註解（例如訂閱按鈕）
+                    'disablekb': 1,         // 禁用鍵盤控制（防止玩家按空白鍵暫停）
+                    'playsinline': 1        // 在行動裝置上不強制全螢幕播放
+                },
                 events: { 'onStateChange': onAdStateChange }
             });
         }
