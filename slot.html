@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>絕境拉霸：時空倖存者 🎰</title>
     <style>
-        :root { --neon-gold: #ffd700; --neon-cyan: #00ffcc; }
+        :root { --neon-gold: #ffd700; --neon-cyan: #00ffcc; --neon-red: #ff4444; }
         body { 
             font-family: 'PingFang TC', sans-serif; 
             background: #0d0d0d; color: white; 
@@ -35,14 +35,16 @@
         .spinning { animation: scroll 0.4s linear infinite; }
         @keyframes scroll { 0% { transform: translateY(0); } 100% { transform: translateY(-300%); } }
 
-        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
-        button { cursor: pointer; color: #000; font-weight: 900; border: none; border-radius: 12px; flex: 1; padding: 15px; font-size: 1.1rem; transition: 0.1s; }
+        .btn-group { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+        button { cursor: pointer; color: #000; font-weight: 900; border: none; border-radius: 12px; flex: 1; padding: 15px; font-size: 1.1rem; transition: 0.1s; min-width: 120px; }
         .btn-single { background: linear-gradient(135deg, #f1c40f, #e67e22); box-shadow: 0 4px 0 #95a5a6; }
         .btn-multi { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; box-shadow: 0 4px 0 #7f8c8d; }
+        .btn-reset { background: #333; color: var(--neon-red); border: 1px solid var(--neon-red); font-size: 0.9rem; padding: 10px; box-shadow: none; flex: 1 1 100%; margin-top: 5px; }
+        
         button:active { transform: translateY(3px); box-shadow: none; }
         button:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
 
-        .log { font-weight: bold; height: 90px; color: #2ecc71; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(0,0,0,0.4); border-radius: 10px; margin-top: 10px; padding: 10px; font-size: 1rem; border: 1px solid #444; line-height: 1.4; transition: 0.3s; }
+        .log { font-weight: bold; height: 90px; color: #2ecc71; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(0,0,0,0.4); border-radius: 10px; margin-top: 10px; padding: 10px; font-size: 1rem; border: 1px solid #444; line-height: 1.4; }
 
         .leaderboard { width: 95%; max-width: 400px; margin-top: 20px; background: #111; border-radius: 15px; padding: 15px; border: 1px solid #444; box-sizing: border-box; margin-bottom: 30px; }
         .leaderboard h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: var(--neon-gold); text-align: center; }
@@ -80,6 +82,7 @@
             <div class="btn-group">
                 <button id="spinBtn" class="btn-single" onclick="handleSpin(1)">單次掃描</button>
                 <button id="multiSpinBtn" class="btn-multi" onclick="handleSpin(10)">十連鏈接</button>
+                <button id="resetBtn" class="btn-reset" onclick="manualReset()">💀 放棄當前任務 (Reset)</button>
             </div>
         </div>
 
@@ -144,6 +147,7 @@
 
             document.getElementById('spinBtn').disabled = true;
             document.getElementById('multiSpinBtn').disabled = true;
+            document.getElementById('resetBtn').disabled = true;
 
             let totalSessionWin = 0;
 
@@ -200,7 +204,6 @@
                 totalSessionWin += currentWin;
                 updateDisplay();
                 
-                // --- 核心修改：單次結果顯示 ---
                 if (count === 1) {
                     if (currentWin > 0) {
                         log.style.color = pMult >= 5 ? "var(--neon-gold)" : "#2ecc71";
@@ -211,11 +214,10 @@
                     }
                 }
 
-                if (balance <= 0) break;
+                if (balance < 10) break; 
                 if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 400));
             }
 
-            // --- 十連抽最終結算顯示 ---
             if (count > 1) {
                 const netProfit = totalSessionWin - (bet * count);
                 log.style.color = totalSessionWin > 0 ? "var(--neon-cyan)" : "#ff4444";
@@ -224,13 +226,26 @@
 
             document.getElementById('spinBtn').disabled = false;
             document.getElementById('multiSpinBtn').disabled = false;
-            if (balance <= 0) {
-                const timeStr = document.getElementById('timer').innerText;
-                saveToLeaderboard(seconds, timeStr);
-                stopTimer();
-                setTimeout(() => { alert(`【 任務失敗 】\n生存時間：${timeStr}`); resetGame(); }, 500);
+            document.getElementById('resetBtn').disabled = false;
+
+            if (balance < 10) {
+                forceGameOver();
             }
             saveData();
+        }
+
+        function manualReset() {
+            if (confirm("確定要放棄目前的生存進度並結算成績嗎？")) {
+                forceGameOver();
+            }
+        }
+
+        function forceGameOver() {
+            const timeStr = document.getElementById('timer').innerText;
+            saveToLeaderboard(seconds, timeStr);
+            stopTimer();
+            alert(`【 任務終止 】\n最終生存時間：${timeStr}\n\n系統將重置初始金幣。`);
+            resetGame();
         }
 
         function saveToLeaderboard(sec, str) {
@@ -250,7 +265,16 @@
             `).join('') : '<tr><td colspan="3">尚無數據</td></tr>';
         }
 
-        function resetGame() { balance = 5000; seconds = 0; updateTimerDisplay(); updateDisplay(); startTimer(); saveData(); }
+        function resetGame() { 
+            balance = 5000; 
+            seconds = 0; 
+            updateTimerDisplay(); 
+            updateDisplay(); 
+            document.getElementById('gameLog').innerText = "系統已重新啟動，祝好運。";
+            startTimer(); 
+            saveData(); 
+        }
+
         function saveData() { localStorage.setItem('slot_balance', balance); localStorage.setItem('slot_timer_seconds', seconds); }
         function updateDisplay() { document.getElementById('balance').innerText = Math.floor(balance).toLocaleString(); }
 
