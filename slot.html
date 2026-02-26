@@ -45,59 +45,51 @@
         
         .btn-reset { background: #222; color: #888; border: 1px solid #444; font-size: 0.8rem; padding: 8px; flex: 1 1 100%; margin-top: 5px; }
         
-        button:active { transform: translateY(3px); }
-        button:disabled { opacity: 0.5; filter: grayscale(1); cursor: not-allowed; }
-
-        .log { font-weight: bold; height: 90px; color: #2ecc71; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(0,0,0,0.4); border-radius: 10px; margin-top: 10px; padding: 10px; font-size: 1rem; border: 1px solid #444; line-height: 1.4; }
-
-        /* 廣告與掛機遮罩層通用樣式 */
         .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.98); z-index: 9999;
             display: none; flex-direction: column; align-items: center; justify-content: center;
         }
-        .ad-container { width: 95%; max-width: 640px; aspect-ratio: 16/9; background: #000; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); }
-        
-        /* 掛機框樣式 */
-        .idle-box {
-            background: #1a1a1a; padding: 30px; border-radius: 20px;
-            border: 2px solid var(--neon-red); text-align: center;
-            box-shadow: 0 0 30px rgba(255, 68, 68, 0.3);
+
+        /* 修正廣告容器，確保影片可見 */
+        .ad-container { 
+            width: 95%; max-width: 640px; aspect-ratio: 16/9; 
+            background: #000; border: 2px solid var(--neon-cyan); 
+            box-shadow: 0 0 20px var(--neon-cyan);
+            position: relative; overflow: hidden;
         }
-        .idle-box h2 { font-size: 2rem; margin: 0; color: white; }
-        .idle-box p { font-size: 1rem; color: #888; margin: 10px 0 20px 0; }
-        .btn-resume { background: var(--neon-cyan); color: black; padding: 10px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; border: none; }
+        #adVideoFrame { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+
+        .idle-box { background: #1a1a1a; padding: 30px; border-radius: 20px; border: 2px solid var(--neon-red); text-align: center; }
+        .btn-resume { background: var(--neon-cyan); color: black; padding: 10px 30px; border-radius: 10px; font-weight: bold; border: none; margin-top: 15px; }
 
         #skipBtn {
             margin-top: 20px; padding: 15px 40px; border-radius: 30px;
             background: var(--neon-cyan); color: #000; font-weight: bold; font-size: 1.1rem;
-            border: none; cursor: pointer; transition: 0.3s;
+            border: none; cursor: pointer;
         }
-        #skipBtn:disabled { background: #333; color: #666; }
+        #skipBtn:disabled { background: #333; color: #666; cursor: not-allowed; }
 
         .leaderboard { width: 95%; max-width: 400px; margin-top: 20px; background: #111; border-radius: 15px; padding: 15px; border: 1px solid #444; box-sizing: border-box; margin-bottom: 30px; }
         .leaderboard h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: var(--neon-gold); text-align: center; }
         .leaderboard table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .leaderboard td, .leaderboard th { padding: 8px 5px; text-align: center; border-bottom: 1px solid #222; }
-        
-        #player, #adVideoFrame { display: none; }
     </style>
 </head>
 <body>
 
     <div id="adOverlay" class="overlay">
-        <div style="color:var(--neon-cyan); margin-bottom:15px; font-weight:bold; font-size:1.2rem; letter-spacing:2px;">📡 正在接收補給頻道訊號...</div>
-        <div class="ad-container" id="adVideoPlaceholder">
+        <div style="color:var(--neon-cyan); margin-bottom:15px; font-weight:bold;">📡 正在接收補給頻道訊號...</div>
+        <div class="ad-container">
             <div id="adVideoFrame"></div>
         </div>
         <button id="skipBtn" disabled onclick="closeAd()">觀看中 (30s)</button>
-        <div style="font-size: 0.8rem; color: #555; margin-top: 15px;">觀看滿 30 秒後可獲得 $1,000 補給</div>
     </div>
 
     <div id="idleOverlay" class="overlay">
         <div class="idle-box">
-            <h2>你還在嗎 🤔</h2>
-            <p>計時已暫停</p>
+            <h2 style="font-size:2rem; margin:0;">你還在嗎 🤔</h2>
+            <p style="color:#888;">計時已暫停</p>
             <button class="btn-resume" onclick="resumeFromIdle()">我在！</button>
         </div>
     </div>
@@ -123,27 +115,26 @@
         </div>
 
         <div class="controls">
-            <div style="font-size: 1.1rem; color: #aaa;">下注金額：<input type="number" id="betAmount" value="100" min="10" step="10" style="width:80px; background:#000; color:var(--neon-gold); border:2px solid var(--neon-gold); border-radius:8px; text-align:center; padding:5px; font-weight:bold;"></div>
+            <div style="font-size: 1.1rem; color: #aaa;">下注：<input type="number" id="betAmount" value="100" min="10" step="10" style="width:80px; background:#000; color:var(--neon-gold); border:2px solid var(--neon-gold); border-radius:8px; text-align:center; padding:5px; font-weight:bold;"></div>
             <div class="btn-group">
                 <button id="spinBtn" class="btn-single" onclick="handleSpin(1)">單次掃描</button>
                 <button id="multiSpinBtn" class="btn-multi" onclick="handleSpin(10)">十連鏈接</button>
                 <button id="adBtn" class="btn-ad" onclick="startAd()">📡 請求補給 (+$1,000)</button>
-                <button id="resetBtn" class="btn-reset" onclick="manualReset()">💀 放棄當前任務</button>
+                <button id="resetBtn" class="btn-reset" onclick="manualReset()">💀 放棄任務</button>
             </div>
         </div>
-
         <div class="log" id="gameLog">等待授權啟動...</div>
     </div>
 
     <div class="leaderboard">
         <h3>🏆 本地生存殿堂</h3>
-        <table>
+        <table id="rankTable">
             <thead><tr><th>名次</th><th>生存時間</th><th>最終日期</th></tr></thead>
             <tbody id="rankBody"></tbody>
         </table>
     </div>
 
-    <div id="player"></div>
+    <div id="bgPlayerContainer" style="display:none;"><div id="player"></div></div>
 
     <script>
         const symbols = ['🍓', '🍎', '🍌', '🍍', '🍇'];
@@ -153,10 +144,8 @@
         let balance = parseInt(localStorage.getItem('slot_balance')) || 5000;
         let seconds = parseInt(localStorage.getItem('slot_timer_seconds')) || 0;
         let timerInterval = null;
-
-        // 掛機偵測變數
         let idleSeconds = 0;
-        const IDLE_LIMIT = 180; // 3分鐘 (180秒)
+        const IDLE_LIMIT = 180;
 
         const winConfigs = [
             { line: [0, 1, 2], type: 'h' }, { line: [3, 4, 5], type: 'h' }, { line: [6, 7, 8], type: 'h' },
@@ -181,53 +170,36 @@
             });
 
             adPlayer = new YT.Player('adVideoFrame', {
-                height: '100%', width: '100%', videoId: AD_VIDEO_IDS[0],
-                playerVars: { 'autoplay': 0, 'controls': 1, 'rel': 0, 'modestbranding': 1 }
+                videoId: AD_VIDEO_IDS[0],
+                playerVars: { 
+                    'autoplay': 0, 'controls': 1, 'rel': 0, 
+                    'modestbranding': 1, 'playsinline': 1 
+                },
+                events: { 'onStateChange': onAdStateChange }
             });
         }
 
-        // --- 掛機偵測邏輯 ---
-        function resetIdleTimer() {
-            idleSeconds = 0;
-        }
-
-        // 監聽各種動作
-        window.addEventListener('mousedown', resetIdleTimer);
-        window.addEventListener('mousemove', resetIdleTimer);
-        window.addEventListener('keypress', resetIdleTimer);
-        window.addEventListener('touchstart', resetIdleTimer);
-
-        function checkIdle() {
-            idleSeconds++;
-            if (idleSeconds >= IDLE_LIMIT) {
-                pauseTimerForIdle();
+        // --- 廣告連播邏輯 ---
+        function onAdStateChange(event) {
+            // 如果影片播完了 (YT.PlayerState.ENDED = 0) 且 30秒還沒到
+            if (event.data === 0 && adSecondsLeft > 0) {
+                const nextID = AD_VIDEO_IDS[Math.floor(Math.random() * AD_VIDEO_IDS.length)];
+                adPlayer.loadVideoById(nextID);
             }
         }
 
-        function pauseTimerForIdle() {
-            stopTimer(); // 停止生存計時
-            document.getElementById('idleOverlay').style.display = 'flex';
-            if (bgPlayer) bgPlayer.pauseVideo();
-        }
-
-        function resumeFromIdle() {
-            resetIdleTimer();
-            document.getElementById('idleOverlay').style.display = 'none';
-            startTimer(); // 恢復計時
-            if (bgPlayer) bgPlayer.playVideo();
-        }
-
-        // --- 廣告與計時邏輯 ---
         function startAd() {
-            const randomIndex = Math.floor(Math.random() * AD_VIDEO_IDS.length);
-            const selectedID = AD_VIDEO_IDS[randomIndex];
+            const selectedID = AD_VIDEO_IDS[Math.floor(Math.random() * AD_VIDEO_IDS.length)];
             document.getElementById('adOverlay').style.display = 'flex';
             adPlayer.loadVideoById(selectedID);
+            
             adSecondsLeft = 30;
             const skipBtn = document.getElementById('skipBtn');
             skipBtn.disabled = true;
             skipBtn.innerText = `觀看中 (${adSecondsLeft}s)`;
+            
             if (bgPlayer) bgPlayer.pauseVideo();
+
             clearInterval(adTimer);
             adTimer = setInterval(() => {
                 adSecondsLeft--;
@@ -251,18 +223,36 @@
             if (bgPlayer) bgPlayer.playVideo();
         }
 
+        // --- 掛機與計時 ---
+        function resetIdleTimer() { idleSeconds = 0; }
+        window.addEventListener('mousedown', resetIdleTimer);
+        window.addEventListener('keypress', resetIdleTimer);
+        window.addEventListener('touchstart', resetIdleTimer);
+
+        function checkIdle() {
+            idleSeconds++;
+            if (idleSeconds >= IDLE_LIMIT) {
+                stopTimer();
+                document.getElementById('idleOverlay').style.display = 'flex';
+                if (bgPlayer) bgPlayer.pauseVideo();
+            }
+        }
+
+        function resumeFromIdle() {
+            resetIdleTimer();
+            document.getElementById('idleOverlay').style.display = 'none';
+            startTimer();
+            if (bgPlayer) bgPlayer.playVideo();
+        }
+
         function startTimer() { 
             if (!timerInterval) {
                 timerInterval = setInterval(() => { 
-                    seconds++; 
-                    updateTimerDisplay(); 
-                    localStorage.setItem('slot_timer_seconds', seconds); 
-                    checkIdle(); // 每次計時時檢查掛機
+                    seconds++; updateTimerDisplay(); checkIdle();
                 }, 1000); 
             }
         }
         function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
-        
         function updateTimerDisplay() {
             const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
             const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
@@ -271,26 +261,20 @@
         }
 
         async function handleSpin(count) {
-            resetIdleTimer(); // 轉動時重置掛機計時
+            resetIdleTimer();
             const bet = parseInt(document.getElementById('betAmount').value);
             const log = document.getElementById('gameLog');
-            if (isNaN(bet) || bet < 10) { log.style.color = "#ff4444"; log.innerText = "❌ 警告：投注不可低於 10！"; return; }
-            if (balance < (bet * count)) { log.style.color = "#ff4444"; log.innerText = "❌ 警告：資源不足！"; return; }
+            if (balance < (bet * count)) return;
 
-            if (bgPlayer && bgPlayer.getPlayerState() !== 1) bgPlayer.playVideo();
             document.getElementById('spinBtn').disabled = true;
             document.getElementById('multiSpinBtn').disabled = true;
-            document.getElementById('resetBtn').disabled = true;
 
-            let totalSessionWin = 0;
             for (let c = 0; c < count; c++) {
                 if (balance < bet) break;
-                balance -= bet;
-                updateDisplay();
-                log.style.color = "#888";
-                log.innerText = count > 1 ? `📡 鏈接傳輸中 (${c+1}/10)...` : "⚡ 啟動掃描程序...";
+                balance -= bet; updateDisplay();
                 for (let i = 0; i < 9; i++) document.getElementById(`strip${i}`).classList.add('spinning');
                 const res = Array.from({length:9}, () => symbols[Math.floor(Math.random()*symbols.length)]);
+                
                 for (let col = 0; col < 3; col++) {
                     await new Promise(r => setTimeout(r, 1000));
                     [0, 3, 6].map(offset => {
@@ -300,6 +284,7 @@
                         s.firstChild.innerText = res[idx];
                     });
                 }
+
                 let currentWin = 0, pMult = 0;
                 let pineappleLines = { h: 0, v: 0, d: 0 }, otherWin = 0;
                 winConfigs.forEach(conf => {
@@ -316,23 +301,14 @@
                     else if (pCount >= 2) pMult = 100;
                     currentWin = (bet * pMult) + otherWin;
                 } else currentWin = otherWin;
-                balance += currentWin; totalSessionWin += currentWin;
+                
+                balance += currentWin;
                 updateDisplay();
-                if (count === 1) {
-                    log.style.color = pMult >= 5 ? "var(--neon-gold)" : (currentWin > 0 ? "#2ecc71" : "#ff4444");
-                    log.innerHTML = currentWin > 0 ? `🏆 獲得：$${Math.floor(currentWin)}<br>${pMult > 0 ? '【 🍍 鳳梨倍率 x' + pMult + ' 】' : '【 水果連線成功 】'}` : "❌ 未發現匹配連線";
-                }
-                if (balance < 10) break;
+                log.innerText = currentWin > 0 ? `🏆 獲得：$${Math.floor(currentWin)}` : "❌ 未中獎";
                 if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 400));
-            }
-            if (count > 1) {
-                const netProfit = totalSessionWin - (bet * count);
-                log.style.color = totalSessionWin > 0 ? "var(--neon-cyan)" : "#ff4444";
-                log.innerHTML = `📊 十連抽結算：<br>獲得：$${Math.floor(totalSessionWin)}<br>損益：${netProfit >= 0 ? '+' : ''}${Math.floor(netProfit)}`;
             }
             document.getElementById('spinBtn').disabled = false;
             document.getElementById('multiSpinBtn').disabled = false;
-            document.getElementById('resetBtn').disabled = false;
             if (balance < 10) forceGameOver();
             saveData();
         }
@@ -341,26 +317,22 @@
             document.getElementById('balance').innerText = Math.floor(balance).toLocaleString();
             document.getElementById('adBtn').style.display = (balance < 100) ? 'block' : 'none';
         }
-        function manualReset() { if (confirm("確定要放棄並重新開始嗎？")) forceGameOver(); }
+        function manualReset() { if (confirm("確定放棄？")) forceGameOver(); }
         function forceGameOver() {
-            const timeStr = document.getElementById('timer').innerText;
-            saveToLeaderboard(seconds, timeStr);
+            saveToLeaderboard(seconds, document.getElementById('timer').innerText);
             stopTimer();
-            alert(`【 任務終止 】\n生存時間：${timeStr}`);
-            balance = 5000; seconds = 0; updateTimerDisplay(); updateDisplay(); startTimer(); saveData();
+            balance = 5000; seconds = 0; updateDisplay(); updateTimerDisplay(); startTimer(); saveData();
         }
         function saveToLeaderboard(sec, str) {
             let board = JSON.parse(localStorage.getItem('slot_leaderboard')) || [];
             board.push({ sec: sec, timeStr: str, date: new Date().toLocaleDateString() });
             board.sort((a, b) => b.sec - a.sec);
-            board = board.slice(0, 5);
-            localStorage.setItem('slot_leaderboard', JSON.stringify(board));
+            localStorage.setItem('slot_leaderboard', JSON.stringify(board.slice(0, 5)));
             renderLeaderboard();
         }
         function renderLeaderboard() {
             const board = JSON.parse(localStorage.getItem('slot_leaderboard')) || [];
-            const body = document.getElementById('rankBody');
-            body.innerHTML = board.length ? board.map((item, idx) => `<tr class="${idx === 0 ? 'rank-1' : ''}"><td>${idx + 1}</td><td>${item.timeStr}</td><td>${item.date}</td></tr>`).join('') : '<tr><td colspan="3">尚無數據</td></tr>';
+            document.getElementById('rankBody').innerHTML = board.map((item, idx) => `<tr><td>${idx+1}</td><td>${item.timeStr}</td><td>${item.date}</td></tr>`).join('');
         }
         function saveData() { localStorage.setItem('slot_balance', balance); localStorage.setItem('slot_timer_seconds', seconds); }
 
@@ -374,7 +346,7 @@
                     strip.appendChild(div);
                 }
             }
-            updateDisplay(); updateTimerDisplay(); startTimer();
+            updateDisplay(); startTimer();
         };
     </script>
 </body>
