@@ -50,13 +50,24 @@
 
         .log { font-weight: bold; height: 90px; color: #2ecc71; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(0,0,0,0.4); border-radius: 10px; margin-top: 10px; padding: 10px; font-size: 1rem; border: 1px solid #444; line-height: 1.4; }
 
-        /* 廣告遮罩層 */
-        #adOverlay {
+        /* 廣告與掛機遮罩層通用樣式 */
+        .overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.98); z-index: 9999;
             display: none; flex-direction: column; align-items: center; justify-content: center;
         }
         .ad-container { width: 95%; max-width: 640px; aspect-ratio: 16/9; background: #000; border: 2px solid var(--neon-cyan); box-shadow: 0 0 20px var(--neon-cyan); }
+        
+        /* 掛機框樣式 */
+        .idle-box {
+            background: #1a1a1a; padding: 30px; border-radius: 20px;
+            border: 2px solid var(--neon-red); text-align: center;
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.3);
+        }
+        .idle-box h2 { font-size: 2rem; margin: 0; color: white; }
+        .idle-box p { font-size: 1rem; color: #888; margin: 10px 0 20px 0; }
+        .btn-resume { background: var(--neon-cyan); color: black; padding: 10px 30px; border-radius: 10px; font-weight: bold; cursor: pointer; border: none; }
+
         #skipBtn {
             margin-top: 20px; padding: 15px 40px; border-radius: 30px;
             background: var(--neon-cyan); color: #000; font-weight: bold; font-size: 1.1rem;
@@ -74,13 +85,21 @@
 </head>
 <body>
 
-    <div id="adOverlay">
+    <div id="adOverlay" class="overlay">
         <div style="color:var(--neon-cyan); margin-bottom:15px; font-weight:bold; font-size:1.2rem; letter-spacing:2px;">📡 正在接收補給頻道訊號...</div>
         <div class="ad-container" id="adVideoPlaceholder">
             <div id="adVideoFrame"></div>
         </div>
         <button id="skipBtn" disabled onclick="closeAd()">觀看中 (30s)</button>
         <div style="font-size: 0.8rem; color: #555; margin-top: 15px;">觀看滿 30 秒後可獲得 $1,000 補給</div>
+    </div>
+
+    <div id="idleOverlay" class="overlay">
+        <div class="idle-box">
+            <h2>你還在嗎 🤔</h2>
+            <p>計時已暫停</p>
+            <button class="btn-resume" onclick="resumeFromIdle()">我在！</button>
+        </div>
     </div>
 
     <div class="game-title">絕境拉霸：時空倖存者</div>
@@ -129,18 +148,15 @@
     <script>
         const symbols = ['🍓', '🍎', '🍌', '🍍', '🍇'];
         const BG_VIDEO_ID = '8nz_BWvCF_4';
-        
-        // 已帶入你提供的影片連結 ID
-        const AD_VIDEO_IDS = [
-            'cgS_xcj8c4c', // Shorts 1
-            '-Jbob4X-Gzc', // Shorts 2
-            'H9S2Ycj4v7Q', // 一般影片 1
-            'asXF6XI9Rvk'  // 一般影片 2
-        ];
+        const AD_VIDEO_IDS = ['cgS_xcj8c4c', '-Jbob4X-Gzc', 'H9S2Ycj4v7Q', 'asXF6XI9Rvk'];
         
         let balance = parseInt(localStorage.getItem('slot_balance')) || 5000;
         let seconds = parseInt(localStorage.getItem('slot_timer_seconds')) || 0;
         let timerInterval = null;
+
+        // 掛機偵測變數
+        let idleSeconds = 0;
+        const IDLE_LIMIT = 180; // 3分鐘 (180秒)
 
         const winConfigs = [
             { line: [0, 1, 2], type: 'h' }, { line: [3, 4, 5], type: 'h' }, { line: [6, 7, 8], type: 'h' },
@@ -170,20 +186,48 @@
             });
         }
 
+        // --- 掛機偵測邏輯 ---
+        function resetIdleTimer() {
+            idleSeconds = 0;
+        }
+
+        // 監聽各種動作
+        window.addEventListener('mousedown', resetIdleTimer);
+        window.addEventListener('mousemove', resetIdleTimer);
+        window.addEventListener('keypress', resetIdleTimer);
+        window.addEventListener('touchstart', resetIdleTimer);
+
+        function checkIdle() {
+            idleSeconds++;
+            if (idleSeconds >= IDLE_LIMIT) {
+                pauseTimerForIdle();
+            }
+        }
+
+        function pauseTimerForIdle() {
+            stopTimer(); // 停止生存計時
+            document.getElementById('idleOverlay').style.display = 'flex';
+            if (bgPlayer) bgPlayer.pauseVideo();
+        }
+
+        function resumeFromIdle() {
+            resetIdleTimer();
+            document.getElementById('idleOverlay').style.display = 'none';
+            startTimer(); // 恢復計時
+            if (bgPlayer) bgPlayer.playVideo();
+        }
+
+        // --- 廣告與計時邏輯 ---
         function startAd() {
             const randomIndex = Math.floor(Math.random() * AD_VIDEO_IDS.length);
             const selectedID = AD_VIDEO_IDS[randomIndex];
-            
             document.getElementById('adOverlay').style.display = 'flex';
             adPlayer.loadVideoById(selectedID);
-            
             adSecondsLeft = 30;
             const skipBtn = document.getElementById('skipBtn');
             skipBtn.disabled = true;
             skipBtn.innerText = `觀看中 (${adSecondsLeft}s)`;
-            
             if (bgPlayer) bgPlayer.pauseVideo();
-
             clearInterval(adTimer);
             adTimer = setInterval(() => {
                 adSecondsLeft--;
@@ -203,13 +247,22 @@
             balance += 1000;
             updateDisplay();
             saveData();
-            document.getElementById('gameLog').style.color = "var(--neon-cyan)";
             document.getElementById('gameLog').innerText = "✅ 補給成功！已匯入 $1,000。";
             if (bgPlayer) bgPlayer.playVideo();
         }
 
-        function startTimer() { if (!timerInterval) timerInterval = setInterval(() => { seconds++; updateTimerDisplay(); localStorage.setItem('slot_timer_seconds', seconds); }, 1000); }
+        function startTimer() { 
+            if (!timerInterval) {
+                timerInterval = setInterval(() => { 
+                    seconds++; 
+                    updateTimerDisplay(); 
+                    localStorage.setItem('slot_timer_seconds', seconds); 
+                    checkIdle(); // 每次計時時檢查掛機
+                }, 1000); 
+            }
+        }
         function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
+        
         function updateTimerDisplay() {
             const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
             const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
@@ -218,6 +271,7 @@
         }
 
         async function handleSpin(count) {
+            resetIdleTimer(); // 轉動時重置掛機計時
             const bet = parseInt(document.getElementById('betAmount').value);
             const log = document.getElementById('gameLog');
             if (isNaN(bet) || bet < 10) { log.style.color = "#ff4444"; log.innerText = "❌ 警告：投注不可低於 10！"; return; }
