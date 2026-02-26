@@ -3,51 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>絕境拉霸：時空倖存者 🎰 - 強化版</title>
+    <title>絕境拉霸：時空倖存者 🎰</title>
     <style>
-        :root { --slot-size: 28vw; --neon-gold: #ffd700; --neon-cyan: #00ffcc; }
+        :root { --neon-gold: #ffd700; --neon-cyan: #00ffcc; }
         body { 
-            font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif; 
+            font-family: 'PingFang TC', sans-serif; 
             background: #0d0d0d; color: white; 
             display: flex; flex-direction: column; align-items: center; 
             margin: 0; padding: 10px; min-height: 100vh;
         }
         
         .game-title {
-            font-size: 1.8rem; font-weight: 900; margin: 10px 0; letter-spacing: 2px;
+            font-size: 1.8rem; font-weight: 900; margin: 10px 0;
             background: linear-gradient(to bottom, #fff, #f1c40f);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-shadow: 0 0 10px var(--neon-gold);
         }
 
         .header-info { display: flex; flex-direction: column; align-items: center; width: 95%; max-width: 400px; margin-bottom: 10px; gap: 8px; }
-        .stats { font-size: 2rem; color: #ffeb3b; font-weight: bold; }
+        .stats { font-size: 2.2rem; color: #ffeb3b; font-weight: bold; text-shadow: 0 0 15px rgba(255,235,59,0.4); }
         .timer-display { font-size: 1.1rem; color: var(--neon-cyan); font-family: monospace; background: rgba(0,255,204,0.1); padding: 5px 20px; border-radius: 20px; border: 1px solid var(--neon-cyan); }
         
         .container { background: #1a1a1a; width: 95%; max-width: 400px; padding: 20px; border-radius: 25px; border: 2px solid var(--neon-gold); box-shadow: 0 0 30px rgba(0,0,0,0.9); text-align: center; box-sizing: border-box; }
         
-        .slot-machine { display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 10px; background: #000; padding: 12px; border-radius: 15px; overflow: hidden; margin-bottom: 15px; }
-        .slot-window { aspect-ratio: 1/1; background: white; border-radius: 10px; overflow: hidden; position: relative; }
+        .slot-machine { display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 12px; background: #000; padding: 15px; border-radius: 15px; overflow: hidden; margin-bottom: 15px; border: 1px solid #333; }
+        .slot-window { aspect-ratio: 1/1; background: #eee; border-radius: 10px; overflow: hidden; position: relative; }
         .slot-strip { position: absolute; top: 0; left: 0; width: 100%; display: flex; flex-direction: column; }
         .symbol { aspect-ratio: 1/1; font-size: 12vw; display: flex; align-items: center; justify-content: center; color: black; }
         @media(min-width: 400px) { .symbol { font-size: 50px; } }
 
-        .spinning { animation: scroll 0.15s linear infinite; }
+        /* 再次放慢滾動速度：0.4s 一圈，讓視覺更沉穩 */
+        .spinning { animation: scroll 0.4s linear infinite; }
         @keyframes scroll { 0% { transform: translateY(0); } 100% { transform: translateY(-300%); } }
 
-        .controls { display: flex; flex-direction: column; gap: 12px; margin-bottom: 10px; }
-        .btn-group { display: flex; gap: 10px; justify-content: center; }
-        
-        button { cursor: pointer; color: #000; font-weight: 900; border: none; border-radius: 12px; transition: 0.1s; }
+        .btn-group { display: flex; gap: 10px; margin-top: 10px; }
+        button { cursor: pointer; color: #000; font-weight: 900; border: none; border-radius: 12px; flex: 1; padding: 15px; font-size: 1.1rem; transition: 0.1s; }
+        .btn-single { background: linear-gradient(135deg, #f1c40f, #e67e22); box-shadow: 0 4px 0 #95a5a6; }
+        .btn-multi { background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; box-shadow: 0 4px 0 #7f8c8d; }
         button:active { transform: translateY(3px); box-shadow: none; }
-        button:disabled { filter: grayscale(1); opacity: 0.5; }
+        button:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
 
-        .btn-single { flex: 1; padding: 15px; font-size: 1.2rem; background: linear-gradient(135deg, #f1c40f, #e67e22); box-shadow: 0 4px 0 #95a5a6; }
-        .btn-multi { flex: 1.2; padding: 15px; font-size: 1.2rem; background: linear-gradient(135deg, #e74c3c, #c0392b); color: white; box-shadow: 0 4px 0 #7f8c8d; }
+        .log { font-weight: bold; height: 60px; color: #2ecc71; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(0,0,0,0.3); border-radius: 10px; margin-top: 10px; padding: 5px; font-size: 0.9rem; border: 1px solid #333; }
 
-        .log { font-weight: bold; height: 70px; color: #2ecc71; font-size: 1rem; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.4; background: rgba(0,0,0,0.3); border-radius: 10px; padding: 5px; }
+        .leaderboard { width: 95%; max-width: 400px; margin-top: 20px; background: #111; border-radius: 15px; padding: 15px; border: 1px solid #444; box-sizing: border-box; margin-bottom: 30px; }
+        .leaderboard h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: var(--neon-gold); text-align: center; }
+        .leaderboard table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .leaderboard td, .leaderboard th { padding: 8px 5px; text-align: center; border-bottom: 1px solid #222; }
+        .rank-1 { color: #ffd700; font-weight: bold; text-shadow: 0 0 5px rgba(255,215,0,0.5); }
         
-        .rules-grid { margin-top: 15px; font-size: 0.8rem; color: #666; display: grid; grid-template-columns: 1fr 1fr; gap: 5px; border-top: 1px solid #333; padding-top: 10px; text-align: left; }
         #player { display: none; }
     </style>
 </head>
@@ -61,7 +64,7 @@
     </div>
 
     <div class="container">
-        <div class="slot-machine" id="machine">
+        <div class="slot-machine">
             <div class="slot-window"><div class="slot-strip" id="strip0"></div></div>
             <div class="slot-window"><div class="slot-strip" id="strip1"></div></div>
             <div class="slot-window"><div class="slot-strip" id="strip2"></div></div>
@@ -74,19 +77,22 @@
         </div>
 
         <div class="controls">
-            <div style="font-size: 1.1rem; color: #888;">投注額：<input type="number" id="betAmount" value="100" step="50" style="width:80px; background:#222; color:#fff; border:1px solid #ffd700; padding:5px; border-radius:5px; text-align:center;"></div>
+            <div style="font-size: 1.1rem; color: #aaa;">投注金額：<input type="number" id="betAmount" value="100" min="10" step="10" style="width:80px; background:#000; color:var(--neon-gold); border:2px solid var(--neon-gold); border-radius:8px; text-align:center; padding:5px; font-weight:bold;"></div>
             <div class="btn-group">
-                <button id="spinBtn" class="btn-single" onclick="handleSpin(1)">單次啟動</button>
-                <button id="multiSpinBtn" class="btn-multi" onclick="handleSpin(10)">十連抽 🔥</button>
+                <button id="spinBtn" class="btn-single" onclick="handleSpin(1)">單次掃描</button>
+                <button id="multiSpinBtn" class="btn-multi" onclick="handleSpin(10)">十連鏈接</button>
             </div>
         </div>
 
-        <div class="log" id="gameLog">系統已就緒。</div>
+        <div class="log" id="gameLog">系統穩定，等待授權啟動。</div>
+    </div>
 
-        <div class="rules-grid">
-            <div>• 中橫/直: 2x (🍍5x)</div><div>• 上下橫: 1.75x</div>
-            <div>• 左右直: 1.5x</div><div>• 斜對角: 1.2x</div>
-        </div>
+    <div class="leaderboard">
+        <h3>🏆 本地生存殿堂</h3>
+        <table>
+            <thead><tr><th>名次</th><th>生存時間</th><th>最終日期</th></tr></thead>
+            <tbody id="rankBody"></tbody>
+        </table>
     </div>
 
     <div id="player"></div>
@@ -98,14 +104,10 @@
         let timerInterval = null;
 
         const winConfigs = [
-            { line: [0, 1, 2], name: "上橫", mult: 1.75, sp: 1.75 },
-            { line: [3, 4, 5], name: "中橫", mult: 2.0,  sp: 5.0 },
-            { line: [6, 7, 8], name: "下橫", mult: 1.75, sp: 1.75 },
-            { line: [0, 3, 6], name: "左直", mult: 1.5,  sp: 1.5 },
-            { line: [1, 4, 7], name: "中直", mult: 2.0,  sp: 5.0 },
-            { line: [2, 5, 8], name: "右直", mult: 1.5,  sp: 1.5 },
-            { line: [0, 4, 8], name: "斜線", mult: 1.2,  sp: 1.2 },
-            { line: [2, 4, 6], name: "斜線", mult: 1.2,  sp: 1.2 }
+            { line: [0, 1, 2], mult: 1.75, sp: 1.75 }, { line: [3, 4, 5], mult: 2.0, sp: 5.0 },
+            { line: [6, 7, 8], mult: 1.75, sp: 1.75 }, { line: [0, 3, 6], mult: 1.5, sp: 1.5 },
+            { line: [1, 4, 7], mult: 2.0, sp: 5.0 }, { line: [2, 5, 8], mult: 1.5, sp: 1.5 },
+            { line: [0, 4, 8], mult: 1.2, sp: 1.2 }, { line: [2, 4, 6], mult: 1.2, sp: 1.2 }
         ];
 
         var tag = document.createElement('script');
@@ -126,98 +128,116 @@
             document.getElementById('timer').innerText = `${h}:${m}:${s}`;
         }
 
-        function initSlots() {
-            for (let i = 0; i < 9; i++) {
-                const strip = document.getElementById(`strip${i}`);
-                strip.innerHTML = '';
-                for (let j = 0; j < 5; j++) {
-                    const div = document.createElement('div');
-                    div.className = 'symbol';
-                    div.innerText = symbols[Math.floor(Math.random() * symbols.length)];
-                    strip.appendChild(div);
-                }
-            }
-            updateDisplay();
-            updateTimerDisplay();
-            startTimer();
-        }
-
         async function handleSpin(count) {
-            const bet = parseInt(document.getElementById('betAmount').value);
+            const betInput = document.getElementById('betAmount');
+            const bet = parseInt(betInput.value);
             const log = document.getElementById('gameLog');
-            if (balance < (bet * count)) { log.innerText = "❌ 資源不足以支援次數！"; return; }
+
+            // --- 強制限制：下注不可小於等於 0 ---
+            if (isNaN(bet) || bet < 10) {
+                log.style.color = "#ff4444";
+                log.innerText = "❌ 警告：投注金額不可低於 10！";
+                return;
+            }
+
+            if (balance < (bet * count)) {
+                log.style.color = "#ff4444";
+                log.innerText = "❌ 警告：資源不足以執行指令！";
+                return;
+            }
 
             if (player && player.getPlayerState() !== 1) player.playVideo();
 
             document.getElementById('spinBtn').disabled = true;
             document.getElementById('multiSpinBtn').disabled = true;
 
-            let totalWonInSession = 0;
-            let totalSpentInSession = 0;
-
             for (let c = 0; c < count; c++) {
                 if (balance < bet) break;
-
                 balance -= bet;
-                totalSpentInSession += bet;
                 updateDisplay();
-                log.style.color = "#888";
-                log.innerText = count > 1 ? `⚡ 十連抽進行中 (${c+1}/10)...` : "⚡ 系統運算中...";
+                log.style.color = "#2ecc71";
+                log.innerText = count > 1 ? `📡 鏈接傳輸中 (${c+1}/10)...` : "⚡ 啟動掃描程序...";
 
-                // 動畫開始
-                const results = [];
-                for (let i = 0; i < 9; i++) {
-                    document.getElementById(`strip${i}`).classList.add('spinning');
-                    results[i] = symbols[Math.floor(Math.random() * symbols.length)];
-                }
+                for (let i = 0; i < 9; i++) document.getElementById(`strip${i}`).classList.add('spinning');
 
-                await new Promise(r => setTimeout(r, count > 1 ? 300 : 1000)); // 十連抽縮短動畫時間
+                const res = Array.from({length:9}, () => symbols[Math.floor(Math.random()*symbols.length)]);
+                
+                // --- 慢速停頓邏輯 ---
+                await new Promise(r => setTimeout(r, 1000)); // 左排停頓延遲 1 秒
+                stopColumn([0, 3, 6], res);
+                
+                await new Promise(r => setTimeout(r, 1000)); // 中排停頓延遲 1 秒
+                stopColumn([1, 4, 7], res);
+                
+                await new Promise(r => setTimeout(r, 1000)); // 右排停頓延遲 1 秒
+                stopColumn([2, 5, 8], res);
 
-                for (let i = 0; i < 9; i++) {
-                    const strip = document.getElementById(`strip${i}`);
-                    strip.classList.remove('spinning');
-                    strip.firstChild.innerText = results[i];
-                }
-
-                // 判斷中獎
-                let currentSpinWin = 0;
+                let win = 0;
                 winConfigs.forEach(conf => {
-                    if (results[conf.line[0]] === results[conf.line[1]] && results[conf.line[1]] === results[conf.line[2]]) {
-                        currentSpinWin += bet * (results[conf.line[0]] === '🍍' ? conf.sp : conf.mult);
+                    if (res[conf.line[0]] === res[conf.line[1]] && res[conf.line[1]] === res[conf.line[2]]) {
+                        win += bet * (res[conf.line[0]] === '🍍' ? conf.sp : conf.mult);
                     }
                 });
-
-                balance += currentSpinWin;
-                totalWonInSession += currentSpinWin;
+                balance += win;
                 updateDisplay();
                 
                 if (balance <= 0) break;
-                if (count > 1) await new Promise(r => setTimeout(r, 100)); // 間隔
+                if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 500)); // 十連抽間隔
             }
-
-            // 最終結算顯示
-            const profit = totalWonInSession - totalSpentInSession;
-            log.style.color = profit >= 0 ? "#00ffcc" : "#e74c3c";
-            log.innerHTML = count > 1 ? 
-                `📊 十連抽結算：<br>總得 $${Math.floor(totalWonInSession)} (盈虧: ${profit >= 0 ? '+' : ''}${Math.floor(profit)})` :
-                (totalWonInSession > 0 ? `🏆 倖存回饋 $${Math.floor(totalWonInSession)}！` : "未發現連線。");
 
             document.getElementById('spinBtn').disabled = false;
             document.getElementById('multiSpinBtn').disabled = false;
 
             if (balance <= 0) {
+                const timeStr = document.getElementById('timer').innerText;
+                saveToLeaderboard(seconds, timeStr);
                 stopTimer();
-                const finalTime = document.getElementById('timer').innerText;
-                setTimeout(() => { alert(`【 任務失敗 】\n生存時長：${finalTime}\n系統將重置。`); resetGame(); }, 500);
+                setTimeout(() => { alert(`【 任務失敗 】\n生存時間：${timeStr}\n\n資源已耗盡，即將重置系統。`); resetGame(); }, 500);
             }
             saveData();
+        }
+
+        function stopColumn(indices, results) {
+            indices.forEach(i => {
+                const s = document.getElementById(`strip${i}`);
+                s.classList.remove('spinning');
+                s.firstChild.innerText = results[i];
+            });
+        }
+
+        function saveToLeaderboard(sec, str) {
+            let board = JSON.parse(localStorage.getItem('slot_leaderboard')) || [];
+            board.push({ sec: sec, timeStr: str, date: new Date().toLocaleDateString() });
+            board.sort((a, b) => b.sec - a.sec);
+            board = board.slice(0, 5);
+            localStorage.setItem('slot_leaderboard', JSON.stringify(board));
+            renderLeaderboard();
+        }
+
+        function renderLeaderboard() {
+            const board = JSON.parse(localStorage.getItem('slot_leaderboard')) || [];
+            const body = document.getElementById('rankBody');
+            body.innerHTML = board.length ? board.map((item, idx) => `
+                <tr class="${idx === 0 ? 'rank-1' : ''}"><td>${idx + 1}</td><td>${item.timeStr}</td><td>${item.date}</td></tr>
+            `).join('') : '<tr><td colspan="3">尚無數據</td></tr>';
         }
 
         function resetGame() { balance = 5000; seconds = 0; updateTimerDisplay(); updateDisplay(); startTimer(); saveData(); }
         function saveData() { localStorage.setItem('slot_balance', balance); localStorage.setItem('slot_timer_seconds', seconds); }
         function updateDisplay() { document.getElementById('balance').innerText = Math.floor(balance).toLocaleString(); }
 
-        window.onload = initSlots;
+        window.onload = () => {
+            renderLeaderboard();
+            for (let i = 0; i < 9; i++) {
+                const strip = document.getElementById(`strip${i}`);
+                for (let j = 0; j < 5; j++) {
+                    const div = document.createElement('div'); div.className = 'symbol';
+                    div.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+                    strip.appendChild(div);
+                }
+            }
+            updateDisplay(); updateTimerDisplay(); startTimer();
+        };
     </script>
 </body>
 </html>
