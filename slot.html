@@ -42,7 +42,7 @@
         button:active { transform: translateY(3px); box-shadow: none; }
         button:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; }
 
-        .log { font-weight: bold; height: 80px; color: #2ecc71; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(0,0,0,0.3); border-radius: 10px; margin-top: 10px; padding: 10px; font-size: 0.9rem; border: 1px solid #333; overflow: hidden; }
+        .log { font-weight: bold; height: 90px; color: #2ecc71; display: flex; align-items: center; justify-content: center; text-align: center; background: rgba(0,0,0,0.4); border-radius: 10px; margin-top: 10px; padding: 10px; font-size: 1rem; border: 1px solid #444; line-height: 1.4; transition: 0.3s; }
 
         .leaderboard { width: 95%; max-width: 400px; margin-top: 20px; background: #111; border-radius: 15px; padding: 15px; border: 1px solid #444; box-sizing: border-box; margin-bottom: 30px; }
         .leaderboard h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: var(--neon-gold); text-align: center; }
@@ -76,14 +76,14 @@
         </div>
 
         <div class="controls">
-            <div style="font-size: 1.1rem; color: #aaa;">投注：<input type="number" id="betAmount" value="100" min="10" step="10" style="width:70px; background:#000; color:var(--neon-gold); border:2px solid var(--neon-gold); border-radius:8px; text-align:center; padding:5px;"></div>
+            <div style="font-size: 1.1rem; color: #aaa;">下注：<input type="number" id="betAmount" value="100" min="10" step="10" style="width:75px; background:#000; color:var(--neon-gold); border:2px solid var(--neon-gold); border-radius:8px; text-align:center; padding:5px; font-weight:bold;"></div>
             <div class="btn-group">
                 <button id="spinBtn" class="btn-single" onclick="handleSpin(1)">單次掃描</button>
                 <button id="multiSpinBtn" class="btn-multi" onclick="handleSpin(10)">十連鏈接</button>
             </div>
         </div>
 
-        <div class="log" id="gameLog">系統穩定，等待授權。</div>
+        <div class="log" id="gameLog">等待授權啟動...</div>
     </div>
 
     <div class="leaderboard">
@@ -108,7 +108,6 @@
             { line: [0, 4, 8], type: 'd' }, { line: [2, 4, 6], type: 'd' }
         ];
 
-        // YouTube API 循環播放設定
         var tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         var firstScriptTag = document.getElementsByTagName('script')[0];
@@ -119,36 +118,14 @@
 
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('player', {
-                height: '0',
-                width: '0',
-                videoId: videoId,
-                playerVars: {
-                    'autoplay': 0,
-                    'loop': 1,
-                    'playlist': videoId, // 循環播放必須加上 playlist 指向同一個 ID
-                    'controls': 0
-                },
-                events: {
-                    'onReady': onPlayerReady,
-                    'onStateChange': onPlayerStateChange
-                }
+                height: '0', width: '0', videoId: videoId,
+                playerVars: { 'autoplay': 0, 'loop': 1, 'playlist': videoId, 'controls': 0 },
+                events: { 'onReady': (e) => e.target.setVolume(40) }
             });
-        }
-
-        function onPlayerReady(event) {
-            event.target.setVolume(40);
-        }
-
-        function onPlayerStateChange(event) {
-            // 如果音樂結束（意外狀況），重新播放
-            if (event.data === YT.PlayerState.ENDED) {
-                player.playVideo();
-            }
         }
 
         function startTimer() { if (!timerInterval) timerInterval = setInterval(() => { seconds++; updateTimerDisplay(); localStorage.setItem('slot_timer_seconds', seconds); }, 1000); }
         function stopTimer() { clearInterval(timerInterval); timerInterval = null; }
-        
         function updateTimerDisplay() {
             const h = Math.floor(seconds / 3600).toString().padStart(2, '0');
             const m = Math.floor((seconds % 3600) / 60).toString().padStart(2, '0');
@@ -163,20 +140,18 @@
             if (isNaN(bet) || bet < 10) { log.style.color = "#ff4444"; log.innerText = "❌ 警告：投注不可低於 10！"; return; }
             if (balance < (bet * count)) { log.style.color = "#ff4444"; log.innerText = "❌ 警告：資源不足！"; return; }
 
-            // 強制觸發音樂播放（循環模式）
-            if (player) {
-                const state = player.getPlayerState();
-                if (state !== 1) player.playVideo(); 
-            }
+            if (player && player.getPlayerState() !== 1) player.playVideo();
 
             document.getElementById('spinBtn').disabled = true;
             document.getElementById('multiSpinBtn').disabled = true;
+
+            let totalSessionWin = 0;
 
             for (let c = 0; c < count; c++) {
                 if (balance < bet) break;
                 balance -= bet;
                 updateDisplay();
-                log.style.color = "#2ecc71";
+                log.style.color = "#888";
                 log.innerText = count > 1 ? `📡 鏈接傳輸中 (${c+1}/10)...` : "⚡ 啟動掃描程序...";
 
                 for (let i = 0; i < 9; i++) document.getElementById(`strip${i}`).classList.add('spinning');
@@ -193,7 +168,7 @@
                     });
                 }
 
-                let totalWin = 0;
+                let currentWin = 0;
                 let pineappleLines = { h: 0, v: 0, d: 0 };
                 let otherWin = 0;
 
@@ -216,21 +191,35 @@
                     else if (pCount === 2 && pineappleLines.h === 1 && pineappleLines.v === 1) { pMult = 10; }
                     else if (pCount >= 2) { pMult = 100; }
                     else { pMult = 5; }
-                    totalWin = (bet * pMult) + otherWin;
+                    currentWin = (bet * pMult) + otherWin;
                 } else {
-                    totalWin = otherWin;
+                    currentWin = otherWin;
                 }
 
-                balance += totalWin;
+                balance += currentWin;
+                totalSessionWin += currentWin;
                 updateDisplay();
                 
-                if (totalWin >= bet * 10) {
-                    log.style.color = "#ffd700";
-                    log.innerHTML = `🌟 超級連線！獲得 $${Math.floor(totalWin)}<br>【鳳梨加成 x${pMult || '?' }】`;
+                // --- 核心修改：單次結果顯示 ---
+                if (count === 1) {
+                    if (currentWin > 0) {
+                        log.style.color = pMult >= 5 ? "var(--neon-gold)" : "#2ecc71";
+                        log.innerHTML = `🏆 獲得金幣：$${Math.floor(currentWin)}<br>${pMult > 0 ? '【 🍍 鳳梨倍率 x' + pMult + ' 】' : '【 水果連線成功 】'}`;
+                    } else {
+                        log.style.color = "#ff4444";
+                        log.innerText = "❌ 未發現匹配連線";
+                    }
                 }
 
                 if (balance <= 0) break;
-                if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 500));
+                if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 400));
+            }
+
+            // --- 十連抽最終結算顯示 ---
+            if (count > 1) {
+                const netProfit = totalSessionWin - (bet * count);
+                log.style.color = totalSessionWin > 0 ? "var(--neon-cyan)" : "#ff4444";
+                log.innerHTML = `📊 十連抽結算：<br>總獲得：$${Math.floor(totalSessionWin)}<br>淨損益：${netProfit >= 0 ? '+' : ''}${Math.floor(netProfit)}`;
             }
 
             document.getElementById('spinBtn').disabled = false;
