@@ -13,30 +13,61 @@
             margin: 0; padding: 10px; min-height: 100vh;
         }
         
+        /* v1.45 三欄佈局系統 */
+        .main-layout {
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 20px;
+            width: 98%;
+            max-width: 1400px;
+            margin-top: 10px;
+        }
+
+        .side-panel {
+            flex: 1;
+            min-width: 280px;
+            background: #111;
+            border: 1px solid #444;
+            border-radius: 15px;
+            padding: 15px;
+            box-sizing: border-box;
+            box-shadow: 0 0 20px rgba(0,0,0,0.5);
+        }
+
+        .center-panel {
+            flex: 0 0 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 手機版自動切換垂直佈局 */
+        @media (max-width: 1000px) {
+            .main-layout { flex-direction: column; align-items: center; }
+            .side-panel { width: 95%; max-width: 400px; order: 2; }
+            .center-panel { order: 1; width: 95%; }
+            #missionPanel { order: 1; margin-bottom: 15px; } /* 手機上任務排在中間上方 */
+        }
+
         .game-title {
             font-size: 1.8rem; font-weight: 900; margin: 10px 0;
             background: linear-gradient(to bottom, #fff, #f1c40f);
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
             text-shadow: 0 0 15px var(--neon-gold);
+            text-align: center;
         }
 
-        .status-text {
-            font-weight: bold;
-            transition: 0.3s;
-            text-shadow: 0 0 8px rgba(255, 255, 255, 0.2);
-        }
-
-        .header-info { display: flex; flex-direction: column; align-items: center; width: 95%; max-width: 400px; margin-bottom: 10px; gap: 8px; }
+        .header-info { display: flex; flex-direction: column; align-items: center; width: 100%; margin-bottom: 10px; gap: 8px; }
         .stats { font-size: 2.2rem; color: #ffeb3b; font-weight: bold; text-shadow: 0 0 15px rgba(255,235,59,0.4); }
         .timer-display { font-size: 1.1rem; color: var(--neon-cyan); font-family: monospace; background: rgba(0,255,204,0.1); padding: 5px 20px; border-radius: 20px; border: 1px solid var(--neon-cyan); }
         
-        .container { background: #1a1a1a; width: 95%; max-width: 400px; padding: 20px; border-radius: 25px; border: 2px solid var(--neon-gold); box-shadow: 0 0 30px rgba(0,0,0,0.9); text-align: center; box-sizing: border-box; }
+        .container { background: #1a1a1a; width: 100%; padding: 20px; border-radius: 25px; border: 2px solid var(--neon-gold); box-shadow: 0 0 30px rgba(0,0,0,0.9); text-align: center; box-sizing: border-box; }
         
         .slot-machine { display: grid; grid-template-columns: repeat(3, 1fr); grid-gap: 12px; background: #000; padding: 15px; border-radius: 15px; overflow: hidden; margin-bottom: 15px; border: 1px solid #333; }
         .slot-window { aspect-ratio: 1/1; background: #eee; border-radius: 10px; overflow: hidden; position: relative; }
         .slot-strip { position: absolute; top: 0; left: 0; width: 100%; display: flex; flex-direction: column; }
-        .symbol { aspect-ratio: 1/1; font-size: 12vw; display: flex; align-items: center; justify-content: center; color: black; }
-        @media(min-width: 400px) { .symbol { font-size: 50px; } }
+        .symbol { aspect-ratio: 1/1; font-size: 50px; display: flex; align-items: center; justify-content: center; color: black; }
 
         .spinning { animation: scroll 0.4s linear infinite; }
         @keyframes scroll { 0% { transform: translateY(0); } 100% { transform: translateY(-300%); } }
@@ -48,29 +79,34 @@
         button:active { transform: translateY(4px); box-shadow: 0 2px 0 #333 !important; }
         button:disabled { filter: grayscale(1); opacity: 0.5; cursor: not-allowed; transform: none !important; box-shadow: none !important; }
 
-        .btn-ad { background: #000; color: var(--neon-cyan); border: 2px solid var(--neon-cyan); flex: 1 1 100%; font-size: 1rem; padding: 12px; margin-top: 5px; display: none; animation: glow 2s infinite; font-weight: bold; }
+        .btn-ad { background: #000; color: var(--neon-cyan); border: 2px solid var(--neon-cyan); flex: 1 1 100%; font-size: 1rem; padding: 12px; margin-top: 5px; display: none; animation: glow 2s infinite; font-weight: bold; width: auto !important; min-width: 180px; flex: none; }
         @keyframes glow { 0%, 100% { box-shadow: 0 0 5px var(--neon-cyan); } 50% { box-shadow: 0 0 20px var(--neon-cyan); } }
         
         .overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 9999; display: none; flex-direction: column; align-items: center; justify-content: center; }
         .modal-box { background: #1a1a1a; padding: 25px; border-radius: 20px; border: 2px solid var(--neon-gold); text-align: left; max-width: 85%; width: 320px; }
         .btn-confirm { background: var(--neon-cyan); color: black; padding: 12px; border-radius: 10px; font-weight: 800; border: none; width: 100%; margin-top: 10px; cursor: pointer; }
 
-        .leaderboard { width: 95%; max-width: 400px; margin-top: 20px; background: #111; border-radius: 15px; padding: 15px; border: 1px solid #444; box-sizing: border-box; margin-bottom: 30px; }
         .leaderboard h3 { margin: 0 0 10px 0; font-size: 1.2rem; color: var(--neon-gold); text-align: center; }
         .leaderboard table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
         .leaderboard td, .leaderboard th { padding: 8px 5px; text-align: center; border-bottom: 1px solid #222; }
+
+        /* 任務面板專屬樣式 */
+        .mission-box { background: rgba(0,255,204,0.05); padding: 15px; border-radius: 10px; border-left: 4px solid var(--neon-cyan); }
+        .progress-bg { width: 100%; background: #222; height: 12px; border-radius: 6px; overflow: hidden; margin: 10px 0; }
+        .progress-bar { width: 0%; height: 100%; background: var(--neon-cyan); transition: width 0.3s; }
+        .status-text { font-weight: bold; transition: 0.3s; text-shadow: 0 0 8px rgba(255, 255, 255, 0.2); }
     </style>
 </head>
 <body>
 
     <div id="newsOverlay" class="overlay" style="display: flex;">
         <div class="modal-box">
-            <h2 style="color:var(--neon-gold); margin-top:0; text-align:center;">🛠️ 更新日誌 v1.35</h2>
+            <h2 style="color:var(--neon-gold); margin-top:0; text-align:center;">🛠️ 更新日誌 v1.45</h2>
             <div style="font-size: 0.9rem; line-height: 1.6; color: #ccc; margin: 15px 0;">
-                <div style="margin-bottom:8px;">▶ <b>廣告介面沉浸化</b>：移除補給影片的進度條、標題與控制項，外觀更趨向遊戲內置終端。</div>
-                <div style="margin-bottom:8px;">▶ <b>防干擾遮罩</b>：新增透明交互遮罩層，防止在補給期間誤點影片導致視窗跳轉。</div>
-                <div style="margin-bottom:8px;">▶ <b>UI 比例修復</b>：優化補給按鈕尺寸，解決在部分螢幕下按鈕過長的問題，恢復精緻膠囊造型。</div>
-                <div style="margin-bottom:8px;">▶ <b>資源池擴充</b>：同步更新背景音樂與補給影片清單，包含個人創作與新番預告。</div>
+                <div style="margin-bottom:8px;">▶ <b>佈局重構</b>：排行榜移至左側，任務面板移至右側，打造沉浸式終端。</div>
+                <div style="margin-bottom:8px;">▶ <b>委託系統</b>：新增緊急掃描任務，完成指定次數可領取高額獎勵。</div>
+                <div style="margin-bottom:8px;">▶ <b>任務同步重置</b>：放棄生存或掃描失敗時，任務進度將同步強制重置。</div>
+                <div style="margin-bottom:8px;">▶ <b>UI 響應優化</b>：針對不同螢幕尺寸進行自動適配分欄。</div>
             </div>
             <button class="btn-confirm" onclick="closeNews()">進入掃描終端</button>
         </div>
@@ -82,7 +118,6 @@
             <div id="adVideoFrame" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;"></div>
             <div style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10; background: rgba(0,0,0,0);"></div>
         </div>
-
         <button id="skipBtn" disabled 
             style="margin-top:20px; padding:12px 35px; border-radius:30px; background:var(--neon-cyan); font-weight:bold; color:#000; width:auto; min-width:180px; flex:none; cursor:pointer;" 
             onclick="closeAd()">
@@ -92,42 +127,63 @@
 
     <div class="game-title">絕境拉霸：時空倖存者</div>
 
-    <div class="header-info">
-        <div class="stats">💰 <span id="balance">5000</span></div>
-        <div class="timer-display">⏱ SURVIVAL: <span id="timer">00:00:00</span></div>
-    </div>
-
-    <div class="container">
-        <div class="slot-machine" id="machine">
-            <div class="slot-window"><div class="slot-strip" id="strip0"></div></div>
-            <div class="slot-window"><div class="slot-strip" id="strip1"></div></div>
-            <div class="slot-window"><div class="slot-strip" id="strip2"></div></div>
-            <div class="slot-window"><div class="slot-strip" id="strip3"></div></div>
-            <div class="slot-window"><div class="slot-strip" id="strip4"></div></div>
-            <div class="slot-window"><div class="slot-strip" id="strip5"></div></div>
-            <div class="slot-window"><div class="slot-strip" id="strip6"></div></div>
-            <div class="slot-window"><div class="slot-strip" id="strip7"></div></div>
-            <div class="slot-window"><div class="slot-strip" id="strip8"></div></div>
+    <div class="main-layout">
+        
+        <div class="side-panel leaderboard">
+            <h3>🏆 本地生存殿堂</h3>
+            <table>
+                <thead><tr><th>名次</th><th>生存時間</th><th>最終日期</th></tr></thead>
+                <tbody id="rankBody"></tbody>
+            </table>
         </div>
 
-        <div class="controls">
-            <div style="font-size: 1.1rem; color: #aaa;">下注：<input type="number" id="betAmount" value="100" min="10" step="10" style="width:80px; background:#000; color:var(--neon-gold); border:2px solid var(--neon-gold); border-radius:8px; text-align:center; padding:5px; font-weight:bold;"></div>
-            <div class="btn-group">
-                <button id="spinBtn" class="btn-single" onclick="handleSpin(1)">單次掃描</button>
-                <button id="multiSpinBtn" class="btn-multi" onclick="handleSpin(10)">十連鏈接</button>
-                <button id="adBtn" class="btn-ad" onclick="startAd()">📡 請求補給 (+$1,000)</button>
-                <button id="resetBtn" style="background:#222; color:#888; border:1px solid #444; font-size:0.8rem; padding:8px; flex:1 1 100%; margin-top:5px;" onclick="manualReset()">💀 放棄任務</button>
+        <div class="center-panel">
+            <div class="header-info">
+                <div class="stats">💰 <span id="balance">5000</span></div>
+                <div class="timer-display">⏱ SURVIVAL: <span id="timer">00:00:00</span></div>
+            </div>
+
+            <div class="container">
+                <div class="slot-machine" id="machine">
+                    <div class="slot-window"><div class="slot-strip" id="strip0"></div></div>
+                    <div class="slot-window"><div class="slot-strip" id="strip1"></div></div>
+                    <div class="slot-window"><div class="slot-strip" id="strip2"></div></div>
+                    <div class="slot-window"><div class="slot-strip" id="strip3"></div></div>
+                    <div class="slot-window"><div class="slot-strip" id="strip4"></div></div>
+                    <div class="slot-window"><div class="slot-strip" id="strip5"></div></div>
+                    <div class="slot-window"><div class="slot-strip" id="strip6"></div></div>
+                    <div class="slot-window"><div class="slot-strip" id="strip7"></div></div>
+                    <div class="slot-window"><div class="slot-strip" id="strip8"></div></div>
+                </div>
+
+                <div class="controls">
+                    <div style="font-size: 1.1rem; color: #aaa;">下注：<input type="number" id="betAmount" value="100" min="10" step="10" style="width:80px; background:#000; color:var(--neon-gold); border:2px solid var(--neon-gold); border-radius:8px; text-align:center; padding:5px; font-weight:bold;"></div>
+                    <div class="btn-group">
+                        <button id="spinBtn" class="btn-single" onclick="handleSpin(1)">單次掃描</button>
+                        <button id="multiSpinBtn" class="btn-multi" onclick="handleSpin(10)">十連鏈接</button>
+                        <button id="adBtn" class="btn-ad" onclick="startAd()">📡 請求補給 (+$1,000)</button>
+                        <button id="resetBtn" style="background:#222; color:#888; border:1px solid #444; font-size:0.8rem; padding:8px; flex:1 1 100%; margin-top:5px;" onclick="manualReset()">💀 放棄任務</button>
+                    </div>
+                </div>
+                <div id="gameLog" class="status-text" style="margin-top:15px; height:24px; color:#aaa;">系統待機中...</div>
             </div>
         </div>
-        <div id="gameLog" class="status-text" style="margin-top:15px; height:24px; color:#aaa;">系統待機中...</div>
-    </div>
 
-    <div class="leaderboard">
-        <h3>🏆 本地生存殿堂</h3>
-        <table>
-            <thead><tr><th>名次</th><th>生存時間</th><th>最終日期</th></tr></thead>
-            <tbody id="rankBody"></tbody>
-        </table>
+        <div class="side-panel" id="missionPanel">
+            <h3 style="color: var(--neon-cyan); margin-top:0;">📡 緊急委託</h3>
+            <div class="mission-box">
+                <div id="missionTitle" style="font-weight: bold; margin-bottom: 5px; font-size: 0.9rem;">累積掃描 50 次</div>
+                <div class="progress-bg">
+                    <div id="missionProgress" class="progress-bar"></div>
+                </div>
+                <div style="display:flex; justify-content: space-between; align-items: center; margin-top:5px;">
+                    <span style="color: var(--neon-gold); font-size: 0.8rem;">獎勵: $2,000</span>
+                    <span id="missionStatus" style="color: #aaa; font-size: 0.8rem;">進度: 0/50</span>
+                </div>
+            </div>
+            <p style="font-size: 0.75rem; color: #666; margin-top: 15px; line-height: 1.4;">提示：完成委託可獲得額外掃描資金。若生存失敗或中途放棄，委託進度將重置。</p>
+        </div>
+
     </div>
 
     <div id="bgPlayerContainer" style="display:none;"><div id="player"></div></div>
@@ -140,6 +196,14 @@
         let balance = parseInt(localStorage.getItem('slot_balance')) || 5000;
         let seconds = parseInt(localStorage.getItem('slot_timer_seconds')) || 0;
         let timerInterval = null;
+
+        // 任務物件
+        let currentMission = {
+            target: 50,
+            current: parseInt(localStorage.getItem('slot_mission_current')) || 0,
+            reward: 2000,
+            title: "進行 50 次深度掃描"
+        };
 
         const winConfigs = [
             { line: [0, 1, 2], type: 'h' }, { line: [3, 4, 5], type: 'h' }, { line: [6, 7, 8], type: 'h' },
@@ -165,13 +229,13 @@
                 videoId: AD_VIDEO_IDS[0],
                 playerVars: { 
                     'autoplay': 0, 
-                    'controls': 0,          // 關鍵：隱藏進度條、音量、全螢幕按鈕等所有控制項
-                    'rel': 0,               // 結束後不顯示相關推薦影片
-                    'modestbranding': 1,    // 隱藏播放條上的 YouTube Logo
-                    'showinfo': 0,          // (舊版參數) 隱藏標題與上傳者
-                    'iv_load_policy': 3,    // 隱藏影片註解（例如訂閱按鈕）
-                    'disablekb': 1,         // 禁用鍵盤控制（防止玩家按空白鍵暫停）
-                    'playsinline': 1        // 在行動裝置上不強制全螢幕播放
+                    'controls': 0, 
+                    'rel': 0, 
+                    'modestbranding': 1, 
+                    'showinfo': 0, 
+                    'iv_load_policy': 3, 
+                    'disablekb': 1, 
+                    'playsinline': 1 
                 },
                 events: { 'onStateChange': onAdStateChange }
             });
@@ -181,6 +245,7 @@
             document.getElementById('newsOverlay').style.display = 'none';
             if (bgPlayer && typeof bgPlayer.playVideo === 'function') bgPlayer.playVideo();
             startTimer();
+            updateMissionUI();
             document.getElementById('gameLog').innerText = "📡 系統連線成功";
         }
 
@@ -220,27 +285,46 @@
             document.getElementById('timer').innerText = `${h}:${m}:${s}`;
         }
 
-        // --- 修復：餘額不足提示邏輯 ---
+        // 任務 UI 更新邏輯
+        function updateMissionUI() {
+            const progressPercent = (currentMission.current / currentMission.target) * 100;
+            document.getElementById('missionTitle').innerText = currentMission.title;
+            document.getElementById('missionProgress').style.width = `${progressPercent}%`;
+            document.getElementById('missionStatus').innerText = `進度: ${currentMission.current}/${currentMission.target}`;
+            
+            if (currentMission.current >= currentMission.target) {
+                balance += currentMission.reward;
+                document.getElementById('gameLog').innerHTML = `<span style="color:var(--neon-gold);">🎊 委託達成！獲得 $${currentMission.reward}</span>`;
+                resetMission();
+                updateDisplay();
+            }
+        }
+
+        function resetMission() {
+            currentMission.current = 0;
+            updateMissionUI();
+            saveData();
+        }
+
         async function handleSpin(count) {
             const bet = parseInt(document.getElementById('betAmount').value);
             const totalCost = bet * count;
 
-            // 檢查餘額
             if (balance < totalCost) {
-                document.getElementById('gameLog').innerHTML = `<span style="color:var(--neon-red);">⚠ 餘額不足以進行${count === 10 ? '十連鏈接' : '單次掃描'}</span>`;
+                document.getElementById('gameLog').innerHTML = `<span style="color:var(--neon-red);">⚠ 餘額不足</span>`;
                 return;
             }
 
-            // 鎖定按鈕
             document.getElementById('spinBtn').disabled = true;
             document.getElementById('multiSpinBtn').disabled = true;
             
             for (let c = 0; c < count; c++) {
-                // 安全檢查：雖然開頭查過了，但為了邏輯嚴密
                 if (balance < bet) break;
                 
-                balance -= bet; 
+                balance -= bet;
+                currentMission.current++; // 增加任務進度
                 updateDisplay();
+                updateMissionUI();
                 
                 for (let i = 0; i < 9; i++) document.getElementById(`strip${i}`).classList.add('spinning');
                 
@@ -280,7 +364,7 @@
                 updateDisplay();
                 
                 document.getElementById('gameLog').innerHTML = currentWin > 0 ? 
-                    `<span style="color:var(--neon-cyan); text-shadow:0 0 10px var(--neon-cyan);">🏆 [${c+1}/${count}] 獲得: $${Math.floor(currentWin)}</span>` : 
+                    `<span style="color:var(--neon-cyan);">🏆 [${c+1}/${count}] 獲得: $${Math.floor(currentWin)}</span>` : 
                     `<span style="color:#666;">❌ [${c+1}/${count}] 無匹配</span>`;
                 
                 if (count > 1 && c < count-1) await new Promise(r => setTimeout(r, 600));
@@ -300,7 +384,9 @@
 
         function forceGameOver() {
             saveToLeaderboard(seconds, document.getElementById('timer').innerText);
-            balance = 5000; seconds = 0; updateDisplay(); updateTimerDisplay(); saveData();
+            balance = 5000; seconds = 0;
+            resetMission(); // 失敗時任務重置
+            updateDisplay(); updateTimerDisplay(); saveData();
         }
 
         function saveToLeaderboard(sec, str) {
@@ -316,8 +402,13 @@
             document.getElementById('rankBody').innerHTML = board.map((item, idx) => `<tr><td>${idx+1}</td><td>${item.timeStr}</td><td>${item.date}</td></tr>`).join('');
         }
 
-        function manualReset() { if (confirm("放棄任務？")) forceGameOver(); }
-        function saveData() { localStorage.setItem('slot_balance', balance); localStorage.setItem('slot_timer_seconds', seconds); }
+        function manualReset() { if (confirm("放棄當前所有進度與任務？")) forceGameOver(); }
+        
+        function saveData() { 
+            localStorage.setItem('slot_balance', balance); 
+            localStorage.setItem('slot_timer_seconds', seconds);
+            localStorage.setItem('slot_mission_current', currentMission.current);
+        }
 
         window.onload = () => {
             renderLeaderboard();
