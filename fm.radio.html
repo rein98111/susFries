@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>台灣車用廣播模擬器</title>
+    <style>
+        :root {
+            --lcd-color: #00ff41; /* 經典綠色液晶 */
+            --bg-color: #121212;
+            --panel-gradient: linear-gradient(145deg, #2c2c2c, #000000);
+        }
+
+        body {
+            background-color: #1a1a1a;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        .radio-unit {
+            width: 500px;
+            background: var(--panel-gradient);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8), inset 0 1px 2px rgba(255,255,255,0.2);
+            border: 2px solid #333;
+        }
+
+        /* 液晶螢幕 */
+        .lcd-display {
+            background-color: #051a05;
+            height: 120px;
+            border-radius: 10px;
+            border: 4px solid #222;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--lcd-color);
+            box-shadow: inset 0 0 20px rgba(0,255,65,0.2);
+            margin-bottom: 30px;
+        }
+
+        .freq-text { font-size: 3.5rem; font-weight: 700; font-family: 'Courier New', monospace; }
+        .unit-text { font-size: 1.2rem; margin-left: 10px; }
+        .station-name { font-size: 0.9rem; letter-spacing: 3px; margin-top: 5px; height: 1.2rem; }
+
+        /* 滑桿樣式 */
+        .tuner-slider {
+            width: 100%;
+            height: 10px;
+            background: #444;
+            border-radius: 5px;
+            outline: none;
+            -webkit-appearance: none;
+            margin: 25px 0;
+        }
+        .tuner-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 25px;
+            height: 40px;
+            background: #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+            border: 1px solid #999;
+        }
+
+        /* 按鈕組 */
+        .button-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        button {
+            background: #333;
+            color: #eee;
+            border: 1px solid #444;
+            padding: 12px;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: 0.2s;
+            box-shadow: 0 4px 0 #111;
+        }
+        button:hover { background: #444; }
+        button:active { transform: translateY(3px); box-shadow: 0 1px 0 #111; }
+
+        .power-btn {
+            grid-column: span 4;
+            background: #900;
+            font-weight: bold;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+        .power-btn.on { background: #006400; box-shadow: 0 0 15px rgba(0,255,0,0.3); }
+
+        .hint { color: #666; font-size: 0.75rem; text-align: center; margin-top: 15px; }
+    </style>
+</head>
+<body>
+
+<div class="radio-unit">
+    <div class="lcd-display">
+        <div id="station-info" class="station-name">OFF</div>
+        <div class="freq-text"><span id="freq-num">90.0</span><span class="unit-text">MHz</span></div>
+    </div>
+
+    <input type="range" id="tuner" class="tuner-slider" min="88" max="108" step="0.1" value="90">
+
+    <div class="button-grid">
+        <button id="power-btn" class="power-btn">POWER SYSTEM</button>
+        <button onclick="quickTune(92.1)">92.1</button>
+        <button onclick="quickTune(94.3)">94.3</button>
+        <button onclick="quickTune(96.3)">96.3</button>
+        <button onclick="quickTune(100.7)">100.7</button>
+        <button onclick="quickTune(103.3)">103.3</button>
+        <button onclick="quickTune(106.5)">106.5</button>
+        <button onclick="quickTune(107.7)">107.7</button>
+        <button onclick="quickTune(91.7)">91.7</button>
+    </div>
+    <div class="hint">請點擊 POWER 後開始調頻</div>
+</div>
+
+<audio id="radio-audio" loop></audio>
+
+<script>
+    let audioCtx, noiseNode, noiseGain;
+    let isPowerOn = false;
+
+    const tuner = document.getElementById('tuner');
+    const freqNum = document.getElementById('freq-num');
+    const stationInfo = document.getElementById('station-info');
+    const powerBtn = document.getElementById('power-btn');
+    const radioAudio = document.getElementById('radio-audio');
+
+    // 台灣 FM 電台資料庫 (包含名稱與串流網址)
+    const stations = {
+        "91.7": { name: "POP Radio", url: "https://vdo.pop-radio.com.tw:8443/live" },
+        "92.1": { name: "飛碟電台 UFO Radio", url: "https://ufo.mradio.com.tw/stream" },
+        "94.3": { name: "警廣 台北台", url: "https://stream.pbs.gov.tw/live/943" },
+        "96.3": { name: "中廣音樂網 i-Radio", url: "https://bcc.mradio.com.tw/music" },
+        "100.7": { name: "ICRT 西洋音樂", url: "https://icrt.mradio.com.tw/live" },
+        "103.3": { name: "中廣流行網 i-like", url: "https://bcc.mradio.com.tw/pop" },
+        "106.5": { name: "漢聲廣播電台", url: "https://stream.voh.com.tw/live/voh1" },
+        "107.7": { name: "Hit Fm 聯播網", url: "https://hitfm.mradio.com.tw/stream" }
+    };
+
+    function initWebAudio() {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const bufferSize = audioCtx.sampleRate * 2;
+        const buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+        const data = buffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) { data[i] = Math.random() * 2 - 1; }
+
+        noiseNode = audioCtx.createBufferSource();
+        noiseNode.buffer = buffer;
+        noiseNode.loop = true;
+
+        noiseGain = audioCtx.createGain();
+        noiseGain.gain.value = 0;
+
+        noiseNode.connect(noiseGain).connect(audioCtx.destination);
+        noiseNode.start();
+    }
+
+    powerBtn.addEventListener('click', () => {
+        if (!audioCtx) initWebAudio();
+        isPowerOn = !isPowerOn;
+        
+        if (isPowerOn) {
+            powerBtn.classList.add('on');
+            audioCtx.resume();
+            updateTuner();
+        } else {
+            powerBtn.classList.remove('on');
+            noiseGain.gain.setTargetAtTime(0, audioCtx.currentTime, 0.1);
+            radioAudio.pause();
+            stationInfo.innerText = "OFF";
+        }
+    });
+
+    tuner.addEventListener('input', updateTuner);
+
+    function updateTuner() {
+        if (!isPowerOn) return;
+        const val = parseFloat(tuner.value).toFixed(1);
+        freqNum.innerText = val;
+
+        const found = stations[val];
+        if (found) {
+            stationInfo.innerText = found.name;
+            noiseGain.gain.setTargetAtTime(0.01, audioCtx.currentTime, 0.1); // 幾乎沒雜音
+            if (radioAudio.src !== found.url) {
+                radioAudio.src = found.url;
+                radioAudio.play().catch(e => console.log("Stream Blocked"));
+            }
+        } else {
+            stationInfo.innerText = "STATIC NOISE";
+            noiseGain.gain.setTargetAtTime(0.4, audioCtx.currentTime, 0.1); // 大聲雜訊
+            radioAudio.pause();
+            radioAudio.src = "";
+        }
+    }
+
+    function quickTune(f) {
+        if (!isPowerOn) alert("請先開啟電源！");
+        tuner.value = f;
+        updateTuner();
+    }
+</script>
+
+</body>
+</html>
