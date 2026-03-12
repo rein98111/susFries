@@ -3,42 +3,57 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>五十音自測練習</title>
+    <title>五十音自測工具</title>
     <style>
-        :root { --primary: #4a90e2; --bg: #f0f2f5; }
+        :root { --primary: #4a90e2; --bg: #f4f7f9; --text: #333; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-        body { font-family: sans-serif; background: var(--bg); margin: 0; display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+        body { font-family: system-ui, -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 10px; color: var(--text); }
         
         .card { 
-            width: 95%; max-width: 400px; background: white; 
-            padding: 20px; border-radius: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-            text-align: center;
+            max-width: 400px; margin: auto; background: white; 
+            padding: 20px; border-radius: 20px; box-shadow: 0 8px 20px rgba(0,0,0,0.08); 
         }
+
+        /* 範圍選擇區 */
+        .range-selector { 
+            display: grid; grid-template-columns: repeat(5, 1fr); gap: 5px; 
+            background: #eee; padding: 10px; border-radius: 10px; margin-bottom: 15px;
+            font-size: 0.8rem;
+        }
+        .range-item { display: flex; flex-direction: column; align-items: center; }
+
+        .quiz-header { text-align: center; margin-bottom: 10px; }
+        .type-label { color: #888; font-weight: bold; }
+        .romaji { font-size: 3.5rem; font-weight: bold; color: var(--primary); margin: 5px 0; }
         
-        .quiz-info { font-size: 1.1rem; color: #666; margin-bottom: 5px; }
-        .romaji { font-size: 3.5rem; font-weight: bold; color: var(--primary); margin: 10px 0; }
-        
-        /* 畫板自適應容器 */
-        .canvas-container { position: relative; width: 100%; aspect-ratio: 1 / 1; margin-bottom: 15px; }
+        /* 畫板 */
+        .canvas-container { position: relative; width: 100%; aspect-ratio: 1/1; margin-bottom: 15px; }
         canvas { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-            border: 2px solid #eee; border-radius: 12px; background: #fff;
-            touch-action: none; cursor: crosshair; 
+            position: absolute; top:0; left:0; width: 100%; height: 100%;
+            border: 2px solid #ddd; border-radius: 15px; background: #fff;
+            touch-action: none; 
         }
         
+        /* 按鈕 */
         .btn-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
         button { padding: 15px; font-size: 1rem; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; transition: 0.2s; }
         .btn-show { background: #28a745; color: white; }
         .btn-clear { background: #6c757d; color: white; }
-        .btn-next { background: var(--primary); color: white; grid-column: span 2; margin-top: 5px; }
-        button:active { transform: scale(0.95); opacity: 0.8; }
+        .btn-next { background: var(--primary); color: white; grid-column: span 2; }
+        button:active { transform: scale(0.95); }
     </style>
 </head>
 <body>
 
 <div class="card">
-    <div class="quiz-info" id="typeInfo">請寫出：平假名</div>
-    <div class="romaji" id="targetRomaji">a</div>
+    <div style="font-size: 0.9rem; margin-bottom: 5px; font-weight: bold;">選擇練習範圍：</div>
+    <div class="range-selector" id="rangeContainer">
+        </div>
+
+    <div class="quiz-header">
+        <div class="type-label" id="typeInfo">請寫出：平假名</div>
+        <div class="romaji" id="targetRomaji">?</div>
+    </div>
     
     <div class="canvas-container">
         <canvas id="hwCanvas"></canvas>
@@ -47,95 +62,97 @@
     <div class="btn-group">
         <button class="btn-show" onclick="showHint()">顯示答案</button>
         <button class="btn-clear" onclick="clearCanvas()">清空畫板</button>
-        <button class="btn-next" onclick="nextQuestion()">下一題</button>
+        <button class="btn-next" onclick="nextQuestion()">下一個</button>
     </div>
 </div>
 
 <script>
     const canvas = document.getElementById('hwCanvas');
     const ctx = canvas.getContext('2d');
-    const romajiEl = document.getElementById('targetRomaji');
-    const typeEl = document.getElementById('typeInfo');
-
-    // 完整的五十音清音資料
-    const hira = { 'a':'あ','i':'い','u':'う','e':'え','o':'お','ka':'か','ki':'き','ku':'く','ke':'け','ko':'こ','sa':'さ','shi':'し','su':'す','se':'せ','so':'そ','ta':'た','chi':'ち','tsu':'つ','te':'て','to':'と','na':'な','ni':'ni','nu':'ぬ','ne':'ね','no':'の','ha':'は','hi':'ひ','fu':'ふ','he':'he','ho':'ほ','ma':'ま','mi':'み','mu':'む','me':'め','mo':'も','ya':'や','yu':'ゆ','yo':'よ','ra':'ら','ri':'り','ru':'る','re':'れ','ro':'ろ','wa':'わ','wo':'を','n':'ん' };
-    const kata = { 'a':'ア','i':'イ','u':'ウ','e':'エ','o':'オ','ka':'カ','ki':'キ','ku':'ク','ke':'ケ','ko':'コ','sa':'サ','shi':'シ','su':'ス','se':'セ','so':'ソ','ta':'タ','chi':'チ','tsu':'ツ','te':'テ','to':'ト','na':'ナ','ni':'ニ','nu':'ヌ','ne':'ネ','no':'ノ','ha':'ハ','hi':'ヒ','fu':'フ','he':'ヘ','ho':'ホ','ma':'マ','mi':'ミ','mu':'ム','me':'メ','mo':'モ','ya':'ヤ','yu':'ユ','yo':'ヨ','ra':'ラ','ri':'リ','ru':'ル','re':'レ','ro':'ロ','wa':'ワ','wo':'ヲ','n':'ン' };
     
-    let currentKey = 'a';
-    let currentType = 'hira';
+    // 資料定義 (按行分類)
+    const kanaData = {
+        'あ行': { 'a':'あ','i':'い','u':'う','e':'え','o':'お', 'A':'ア','I':'イ','U':'ウ','E':'エ','O':'オ' },
+        'か行': { 'ka':'か','ki':'き','ku':'く','ke':'け','ko':'こ', 'KA':'カ','KI':'キ','KU':'ク','KE':'ケ','KO':'コ' },
+        'さ行': { 'sa':'さ','shi':'し','su':'す','se':'せ','so':'そ', 'SA':'サ','SHI':'シ','SU':'ス','SE':'セ','SO':'ソ' },
+        'た行': { 'ta':'た','chi':'ち','tsu':'つ','te':'て','to':'と', 'TA':'タ','CHI':'チ','TSU':'ツ','TE':'テ','TO':'ト' },
+        'な行': { 'na':'な','ni':'に','nu':'ぬ','ne':'ね','no':'の', 'NA':'ナ','NI':'ニ','NU':'ヌ','NE':'ネ','NO':'NO' },
+        'は行': { 'ha':'は','hi':'ひ','fu':'ふ','he':'へ','ho':'ほ', 'HA':'ハ','HI':'ヒ','FU':'フ','HE':'ヘ','HO':'ホ' },
+        'ま行': { 'ma':'ま','mi':'み','mu':'む','me':'め','mo':'も', 'MA':'マ','MI':'ミ','MU':'ム','ME':'メ','MO':'モ' },
+        'や行': { 'ya':'や','yu':'ゆ','yo':'よ', 'YA':'ヤ','YU':'ユ','YO':'ヨ' },
+        'ら行': { 'ra':'ら','ri':'り','ru':'る','re':'れ','ro':'ろ', 'RA':'ラ','RI':'里','RU':'ル','RE':'レ','RO':'ロ' },
+        'わ行': { 'wa':'わ','wo':'を','n':'ん', 'WA':'ワ','WO':'ヲ','N':'ン' }
+    };
+
+    let currentQuestion = { romaji: '', answer: '', isHira: true };
     let isDrawing = false;
 
-    // 自動調整 Canvas 解析度以適應視網膜螢幕
+    // 初始化選擇器
+    const rangeContainer = document.getElementById('rangeContainer');
+    Object.keys(kanaData).forEach(row => {
+        const div = document.createElement('div');
+        div.className = 'range-item';
+        div.innerHTML = `<input type="checkbox" value="${row}" checked><span>${row[0]}</span>`;
+        rangeContainer.appendChild(div);
+    });
+
     function initCanvas() {
-        const size = canvas.offsetWidth;
-        canvas.width = size * 2; // 2倍解析度防止模糊
-        canvas.height = size * 2;
+        const rect = canvas.parentNode.getBoundingClientRect();
+        canvas.width = rect.width * 2;
+        canvas.height = rect.height * 2;
         ctx.scale(2, 2);
         ctx.lineWidth = 6;
         ctx.lineCap = 'round';
         ctx.strokeStyle = '#333';
     }
 
-    window.onload = initCanvas;
-    window.onresize = initCanvas;
+    window.onload = () => { initCanvas(); nextQuestion(); };
 
     function getPos(e) {
         const rect = canvas.getBoundingClientRect();
         const clientX = e.touches ? e.touches[0].clientX : e.clientX;
         const clientY = e.touches ? e.touches[0].clientY : e.clientY;
-        return [
-            (clientX - rect.left) * (canvas.width / 2 / rect.width),
-            (clientY - rect.top) * (canvas.height / 2 / rect.height)
-        ];
+        return [(clientX - rect.left), (clientY - rect.top)];
     }
 
-    function start(e) {
-        isDrawing = true;
-        const [x, y] = getPos(e);
-        ctx.beginPath();
-        ctx.moveTo(x, y);
-        e.preventDefault();
-    }
-
-    function move(e) {
-        if (!isDrawing) return;
-        const [x, y] = getPos(e);
-        ctx.lineTo(x, y);
-        ctx.stroke();
-        e.preventDefault();
-    }
-
-    canvas.addEventListener('mousedown', start);
-    canvas.addEventListener('mousemove', move);
+    canvas.addEventListener('mousedown', (e) => { isDrawing = true; ctx.beginPath(); const [x,y] = getPos(e); ctx.moveTo(x,y); });
+    canvas.addEventListener('mousemove', (e) => { if(!isDrawing) return; const [x,y] = getPos(e); ctx.lineTo(x,y); ctx.stroke(); });
     window.addEventListener('mouseup', () => isDrawing = false);
-    canvas.addEventListener('touchstart', start);
-    canvas.addEventListener('touchmove', move);
-    canvas.addEventListener('touchend', () => isDrawing = false);
+    canvas.addEventListener('touchstart', (e) => { isDrawing = true; ctx.beginPath(); const [x,y] = getPos(e); ctx.moveTo(x,y); e.preventDefault(); });
+    canvas.addEventListener('touchmove', (e) => { if(!isDrawing) return; const [x,y] = getPos(e); ctx.lineTo(x,y); ctx.stroke(); e.preventDefault(); });
 
-    function clearCanvas() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-    }
-
-    function showHint() {
-        const answer = currentType === 'hira' ? hira[currentKey] : kata[currentKey];
-        const fontSize = canvas.width / 4; // 動力計算字體大小
-        ctx.font = `${fontSize}px sans-serif`;
-        ctx.fillStyle = "rgba(255, 0, 0, 0.2)";
-        ctx.textAlign = "center";
-        ctx.textBaseline = "middle";
-        ctx.fillText(answer, canvas.width / 4, canvas.height / 4);
-    }
+    function clearCanvas() { ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
     function nextQuestion() {
-        const keys = Object.keys(hira);
-        currentKey = keys[Math.floor(Math.random() * keys.length)];
-        currentType = Math.random() > 0.5 ? 'hira' : 'kata';
-        romajiEl.innerText = currentKey;
-        typeEl.innerText = currentType === 'hira' ? "請寫出：平假名" : "請寫出：片假名";
+        const selectedRows = Array.from(document.querySelectorAll('input:checked')).map(cb => cb.value);
+        if (selectedRows.length === 0) { alert("請至少選擇一行練習！"); return; }
+
+        const randomRow = selectedRows[Math.floor(Math.random() * selectedRows.length)];
+        const rowData = kanaData[randomRow];
+        const keys = Object.keys(rowData);
+        const randomKey = keys[Math.floor(Math.random() * keys.length)];
+        
+        // 判斷是平假名還是片假名 (小寫為平，大寫為片)
+        const isHira = randomKey === randomKey.toLowerCase();
+        
+        currentQuestion = {
+            romaji: randomKey.toLowerCase(),
+            answer: rowData[randomKey],
+            isHira: isHira
+        };
+
+        document.getElementById('targetRomaji').innerText = currentQuestion.romaji;
+        document.getElementById('typeInfo').innerText = isHira ? "請寫出：平假名" : "請寫出：片假名";
         clearCanvas();
     }
 
-    nextQuestion();
+    function showHint() {
+        ctx.font = "200px sans-serif";
+        ctx.fillStyle = "rgba(255, 0, 0, 0.15)";
+        ctx.textAlign = "center";
+        ctx.textBaseline = "middle";
+        ctx.fillText(currentQuestion.answer, canvas.width/4, canvas.height/4);
+    }
 </script>
 
 </body>
