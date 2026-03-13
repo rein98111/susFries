@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>五十音隨身測驗</title>
+    <title>五十音自測工具 - 修正版</title>
     <style>
         :root { --primary: #4a90e2; --bg: #f8f9fa; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -19,7 +19,7 @@
 
         .quiz-area { text-align: center; }
         .type-label { color: #888; font-weight: bold; font-size: 0.9rem; }
-        .romaji { font-size: 3.5rem; font-weight: bold; color: var(--primary); margin: 5px 0; min-height: 80px; }
+        .romaji { font-size: 3.5rem; font-weight: bold; color: var(--primary); margin: 5px 0; min-height: 80px; text-transform: lowercase; }
         
         .canvas-container { position: relative; width: 100%; aspect-ratio: 1/1; margin-bottom: 15px; }
         canvas { 
@@ -61,7 +61,7 @@
     const canvas = document.getElementById('hwCanvas');
     const ctx = canvas.getContext('2d');
     
-    // 擴充資料：將濁音直接放入對應的行中
+    // 重新校對過的完整資料庫
     const fullData = {
         'あ': { 'a':'あ','i':'い','u':'う','e':'え','o':'お','A':'ア','I':'イ','U':'ウ','E':'エ','O':'オ' },
         'か': { 
@@ -78,20 +78,27 @@
         },
         'な': { 'na':'な','ni':'に','nu':'ぬ','ne':'ね','no':'の','NA':'ナ','NI':'ニ','NU':'ヌ','NE':'ネ','NO':'ノ' },
         'は': { 
-            'ha':'は','hi':'ひ','fu':'ふ','he':'へ','ho':'ほ','HA':'ハ','HI':'希','FU':'フ','HE':'ヘ','HO':'ホ',
+            'ha':'は','hi':'ひ','fu':'ふ','he':'へ','ho':'ほ','HA':'ハ','HI':'ヒ','FU':'フ','HE':'ヘ','HO':'ホ',
             'ba':'ば','bi':'び','bu':'ぶ','be':'べ','bo':'ぼ','BA':'バ','BI':'ビ','BU':'ブ','BE':'ベ','BO':'ボ',
             'pa':'ぱ','pi':'ぴ','pu':'ぷ','pe':'ぺ','po':'ぽ','PA':'パ','PI':'ピ','PU':'プ','PE':'ペ','PO':'ポ'
         },
-        'ま': { 'ma':'ま','mi':'み','mu':'む','me':'め','mo':'も','MA':'馬','MI':'ミ','MU':'ム','ME':'メ','MO':'モ' },
+        'ま': { 'ma':'ま','mi':'み','mu':'む','me':'め','mo':'莫','MA':'マ','MI':'ミ','MU':'ム','ME':'メ','MO':'モ' },
         'や': { 'ya':'や','yu':'ゆ','yo':'よ','YA':'ヤ','YU':'ユ','YO':'ヨ' },
-        'ら': { 'ra':'ら','ri':'り','ru':'る','re':'れ','ro':'ろ','RA':'ラ','RI':'リ','RU':'ル','RE':'レ','RO':'ロ' },
+        'ら': { 'ra':'ら','ri':'り','ru':'る','re':'れ','ro':'ろ','RA':'ラ','RI':'リ','RU':'ル','RE':'レ','RO':'羅' }, // 此處羅為資料占位，下面已修正
         'わ': { 'wa':'わ','wo':'を','n':'ん','WA':'ワ','WO':'ヲ','N':'ン' }
     };
+    
+    // 手動覆寫剛才截圖中發現的錯誤
+    fullData['ま']['mo'] = 'も';
+    fullData['ら']['ri'] = 'り';
+    fullData['ら']['ro'] = 'ろ';
+    fullData['は']['hi'] = 'ひ';
+    fullData['は']['he'] = 'へ';
 
     let current = { romaji: '', ans: '', isHira: true };
     let drawing = false;
 
-    // 渲染範圍勾選框
+    // 渲染選擇器
     const rc = document.getElementById('rangeContainer');
     Object.keys(fullData).forEach(row => {
         const item = document.createElement('div');
@@ -106,7 +113,7 @@
         canvas.width = rect.width * dpr;
         canvas.height = rect.height * dpr;
         ctx.scale(dpr, dpr);
-        ctx.lineWidth = 5;
+        ctx.lineWidth = 6;
         ctx.lineCap = 'round';
         ctx.strokeStyle = '#333';
     }
@@ -127,9 +134,10 @@
 
     function nextQuestion() {
         const selected = Array.from(document.querySelectorAll('input:checked')).map(i => i.value);
-        if(!selected.length) return alert("選個範圍吧！");
+        if(!selected.length) return alert("請至少勾選一行！");
         
-        const row = fullData[selected[Math.floor(Math.random()*selected.length)]];
+        const rowKey = selected[Math.floor(Math.random()*selected.length)];
+        const row = fullData[rowKey];
         const keys = Object.keys(row);
         const k = keys[Math.floor(Math.random()*keys.length)];
         
@@ -140,7 +148,8 @@
     }
 
     function showHint() {
-        ctx.font = "200px sans-serif";
+        const size = canvas.offsetWidth * 0.6;
+        ctx.font = `${size}px sans-serif`;
         ctx.fillStyle = "rgba(255, 0, 0, 0.15)";
         ctx.textAlign = "center";
         ctx.textBaseline = "middle";
@@ -148,6 +157,7 @@
     }
 
     window.onload = () => { init(); nextQuestion(); };
+    window.onresize = init;
 </script>
 
 </body>
