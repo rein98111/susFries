@@ -2,13 +2,13 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <title>Twitch Chat Fix</title>
-    <script src="https://unpkg.com/tmi.js@1.8.5/dist/tmi.min.js"></script>
+    <title>Twitch Chat (Self-Contained)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tmi.js/1.8.5/tmi.min.js"></script>
     <style>
         body {
             margin: 0;
             padding: 20px;
-            background-color: transparent; 
+            background-color: transparent;
             font-family: 'Segoe UI', "Microsoft JhengHei", sans-serif;
             overflow: hidden;
             display: flex;
@@ -23,32 +23,34 @@
         }
 
         .message-box {
-            background: rgba(15, 15, 15, 0.8);
-            backdrop-filter: blur(5px);
-            border-left: 4px solid #ff66aa;
-            margin-bottom: 10px;
-            padding: 12px;
+            background: rgba(15, 15, 15, 0.85); /* 深色背景 */
+            backdrop-filter: blur(8px);
+            border-left: 5px solid #ff66aa; /* 側邊裝飾 */
+            margin-bottom: 12px;
+            padding: 12px 18px;
             border-radius: 6px;
-            animation: slideIn 0.3s ease-out forwards;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s cubic-bezier(0.18, 0.89, 0.32, 1.28) forwards;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
         }
 
         .username {
-            font-weight: bold;
-            font-size: 16px;
+            font-weight: 800;
+            font-size: 17px;
             display: block;
             margin-bottom: 4px;
+            filter: brightness(1.2); /* 讓顏色亮一點 */
         }
 
         .message {
             color: #ffffff;
-            font-size: 15px;
+            font-size: 16px;
             line-height: 1.5;
             word-wrap: break-word;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.5);
         }
 
         @keyframes slideIn {
-            from { opacity: 0; transform: translateX(-15px); }
+            from { opacity: 0; transform: translateX(-30px); }
             to { opacity: 1; transform: translateX(0); }
         }
     </style>
@@ -58,46 +60,44 @@
     <div id="chat-container"></div>
 
     <script>
-        // --- 請在這裡填入你的 Twitch 帳號 (小寫) ---
-        const MY_CHANNEL = '你的帳號'; 
-
-        // 這裡改用 window.tmi 因為它是透過 <script> 標籤載入的全域變數
-        const client = new tmi.Client({
-            connection: {
-                secure: true,
-                reconnect: true
-            },
-            channels: [ MY_CHANNEL ]
-        });
+        // --- 設定區 ---
+        const CHANNEL = sus_osu; // 改成你的 Twitch ID (必須全小寫)
 
         const container = document.getElementById('chat-container');
 
-        client.connect().then(() => {
-            console.log("成功連線至:", MY_CHANNEL);
-        }).catch(console.error);
+        // 偵測 tmi 是否真的載入了
+        if (typeof tmi === 'undefined') {
+            container.innerHTML = '<div style="color:red; background:white;">錯誤：tmi.js 載入失敗。請檢查網路連線或嘗試更換瀏覽器測試。</div>';
+        } else {
+            const client = new tmi.Client({
+                connection: { secure: true, reconnect: true },
+                channels: [ CHANNEL ]
+            });
 
-        client.on('message', (channel, tags, message, self) => {
-            const msgBox = document.createElement('div');
-            msgBox.className = 'message-box';
+            client.connect().catch(console.error);
 
-            const userColor = tags.color || '#ff66aa';
-            const name = tags['display-name'];
+            client.on('message', (channel, tags, message, self) => {
+                const msgBox = document.createElement('div');
+                msgBox.className = 'message-box';
 
-            msgBox.innerHTML = `
-                <span class="username" style="color: ${userColor}">${name}</span>
-                <span class="message">${message}</span>
-            `;
+                const userColor = tags.color || '#ff66aa';
+                const name = tags['display-name'];
 
-            container.appendChild(msgBox);
+                msgBox.innerHTML = `
+                    <span class="username" style="color: ${userColor}">${name}</span>
+                    <span class="message">${message}</span>
+                `;
 
-            // 保持最新 10 條訊息
-            if (container.children.length > 10) {
-                container.removeChild(container.children[0]);
-            }
+                container.appendChild(msgBox);
 
-            // 自動滾動到底部
-            window.scrollTo(0, document.body.scrollHeight);
-        });
+                // 限制訊息顯示數量
+                if (container.children.length > 8) {
+                    container.removeChild(container.children[0]);
+                }
+
+                window.scrollTo(0, document.body.scrollHeight);
+            });
+        }
     </script>
 </body>
 </html>
