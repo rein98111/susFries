@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <title>Twitch Chat for OBS</title>
+    <script src="https://cdn.jsdelivr.net/npm/tmi.js@1.8.5/dist/tmi.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            height: 100vh;
+            background-color: transparent;
+            font-family: 'Microsoft JhengHei', sans-serif;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        /* 連線狀態標籤 */
+        #status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            font-size: 12px;
+            color: rgba(255, 255, 255, 0.3);
+            background: rgba(0, 0, 0, 0.4);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        #chat-container {
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .message-box {
+            background: rgba(20, 20, 20, 0.8);
+            backdrop-filter: blur(10px);
+            border-left: 4px solid #ff66aa; /* 改成漂亮的粉紅色 */
+            margin-bottom: 10px;
+            padding: 10px 15px;
+            border-radius: 5px;
+            animation: fadeIn 0.4s ease;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.5);
+        }
+
+        .username {
+            font-weight: bold;
+            font-size: 16px;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        .message {
+            color: #ffffff;
+            font-size: 15px;
+            line-height: 1.4;
+            word-wrap: break-word;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="status">正在嘗試連線至 Twitch...</div>
+    <div id="chat-container"></div>
+
+    <script>
+        // 請務必將 'your_channel_name' 改成你的 Twitch 小寫帳號
+        const CHANNEL_NAME = '你的小寫帳號'; 
+
+        const client = new tmi.Client({
+            connection: { secure: true, reconnect: true },
+            channels: [ CHANNEL_NAME ]
+        });
+
+        const container = document.getElementById('chat-container');
+        const statusLabel = document.getElementById('status');
+
+        client.connect().catch(console.error);
+
+        // 連線成功事件
+        client.on('connected', () => {
+            statusLabel.textContent = `已連線至: ${CHANNEL_NAME}`;
+            setTimeout(() => { statusLabel.style.opacity = '0'; }, 3000); // 3秒後隱藏狀態
+        });
+
+        // 收到訊息事件
+        client.on('message', (channel, tags, message, self) => {
+            const msgBox = document.createElement('div');
+            msgBox.className = 'message-box';
+
+            const nameColor = tags.color || '#ff66aa';
+            const displayName = tags['display-name'];
+
+            msgBox.innerHTML = `
+                <span class="username" style="color: ${nameColor}">${displayName}</span>
+                <span class="message">${message}</span>
+            `;
+
+            container.appendChild(msgBox);
+
+            // 保持訊息數量，避免瀏覽器卡頓
+            if (container.children.length > 15) {
+                container.removeChild(container.children[0]);
+            }
+
+            // 自動滾動
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+    </script>
+</body>
+</html>
