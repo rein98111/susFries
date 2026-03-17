@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>MC Clicker v1.5.0 - Infinite Rewards</title>
+    <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --mc-green: #54FB54; --mc-gui: #C6C6C6;
+            --mc-border-dark: #373737; --mc-border-light: #FFFFFF;
+            --frenzy-color: #FF5555; --reward-color: #FFD700;
+        }
+
+        body {
+            background-color: #1a1a1a; color: white; font-family: 'VT323', monospace;
+            margin: 0; display: flex; height: 100vh; width: 100vw; overflow: hidden;
+            image-rendering: pixelated;
+        }
+
+        /* --- 彈窗系統 --- */
+        .overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); display: none; justify-content: center; align-items: center; z-index: 100;
+        }
+        .notice-card {
+            background: var(--mc-gui); border: 4px solid #000; width: 85%; max-width: 360px;
+            padding: 30px 20px; position: relative; box-shadow: inset -4px -4px 0 var(--mc-border-dark), inset 4px 4px 0 var(--mc-border-light);
+            color: #3f3f3f; text-align: center; animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        @keyframes popIn { from { transform: scale(0.5); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        .close-btn {
+            position: absolute; top: 5px; right: 5px; background: #AA0000; color: white;
+            border: 2px solid #000; width: 28px; height: 28px; cursor: pointer; display: flex; justify-content: center; align-items: center;
+        }
+
+        /* --- 遊戲畫面 --- */
+        .game-area {
+            flex: 0 0 65%; display: flex; flex-direction: column; border-right: 4px solid #000;
+            position: relative; background: #222; overflow: hidden;
+        }
+        .version-tag { position: absolute; top: 10px; right: 15px; color: #555; font-size: 18px; }
+        
+        .frenzy-overlay {
+            position: absolute; top:0; left:0; width:100%; height:100%;
+            pointer-events: none; border: 0px solid var(--frenzy-color);
+            transition: border 0.3s; z-index: 5;
+        }
+        body.frenzy .frenzy-overlay { border: 12px solid var(--frenzy-color); animation: flash 0.5s infinite; }
+        @keyframes flash { 0% { opacity: 0.2; } 50% { opacity: 0.6; } 100% { opacity: 0.2; } }
+
+        .level-section { padding: 20px 10px; text-align: center; }
+        .level-text { color: var(--mc-green); font-size: 42px; text-shadow: 3px 3px 0 #000; margin: 0; }
+        .xp-bar { width: 85%; height: 20px; background: #313131; border: 4px solid #000; margin: 10px auto; position: relative; }
+        #xp-fill { height: 100%; width: 0%; background: var(--mc-green); box-shadow: inset 0 -4px 0 #3E8E3E; transition: width 0.3s; }
+
+        .main-click-part { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 10; }
+        .emerald-display { font-size: 34px; margin-bottom: 20px; color: #55FF55; text-shadow: 2px 2px 0 #000; }
+        
+        #block {
+            width: 140px; height: 140px; background: #5d9948; border: 6px solid #000;
+            box-shadow: inset 10px 10px 0 #7ec850, inset -10px -10px 0 #3a632d;
+            display: flex; align-items: center; justify-content: center; font-size: 26px;
+            cursor: pointer; transition: transform 0.05s;
+        }
+        #block:active { transform: scale(0.9); }
+
+        #lucky-box {
+            position: absolute; width: 64px; height: 64px; background: #FFD700; border: 4px solid #000;
+            display: none; cursor: pointer; z-index: 20; box-shadow: inset -4px -4px 0 #B8860B;
+            justify-content: center; align-items: center; font-size: 30px;
+            animation: bounce 0.4s infinite alternate;
+        }
+        @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }
+
+        /* --- 側邊欄 --- */
+        .shop-sidebar {
+            flex: 1; background: var(--mc-gui); border-left: 2px solid var(--mc-border-light);
+            display: flex; flex-direction: column; padding: 12px; color: #3f3f3f;
+        }
+        .upgrade-list { flex: 1; overflow-y: auto; }
+        .upgrade-item {
+            background: #8B8B8B; border: 3px solid #000; margin-bottom: 12px; padding: 10px;
+            display: none; flex-direction: column; color: white; cursor: pointer;
+            box-shadow: inset -3px -3px 0 #444, inset 3px 3px 0 #AAA;
+        }
+        .upgrade-item.unlocked { display: flex; }
+        .upgrade-item.disabled { filter: grayscale(1); opacity: 0.6; }
+
+        .btn-ui { font-family: 'VT323'; border: 3px solid #000; padding: 8px; cursor: pointer; margin-top: 5px; font-size: 18px; }
+    </style>
+</head>
+<body id="game-body">
+
+    <div id="notice-overlay" class="overlay">
+        <div class="notice-card" id="card-style">
+            <div class="close-btn" onclick="closeNotice()">X</div>
+            <h2 id="notice-title" style="margin-top: 0;">!!! AD !!!</h2>
+            <p id="notice-body" style="font-size: 22px; font-weight: bold; line-height: 1.2;"></p>
+            <button id="notice-btn" onclick="closeNotice()" class="btn-ui" style="background: #55FF55; width: 100%;">CLAIM!</button>
+        </div>
+    </div>
+
+    <div class="game-area">
+        <div class="frenzy-overlay"></div>
+        <div class="version-tag">v1.5.0</div>
+        <div id="lucky-box" onclick="handleLuckyBox()">🎁</div>
+        
+        <div class="level-section">
+            <p class="level-text"><span id="txt-lvl">Level</span> <span id="lvl">1</span></p>
+            <div class="xp-bar"><div id="xp-fill"></div></div>
+            <div style="font-size: 22px;">XP: <span id="cxp">0</span> / <span id="mxp">100</span></div>
+        </div>
+
+        <div class="main-click-part">
+            <div id="status-display" style="font-size: 26px; display: none; margin-bottom: 10px; color: var(--frenzy-color);">
+                <span id="txt-status">FRENZY</span>: <span id="s-time">15</span>s
+            </div>
+            <div class="emerald-display"><span id="txt-emeralds">Emeralds</span>: <span id="em">0</span></div>
+            <div id="block">MINE!</div>
+            <div style="margin-top: 25px; font-size: 20px; color: #666;">EPS: <span id="eps">0</span></div>
+        </div>
+    </div>
+
+    <div class="shop-sidebar">
+        <div id="txt-shop-title" style="text-align:center; font-size: 26px; margin-bottom: 12px; border-bottom: 2px solid #888;">SHOP</div>
+        
+        <div class="upgrade-list">
+            <div class="upgrade-item unlocked" id="u1" onclick="buy('u1')">
+                <span class="u-name">Wooden Pick</span>
+                <span style="color:#ffff55; font-size:20px;" id="c1">15 E</span>
+            </div>
+            <div class="upgrade-item unlocked" id="u2" onclick="buy('u2')">
+                <span class="u-name">Iron Pick</span>
+                <span style="color:#ffff55; font-size:20px;" id="c2">100 E</span>
+            </div>
+            <div class="upgrade-item" id="u3" onclick="buy('u3')">
+                <span class="u-name">Golden Pick</span>
+                <span style="color:#ffff55; font-size:20px;" id="c3">500 E</span>
+            </div>
+            <div class="upgrade-item" id="u4" onclick="buy('u4')">
+                <span class="u-name">Diamond Mine</span>
+                <span style="color:#ffff55; font-size:20px;" id="c4">2500 E</span>
+            </div>
+            <div class="upgrade-item" id="u5" onclick="buy('u5')">
+                <span class="u-name">Netherite Drill</span>
+                <span style="color:#ffff55; font-size:20px;" id="c5">12000 E</span>
+            </div>
+        </div>
+
+        <button onclick="toggleLang()" class="btn-ui" style="background: #eee;">繁體中文 / English</button>
+        <button id="btn-reset" onclick="resetGame()" class="btn-ui" style="background: #444; color: #888;">Reset Progress</button>
+    </div>
+
+    <script>
+        // --- 語言與獎勵字典 ---
+        const i18n = {
+            en: {
+                shop: "TRADING BAR", lvl: "Level", ems: "Emeralds", reset: "Reset Progress",
+                frenzy: "FRENZY", xpBoost: "XP BOOST", claim: "CLAIM!",
+                upgrades: ["Wooden Pick", "Iron Pick", "Golden Pick", "Diamond Mine", "Netherite Drill"],
+                rewards: [
+                    { t: "MEGA FRENZY!", b: "Unbelievable! You got 30s of 5X Production!", type: "frenzy", val: 5, dur: 30 },
+                    { t: "EMERALD RAIN!", b: "Instant windfall! You received a huge emerald bonus!", type: "money", val: 1000 },
+                    { t: "XP SURGE!", b: "Knowledge is power! 3X XP gain for the next 60s!", type: "xp", val: 3, dur: 60 }
+                ],
+                ads: [
+                    { t: "TIRED OF CLICKING?", b: "Upgrade your tools now for maximum idle profit!" },
+                    { t: "GIFT BOXES!", b: "Keep an eye out for Golden Boxes 🎁 for random boosts!" }
+                ]
+            },
+            zh: {
+                shop: "交易中心", lvl: "等級", ems: "綠寶石", reset: "重置進度",
+                frenzy: "狂暴模式", xpBoost: "經驗加倍", claim: "立即領取！",
+                upgrades: ["木鎬", "鐵鎬", "金鎬", "鑽石礦場", "獄髓鑽頭"],
+                rewards: [
+                    { t: "終極狂暴！", b: "太強了！獲得 30 秒的 5 倍產量加成！", type: "frenzy", val: 5, dur: 30 },
+                    { t: "綠寶石之雨！", b: "天降橫財！你直接獲得了一大筆綠寶石獎勵！", type: "money", val: 1000 },
+                    { t: "經驗爆發！", b: "知識就是力量！接下來 60 秒獲得 3 倍經驗！", type: "xp", val: 3, dur: 60 }
+                ],
+                ads: [
+                    { t: "點到手酸嗎？", b: "立即升級你的工具，享受自動化挖掘的快感！" },
+                    { t: "發現金箱！", b: "注意畫面上的黃金禮盒 🎁，隨機獲得超強增益！" }
+                ]
+            }
+        };
+
+        let state = JSON.parse(localStorage.getItem('mc_v150')) || {
+            em: 0, xp: 0, lvl: 1, eps: 0, lang: 'en',
+            u: { 
+                u1: {c: 15, p: 1, r: 1}, u2: {c: 100, p: 5, r: 1}, 
+                u3: {c: 500, p: 15, r: 10}, u4: {c: 2500, p: 60, r: 35},
+                u5: {c: 12000, p: 250, r: 70}
+            }
+        };
+
+        let currentAdIdx = 0;
+        let activeBoost = { type: 'none', mult: 1, time: 0 };
+        const el = (id) => document.getElementById(id);
+
+        function updateUI() {
+            const t = i18n[state.lang];
+            el('txt-shop-title').innerText = t.shop;
+            el('txt-lvl').innerText = t.lvl;
+            el('txt-emeralds').innerText = t.ems;
+            el('btn-reset').innerText = t.reset;
+            el('notice-btn').innerText = t.claim;
+
+            el('em').innerText = Math.floor(state.em);
+            el('lvl').innerText = state.lvl;
+            el('cxp').innerText = Math.floor(state.xp);
+            let next = state.lvl * 100;
+            el('mxp').innerText = next;
+            el('eps').innerText = (state.eps * (activeBoost.type === 'frenzy' ? activeBoost.mult : 1)).toFixed(1);
+            el('xp-fill').style.width = Math.min((state.xp / next * 100), 100) + "%";
+
+            Object.keys(state.u).forEach((id, idx) => {
+                let item = state.u[id];
+                if (state.lvl >= item.r) el(id).classList.add('unlocked');
+                el(id).classList.toggle('disabled', state.em < item.c);
+                el(id).querySelector('.u-name').innerText = `${t.upgrades[idx]} (+${item.p} EPS)`;
+                el('c' + id.slice(1)).innerText = item.c + " E";
+            });
+
+            if (activeBoost.time > 0) {
+                el('status-display').style.display = 'block';
+                el('txt-status').innerText = activeBoost.type === 'frenzy' ? t.frenzy : t.xpBoost;
+                el('s-time').innerText = activeBoost.time;
+                document.body.className = 'frenzy';
+            } else {
+                el('status-display').style.display = 'none';
+                document.body.className = '';
+            }
+            localStorage.setItem('mc_v150', JSON.stringify(state));
+        }
+
+        function checkLevel() {
+            let next = state.lvl * 100;
+            if (state.xp >= next) {
+                state.xp -= next;
+                state.lvl++;
+                if (state.lvl % 50 === 0) triggerMilestone();
+                updateUI();
+            }
+        }
+
+        // --- 獎勵邏輯 ---
+        function triggerMilestone() {
+            const pool = i18n[state.lang].rewards;
+            const reward = pool[Math.floor(Math.random() * pool.length)];
+            
+            el('notice-overlay').style.display = 'flex';
+            el('card-style').style.borderColor = 'var(--reward-color)';
+            el('notice-title').innerText = reward.t;
+            el('notice-body').innerText = reward.b;
+            
+            // 點擊領取時執行
+            window.pendingReward = reward;
+        }
+
+        function closeNotice() {
+            if (window.pendingReward) {
+                const r = window.pendingReward;
+                if (r.type === 'money') state.em += (state.eps * r.val) + 500;
+                else {
+                    activeBoost = { type: r.type, mult: r.val, time: r.dur };
+                }
+                window.pendingReward = null;
+            }
+            el('notice-overlay').style.display = 'none';
+            el('card-style').style.borderColor = '#000';
+            updateUI();
+        }
+
+        function handleLuckyBox() {
+            el('lucky-box').style.display = 'none';
+            activeBoost = { type: 'frenzy', mult: 2, time: 15 };
+            updateUI();
+        }
+
+        function mine() {
+            let m = activeBoost.type === 'frenzy' ? activeBoost.mult : 1;
+            let x = activeBoost.type === 'xp' ? activeBoost.mult : 1;
+            state.em += 1 * m;
+            state.xp += 10 * x;
+            checkLevel();
+            updateUI();
+        }
+
+        function buy(id) {
+            let item = state.u[id];
+            if (state.em >= item.c && state.lvl >= item.r) {
+                state.em -= item.c;
+                state.eps += item.p;
+                item.c = Math.floor(item.c * 1.4);
+                updateUI();
+            }
+        }
+
+        function toggleLang() {
+            state.lang = state.lang === 'en' ? 'zh' : 'en';
+            updateUI();
+        }
+
+        function resetGame() { if(confirm('Reset all?')) { localStorage.clear(); location.reload(); } }
+
+        // --- 循環器 ---
+        setInterval(() => {
+            if (state.eps > 0) {
+                let m = activeBoost.type === 'frenzy' ? activeBoost.mult : 1;
+                let x = activeBoost.type === 'xp' ? activeBoost.mult : 1;
+                let p = (state.eps * m) / 10;
+                state.em += p; state.xp += p * 2 * x;
+                checkLevel(); updateUI();
+            }
+        }, 100);
+
+        setInterval(() => {
+            if (activeBoost.time > 0) {
+                activeBoost.time--;
+                if (activeBoost.time === 0) activeBoost.type = 'none';
+                updateUI();
+            }
+        }, 1000);
+
+        setInterval(() => { if (activeBoost.time === 0) el('lucky-box').style.display = 'flex'; }, 45000);
+
+        // 初始化公告
+        setTimeout(() => {
+            el('notice-overlay').style.display = 'flex';
+            el('notice-title').innerText = i18n[state.lang].ads[0].t;
+            el('notice-body').innerText = i18n[state.lang].ads[0].b;
+        }, 500);
+
+        updateUI();
+        el('block').onclick = mine;
+        el('block').ontouchstart = (e) => { e.preventDefault(); mine(); };
+    </script>
+</body>
+</html>
