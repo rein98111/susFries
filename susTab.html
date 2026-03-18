@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Dashboard</title>
+    <title>sus Tab</title>
     <style>
         /* --- CSS 樣式區 --- */
         body, html {
             margin: 0; padding: 0; height: 100%;
             color: white; font-family: "Microsoft JhengHei", sans-serif;
-            overflow: hidden; /* 隱藏全網頁捲軸 */
+            overflow: hidden;
         }
 
         /* 背景影片 */
@@ -17,121 +17,86 @@
             position: fixed; right: 0; bottom: 0;
             min-width: 100%; min-height: 100%;
             z-index: -1; object-fit: cover;
-            filter: brightness(0.6); /* 稍微調暗背景，讓文字更清楚 */
+            filter: brightness(0.5);
         }
 
-        /* 主容器佈局 */
+        /* 主容器 */
         .main-container {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            height: 100vh;
-            padding: 40px;
-            box-sizing: border-box;
+            display: flex; justify-content: space-between;
+            align-items: flex-start; height: 100vh;
+            padding: 40px; box-sizing: border-box;
         }
 
-        /* 通用面板樣式 (毛玻璃) */
+        /* 通用面板 */
         .side-panel {
-            width: 280px;
-            background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px;
-            padding: 25px;
-            height: 80vh;
-            display: flex;
-            flex-direction: column;
+            width: 280px; background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 20px; padding: 25px; height: 85vh;
+            display: flex; flex-direction: column;
         }
 
         /* 左側資訊 */
-        #clock { font-size: 3rem; font-weight: bold; text-shadow: 2px 2px 10px rgba(0,0,0,0.5); }
-        #date { font-size: 1.2rem; margin-bottom: 5px; color: #ddd; }
-        #weather { font-size: 1.1rem; color: #00d4ff; margin-bottom: 30px; }
-        
-        .changelog { flex-grow: 1; overflow-y: auto; }
-        .changelog h3 { border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 10px; }
-        .changelog ul { padding-left: 20px; font-size: 0.95rem; line-height: 1.8; }
+        #clock { font-size: 3rem; font-weight: bold; }
+        #date { font-size: 1.1rem; color: #ddd; margin-bottom: 5px; }
+        #weather { font-size: 1.1rem; color: #00d4ff; margin-bottom: 20px; }
+        .changelog { flex-grow: 1; overflow-y: auto; font-size: 0.9rem; }
 
         /* 中間搜尋區 */
         .center-panel {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            margin: 0 40px;
-            padding-top: 15vh;
+            flex: 1; display: flex; flex-direction: column;
+            align-items: center; margin: 0 40px; padding-top: 12vh;
         }
+        .search-logo { width: 160px; margin-bottom: 25px; filter: drop-shadow(0 0 8px #fff); }
+        .search-box-container { width: 100%; max-width: 600px; background: rgba(255, 255, 255, 0.1); border-radius: 30px; padding: 5px; }
 
-        .search-logo {
-            width: 180px; /* sus.png 的大小控制 */
-            margin-bottom: 30px;
-            filter: drop-shadow(0 0 10px rgba(255,255,255,0.3));
-        }
-
-        .search-box-container {
-            width: 100%;
-            max-width: 650px;
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 30px;
-            backdrop-filter: blur(5px);
-        }
-
-        /* 右側影片列表 */
-        .video-list-container {
-            overflow-y: auto;
-            flex-grow: 1;
-        }
+        /* 右側 YouTube 列表 */
+        .video-list-container { overflow-y: auto; flex-grow: 1; }
         .video-item {
-            padding: 15px;
-            margin-bottom: 12px;
+            padding: 10px; margin-bottom: 15px;
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 10px;
-            transition: 0.3s;
-            cursor: pointer;
-            border: 1px solid transparent;
+            border-radius: 12px; cursor: pointer; transition: 0.3s;
         }
-        .video-item:hover {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
+        .video-item:hover { background: rgba(255, 255, 255, 0.2); }
+        .video-item img { width: 100%; border-radius: 8px; margin-bottom: 8px; }
+        .video-title { font-size: 0.85rem; line-height: 1.4; height: 2.8em; overflow: hidden; }
+
+        /* 影片彈窗 (Modal) */
+        #video-modal {
+            display: none; position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%; background: rgba(0,0,0,0.9);
+            z-index: 100; justify-content: center; align-items: center;
         }
+        .modal-content { position: relative; width: 80%; max-width: 900px; aspect-ratio: 16/9; }
+        .close-btn { position: absolute; top: -40px; right: 0; font-size: 30px; cursor: pointer; }
 
-        /* 隱藏 Google 預設背景與邊框 */
-        .gsc-control-cse { background-color: transparent !important; border: none !important; padding: 0 !important; }
-        .gsc-input-box { border-radius: 20px !important; overflow: hidden !important; }
-        .gcsc-branding { display: none !important; } /* 隱藏 Google Logo */
-
-        /* 捲動軸樣式 */
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.2); border-radius: 10px; }
+        /* 隱藏 Google 雜項 */
+        .gsc-control-cse { background-color: transparent !important; border: none !important; }
+        .gcsc-branding { display: none !important; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
     </style>
 </head>
 <body>
 
-    <video autoplay muted loop id="bg-video">
-        <source src="background.mp4" type="video/mp4">
-        Your browser does not support HTML5 video.
-    </video>
+    <video autoplay muted loop id="bg-video"><source src="background.mp4" type="video/mp4"></video>
 
     <div class="main-container">
         <div class="side-panel">
             <div id="clock">00:00:00</div>
-            <div id="date">2026/03/18</div>
+            <div id="date">載入中...</div>
             <div id="weather">桃園市 22°C ☁️</div>
-            
             <div class="changelog">
                 <h3>更新日誌</h3>
                 <ul>
-                    <li>自訂搜尋引擎佈局整合</li>
-                    <li>新增背景影片支援</li>
-                    <li>加入動態時鐘與氣溫顯示</li>
-                    <li>右側影片捲動列表優化</li>
+                    <li>整合 YouTube 影片播放器</li>
+                    <li>新增影片彈窗預覽功能</li>
+                    <li>優化搜尋框毛玻璃視覺</li>
                 </ul>
             </div>
         </div>
 
         <div class="center-panel">
-            <img src="sus.png" alt="Logo" class="search-logo">
+            <img src="images/susFries.png" alt="Logo" class="search-logo">
             <div class="search-box-container">
                 <script async src="https://cse.google.com/cse.js?cx=1193b39a9705e4e98"></script>
                 <div class="gcse-search"></div>
@@ -139,37 +104,48 @@
         </div>
 
         <div class="side-panel">
-            <h3>影片列表</h3>
-            <div class="video-list-container">
-                <div class="video-item">🎬 我的 Minecraft 城市巡禮</div>
-                <div class="video-item">🎬 插件開發實錄 #1</div>
-                <div class="video-item">🎬 速度挑戰：RunnerRelay</div>
-                <div class="video-item">🎬 桃園景點隨手拍</div>
-                <div class="video-item">🎬 測試影片 01</div>
-                <div class="video-item">🎬 測試影片 02</div>
-                <div class="video-item">🎬 測試影片 03</div>
+            <h3>推薦影片</h3>
+            <div class="video-list-container" id="yt-list">
+                <div class="video-item" onclick="playVideo('OTVPmjPKafw')">
+                    <img src="https://img.youtube.com/vi/OTVPmjPKafw/mqdefault.jpg">
+                    <div class="video-title">Keyboard + Mouse ASMR Sounds | Hypixel Bedwars</div>
                 </div>
+                <div class="video-item" onclick="playVideo('3MTOKXjfdBU')">
+                    <img src="https://img.youtube.com/vi/3MTOKXjfdBU/mqdefault.jpg">
+                    <div class="video-title">6位數亞太盃2026 Tryout精華</div>
+                </div>
+                <div class="video-item" onclick="playVideo('NT_5y_iP0q8')">
+                    <img src="https://img.youtube.com/vi/NT_5y_iP0q8/mqdefault.jpg">
+                    <div class="video-title">bedtwL | Minecraft Server Trailer</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="video-modal" onclick="closeVideo()">
+        <div class="modal-content">
+            <span class="close-btn">&times;</span>
+            <iframe id="video-player" width="100%" height="100%" src="" frameborder="0" allowfullscreen></iframe>
         </div>
     </div>
 
     <script>
-        // --- JavaScript 邏輯區 ---
         function updateTime() {
             const now = new Date();
-            // 格式化時間：HH:mm:ss
-            const hours = String(now.getHours()).padStart(2, '0');
-            const minutes = String(now.getMinutes()).padStart(2, '0');
-            const seconds = String(now.getSeconds()).padStart(2, '0');
-            document.getElementById('clock').innerText = `${hours}:${minutes}:${seconds}`;
+            document.getElementById('clock').innerText = now.toLocaleTimeString('zh-TW', { hour12: false });
+            document.getElementById('date').innerText = now.toLocaleDateString('zh-TW', { month: 'long', day: 'numeric', weekday: 'short' });
+        }
+        setInterval(updateTime, 1000); updateTime();
 
-            // 格式化日期
-            const options = { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' };
-            document.getElementById('date').innerText = now.toLocaleDateString('zh-TW', options);
+        function playVideo(id) {
+            document.getElementById('video-player').src = `https://www.youtube.com/embed/${id}?autoplay=1`;
+            document.getElementById('video-modal').style.display = 'flex';
         }
 
-        // 每秒執行一次
-        setInterval(updateTime, 1000);
-        updateTime();
+        function closeVideo() {
+            document.getElementById('video-modal').style.display = 'none';
+            document.getElementById('video-player').src = '';
+        }
     </script>
 </body>
 </html>
