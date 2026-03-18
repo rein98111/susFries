@@ -2,186 +2,96 @@
 <html lang="zh-Hant">
 <head>
     <meta charset="UTF-8">
-    <title>YouTube Simulator - 創作者工作室 Pro</title>
+    <title>YouTube Simulator - 創作者工作室 終極版</title>
     <style>
-        /* 全局 YouTube 風格定義 (深色模式) */
+        /* 繼承之前的 YouTube 深色模式樣式 */
         :root {
             --yt-red: #FF0000;
-            --yt-black: #0F0F0F; /* YouTube 背景黑 */
-            --yt-card-bg: #1E1E1E; /* 影片卡片黑 */
+            --yt-black: #0F0F0F;
+            --yt-card-bg: #1E1E1E;
             --yt-border: #333333;
             --yt-text-main: #FFFFFF;
             --yt-text-sub: #AAAAAA;
             --yt-hover: #383838;
-            
-            /* 獎牌光澤顏色 */
-            --medal-silver: #C0C0C0;
-            --medal-gold: #FFD700;
-            --medal-diamond: #E0FFFF;
-            --medal-ruby: #E0115F;
         }
 
         body { font-family: "Roboto", Arial, sans-serif; background-color: var(--yt-black); color: var(--yt-text-main); margin: 0; padding: 0; display: flex; flex-direction: column; height: 100vh; }
 
-        /* 頂部導覽列 Navbar */
+        /* 導覽列與側邊欄基礎佈局 */
         .header { background-color: var(--yt-black); height: 60px; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; position: fixed; top: 0; width: 100%; z-index: 1000; border-bottom: 1px solid var(--yt-border); box-sizing: border-box; }
-        .header-left { display: flex; align-items: center; gap: 10px; cursor: pointer;}
         .yt-logo { color: var(--yt-red); font-size: 1.8rem; font-weight: bold; }
-        .logo-text { color: white; font-size: 1.2rem; font-weight: 600; }
-        .header-right { display: flex; align-items: center; gap: 20px; }
-        .avatar { width: 32px; height: 32px; background: #555; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 0.8rem;}
-
-        /* 總體佈局 */
         .main-wrapper { display: flex; margin-top: 60px; flex: 1; overflow: hidden; }
-
-        /* 左側邊欄 Sidebar */
         .sidebar { width: 240px; background-color: var(--yt-black); padding-top: 12px; border-right: 1px solid var(--yt-border); display: flex; flex-direction: column; }
-        .sidebar-item { padding: 12px 24px; display: flex; align-items: center; gap: 16px; color: var(--yt-text-main); text-decoration: none; }
         .stats-group { padding: 12px 24px; color: var(--yt-text-sub); font-size: 0.9rem; line-height: 1.8; flex: 1; }
         .stats-group b { color: var(--yt-text-main); font-size: 1rem; }
-
-        /* 主內容區 Main Content */
         .content { flex: 1; background-color: #141414; padding: 24px; overflow-y: auto; }
-        .studio-title { font-size: 1.5rem; margin-bottom: 24px; }
-        
-        /* 工作區佈局 */
+
+        /* 影片卡片與按鈕 */
         .work-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 20px; margin-bottom: 30px; }
-
-        /* 影片卡片風格 */
-        .video-card { background-color: var(--yt-card-bg); border-radius: 12px; overflow: hidden; }
+        .video-card { background-color: var(--yt-card-bg); border-radius: 12px; overflow: hidden; border: 1px solid transparent; transition: 0.3s; }
         .card-thumbnail { width: 100%; height: 180px; background: #333; display: flex; align-items: center; justify-content: center; font-size: 3rem; }
-        .card-details { padding: 12px; display: flex; gap: 12px; }
-        .card-avatar { width: 36px; height: 36px; background: #555; border-radius: 50%; flex-shrink: 0;}
-        .card-info-text { flex: 1; }
-        .card-title { font-size: 1rem; font-weight: 600; margin: 0 0 6px 0; }
-        .card-meta { color: var(--yt-text-sub); font-size: 0.85rem; line-height: 1.5;}
-
-        /* 按鈕風格 */
+        .card-details { padding: 15px; display: flex; gap: 12px; }
         .yt-btn { background-color: #fff; color: #000; border: none; padding: 10px 20px; border-radius: 18px; cursor: pointer; font-size: 0.9rem; font-weight: bold; width: 100%; margin-top: 10px; transition: 0.2s; }
         .yt-btn:hover { background-color: #d9d9d9; }
         .yt-btn:disabled { background-color: #333; color: #777; cursor: not-allowed; }
         .yt-btn-red { background-color: var(--yt-red); color: white; }
-        .yt-btn-red:hover { background-color: #cc0000; }
-
-        /* 商城區塊 */
-        .bottom-section { background-color: var(--yt-card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
-        .section-title { font-size: 1.2rem; margin-bottom: 15px; padding-bottom: 10px; border-bottom: 1px solid var(--yt-border);}
-        .shop-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; }
-        .shop-item { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; }
-
-        /* ==============================
-           🏅 實體獎牌 CSS 繪製區域
-           ============================== */
-        .ach-group { display: flex; flex-wrap: wrap; gap: 25px; justify-content: center; padding: 20px 0; }
         
-        /* 獎牌基礎形狀 (暗色模式/未解鎖) */
-        .medal-plaque {
-            width: 160px; height: 200px;
-            background: linear-gradient(135deg, #2a2a2a, #1a1a1a); /* 暗色金屬底座 */
-            border-radius: 8px;
-            position: relative;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.6);
-            transition: all 1s ease-out; /* 解鎖時的漸變效果 */
-            display: flex; flex-direction: column; align-items: center; justify-content: space-between;
-            padding: 15px; border: 1px solid #333; box-sizing: border-box;
-            opacity: 0.5; /* 未解鎖時半透明 */
-        }
+        /* 特別按鈕樣式：一鍵剪輯 500 部 */
+        #bulk-edit-container { margin-top: 15px; padding-top: 10px; border-top: 1px dashed #555; display: none; }
+        .bulk-btn { background: linear-gradient(90deg, #6a11cb 0%, #2575fc 100%); color: white; border-radius: 8px; font-size: 0.8rem; padding: 8px; }
+        .bulk-btn:hover { opacity: 0.9; transform: scale(1.02); }
 
-        /* 獎牌內部的 YouTube 播放按鈕圖案 */
-        .medal-icon {
-            width: 70px; height: 50px;
-            background: #444; /* 暗色按鈕 */
-            border-radius: 10px;
-            position: relative;
-            margin-top: 30px;
-            transition: background 1s;
-        }
-        /* 播放三角 */
-        .medal-icon::after {
-            content: '';
-            position: absolute; top: 50%; left: 55%;
-            transform: translate(-50%, -50%);
-            border-style: solid;
-            border-width: 10px 0 10px 18px;
-            border-color: transparent transparent transparent #2a2a2a; /* 暗色三角 */
-            transition: border-color 1s;
-        }
+        /* 獎牌樣式 (保持之前設計) */
+        .ach-group { display: flex; flex-wrap: wrap; gap: 20px; justify-content: center; padding: 20px 0; }
+        .medal-plaque { width: 150px; height: 190px; background: #222; border-radius: 8px; display: flex; flex-direction: column; align-items: center; padding: 15px; opacity: 0.3; transition: 1s; border: 1px solid #333; }
+        .medal-icon { width: 60px; height: 40px; background: #444; border-radius: 8px; margin-top: 20px; position: relative; }
+        .medal-icon::after { content: ''; position: absolute; top: 50%; left: 55%; transform: translate(-50%, -50%); border-style: solid; border-width: 8px 0 8px 14px; border-color: transparent transparent transparent #222; }
+        .medal-text { text-align: center; color: #888; font-size: 0.75rem; margin-top: auto; }
+        
+        /* 解鎖獎牌顏色 */
+        .medal-plaque.unlocked { opacity: 1; }
+        #ach-1.unlocked { background: linear-gradient(135deg, #e0e0e0, #a0a0a0); }
+        #ach-2.unlocked { background: linear-gradient(135deg, #fff3b0, #d4af37); }
+        #ach-3.unlocked { background: linear-gradient(135deg, #ffffff, #b0e0e6); }
+        #ach-4.unlocked { background: linear-gradient(135deg, #ff4d4d, #b30000); }
 
-        /* 獎牌文字描述 */
-        .medal-text { text-align: center; color: #888; font-size: 0.8rem; margin-top: auto;}
-        .medal-text b { color: #aaa; font-size: 1.1rem; display: block; margin-bottom: 5px;}
-
-        /* --- 解鎖後的狀態 (亮起) --- */
-        .medal-plaque.unlocked { opacity: 1; box-shadow: 0 0 20px rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3); }
-        .medal-plaque.unlocked .medal-text { color: #fff; text-shadow: 0 0 5px rgba(255,255,255,0.5); }
-        .medal-plaque.unlocked .medal-text b { color: #fff; }
-
-        /* 白銀獎牌 (100k) 解鎖 */
-        #ach-1.unlocked { background: linear-gradient(135deg, #e0e0e0, #a0a0a0); box-shadow: 0 0 25px rgba(192,192,192,0.4); }
-        #ach-1.unlocked .medal-icon { background: #f0f0f0; }
-        #ach-1.unlocked .medal-icon::after { border-color: transparent transparent transparent #a0a0a0; }
-
-        /* 黃金獎牌 (1M) 解鎖 */
-        #ach-2.unlocked { background: linear-gradient(135deg, #fff3b0, #d4af37); box-shadow: 0 0 25px rgba(212,175,55,0.5); }
-        #ach-2.unlocked .medal-icon { background: #fff; }
-        #ach-2.unlocked .medal-icon::after { border-color: transparent transparent transparent #d4af37; }
-
-        /* 鑽石獎牌 (10M) 解鎖 */
-        #ach-3.unlocked { background: linear-gradient(135deg, #ffffff, #b0e0e6); box-shadow: 0 0 35px rgba(224,255,255,0.6); }
-        #ach-3.unlocked .medal-icon { background: #fff; box-shadow: 0 0 10px #b0e0e6; }
-        #ach-3.unlocked .medal-icon::after { border-color: transparent transparent transparent #b0e0e6; }
-
-        /* 紅寶石獎牌 (20M) 解鎖 */
-        #ach-4.unlocked { background: linear-gradient(135deg, #ff4d4d, #b30000); box-shadow: 0 0 30px rgba(224,17,95,0.6); }
-        #ach-4.unlocked .medal-icon { background: #fff; }
-        #ach-4.unlocked .medal-icon::after { border-color: transparent transparent transparent #b30000; }
-
-        /* 更新公告彈窗 */
+        /* 商城與彈窗 */
+        .bottom-section { background-color: var(--yt-card-bg); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .shop-item { background: rgba(255,255,255,0.05); padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); display: flex; justify-content: center; align-items: center; z-index: 2000; }
-        .modal-content { background: var(--yt-card-bg); width: 80%; max-width: 500px; padding: 30px; border-radius: 15px; position: relative; box-shadow: 0 8px 24px rgba(0,0,0,0.5); }
-        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 1.5rem; cursor: pointer; color: #aaa; }
-        .update-list { text-align: left; line-height: 1.6; color: #ddd; }
-        .save-msg { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: #4caf50; padding: 10px 20px; border-radius: 8px; z-index: 100; pointer-events: none; opacity: 0; transition: 0.3s; }
+        .modal-content { background: var(--yt-card-bg); width: 400px; padding: 30px; border-radius: 15px; text-align: center; }
+        .save-msg { position: fixed; bottom: 20px; right: 20px; background: rgba(0,0,0,0.8); color: #4caf50; padding: 10px 20px; border-radius: 8px; opacity: 0; transition: 0.3s; }
         .save-msg.show { opacity: 1; }
     </style>
 </head>
 <body>
 
 <header class="header">
-    <div class="header-left">
+    <div class="header-left" style="display:flex; align-items:center; gap:10px;">
         <div class="yt-logo">▶</div>
-        <div class="logo-text">Studio <span style="font-weight: 200; font-size: 0.8rem;">模擬器</span></div>
+        <div style="font-weight:600;">Studio 模擬器</div>
     </div>
-    <div class="header-right">
-        <span>📹</span>
-        <div class="avatar">You</div>
-    </div>
+    <div class="avatar" style="width:32px; height:32px; background:#555; border-radius:50%;"></div>
 </header>
 
 <div id="updateModal" class="modal-overlay">
     <div class="modal-content">
-        <span class="close-btn" onclick="closeModal()">&times;</span>
-        <h2 style="margin-top: 0;">🔔 版本 2.0 更新：實體獎牌</h2>
-        <div class="update-list">
-            <ul>
-                <li><strong>視覺革命：</strong> 獎牌現在擁有實體質感與金屬光澤，拿到時會由暗變亮。</li>
-                <li><strong>門檻調整：</strong> 挑戰更高高峰！白銀(100k)、黃金(1M)、鑽石(10M)、紅寶石(20M)。</li>
-            </ul>
-        </div>
-        <button class="yt-btn yt-btn-red" onclick="closeModal()">進入工作室挑戰獎牌</button>
+        <h2>🚀 版本 2.5：批量生產！</h2>
+        <p style="text-align: left; color: #bbb;">當你累積超過 <b>2000 個素材</b> 時，將解鎖「一鍵剪輯 500 部影片」的功能，助你衝刺 20M 紅寶石獎牌！</p>
+        <button class="yt-btn yt-btn-red" onclick="closeModal()">開始工作</button>
     </div>
 </div>
 
 <div class="main-wrapper">
     <nav class="sidebar">
         <div class="stats-group">
-            <small>頻道狀態</small><br>
+            <small>頻道數據</small><br>
             <b>訂閱數：</b><br><span id="subs" style="color:#fff; font-size: 1.2rem;">0</span><br>
             <b>總觀看：</b><br><span id="views">0</span><br>
             <b>估計收益：</b><br>$<span id="money">0</span>
             <div style="height: 1px; background: #333; margin: 15px 0;"></div>
-            <small>素材庫：</small><b id="side-raw" style="color:var(--yt-red);">0</b><br>
-            <small>影片數：</small><b id="side-vids">0</b>
+            <small>庫存素材：</small><b id="side-raw" style="color:var(--yt-red);">0</b><br>
+            <small>總發布數：</small><b id="side-vids">0</b>
         </div>
         <div style="padding: 10px 24px; display: flex; flex-direction: column; gap: 5px; margin-bottom: 20px;">
             <button class="yt-btn" style="background:#444; color: white;" onclick="saveGame()">💾 存檔</button>
@@ -190,16 +100,13 @@
     </nav>
 
     <main class="content">
-        <div class="studio-title">🖥️ 創作者主控台</div>
-
         <div class="work-grid">
             <div class="video-card">
-                <div class="card-thumbnail" style="background: linear-gradient(45deg, #FF0000, #ff4444); color: white;">📹</div>
+                <div class="card-thumbnail" style="background: linear-gradient(45deg, #FF0000, #ff4444);">📹</div>
                 <div class="card-details">
-                    <div class="card-avatar">Y</div>
-                    <div class="card-info-text">
-                        <h3 class="card-title">錄製新影片素材</h3>
-                        <p class="card-meta"><span id="camera-info">當前設備: 1x 加成</span></p>
+                    <div style="flex:1;">
+                        <h3 style="margin:0; font-size:1rem;">錄製新影片素材</h3>
+                        <p style="color:#aaa; font-size:0.8rem; margin:5px 0;"><span id="camera-info">1x 素材</span></p>
                         <button class="yt-btn yt-btn-red" onclick="record()">🔴 開始錄影</button>
                     </div>
                 </div>
@@ -208,55 +115,47 @@
             <div class="video-card">
                 <div class="card-thumbnail" style="background: #333;">🎞️</div>
                 <div class="card-details">
-                    <div class="card-avatar">Y</div>
-                    <div class="card-info-text">
-                        <h3 class="card-title">剪輯並上傳影片</h3>
-                        <p class="card-meta">消耗 1 素材<br><span id="pc-info">當前設備: 1x 加成</span></p>
-                        <button class="yt-btn" id="edit-btn" onclick="edit()">🎬 剪輯與上傳</button>
+                    <div style="flex:1;">
+                        <h3 style="margin:0; font-size:1rem;">發布影片</h3>
+                        <p style="color:#aaa; font-size:0.8rem; margin:5px 0;"><span id="pc-info">1x 流量</span></p>
+                        <button class="yt-btn" id="edit-btn" onclick="edit(1)">🎬 剪輯並上傳 (1部)</button>
+                        
+                        <div id="bulk-edit-container">
+                            <button class="yt-btn bulk-btn" onclick="edit(500)">⚡ 大師批量剪輯 (500部)</button>
+                            <small style="color:#888; font-size:0.7rem;">觸發條件：素材 > 2,000</small>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="bottom-section">
-            <div class="section-title">🏆 創作者獎牌牆</div>
-            <div id="achievements" class="ach-group">
-                <div class="medal-plaque" id="ach-1">
-                    <div class="medal-icon"></div>
-                    <div class="medal-text"><b>白銀獎牌</b>100,000 訂閱</div>
-                </div>
-                <div class="medal-plaque" id="ach-2">
-                    <div class="medal-icon"></div>
-                    <div class="medal-text"><b>黃金獎牌</b>1,000,000 訂閱</div>
-                </div>
-                <div class="medal-plaque" id="ach-3">
-                    <div class="medal-icon"></div>
-                    <div class="medal-text"><b>鑽石獎牌</b>10,000,000 訂閱</div>
-                </div>
-                <div class="medal-plaque" id="ach-4">
-                    <div class="medal-icon"></div>
-                    <div class="medal-text"><b>紅寶石獎牌</b>20,000,000 訂閱</div>
-                </div>
+            <div style="font-weight:bold; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:5px;">🏆 創作者成就</div>
+            <div class="ach-group">
+                <div class="medal-plaque" id="ach-1"><div class="medal-icon"></div><div class="medal-text"><b>白銀</b>100k</div></div>
+                <div class="medal-plaque" id="ach-2"><div class="medal-icon"></div><div class="medal-text"><b>黃金</b>1M</div></div>
+                <div class="medal-plaque" id="ach-3"><div class="medal-icon"></div><div class="medal-text"><b>鑽石</b>10M</div></div>
+                <div class="medal-plaque" id="ach-4"><div class="medal-icon"></div><div class="medal-text"><b>紅寶石</b>20M</div></div>
             </div>
         </div>
 
         <div class="bottom-section">
-            <div class="section-title">🛒 工作室升級商城</div>
+            <div style="font-weight:bold; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:5px;">🛒 工作室升級</div>
             <div class="shop-grid">
                 <div class="shop-item">
-                    <div><b>專業相機</b><br><small>提升素材量</small></div>
-                    <button class="yt-btn yt-btn-red" onclick="buyUpgrade('camera')" id="buy-camera" style="width: auto;">價格: $100</button>
+                    <div><b>專業相機</b><br><small>+素材量</small></div>
+                    <button class="yt-btn yt-btn-red" onclick="buyUpgrade('camera')" id="buy-camera" style="width:auto;">$100</button>
                 </div>
                 <div class="shop-item">
-                    <div><b>剪輯電腦</b><br><small>提升流量</small></div>
-                    <button class="yt-btn yt-btn-red" onclick="buyUpgrade('pc')" id="buy-pc" style="width: auto;">價格: $150</button>
+                    <div><b>高效電腦</b><br><small>+流量</small></div>
+                    <button class="yt-btn yt-btn-red" onclick="buyUpgrade('pc')" id="buy-pc" style="width:auto;">$150</button>
                 </div>
             </div>
         </div>
     </main>
 </div>
 
-<div id="save-snack" class="save-msg">已完成自動存檔</div>
+<div id="save-snack" class="save-msg">存檔成功</div>
 
 <script>
     let state = {
@@ -265,88 +164,97 @@
         cameraCost: 100, pcCost: 150, unlockedAchs: []
     };
 
-    // 獎牌定義
     const achievements = [
-        { id: 1, threshold: 100000, reward: 50000 },   // 100k
-        { id: 2, threshold: 1000000, reward: 500000 },  // 1M
-        { id: 3, threshold: 10000000, reward: 5000000 }, // 10M
-        { id: 4, threshold: 20000000, reward: 10000000 } // 20M
+        { id: 1, threshold: 100000, reward: 50000 },
+        { id: 2, threshold: 1000000, reward: 500000 },
+        { id: 3, threshold: 10000000, reward: 5000000 },
+        { id: 4, threshold: 20000000, reward: 10000000 }
     ];
 
     function closeModal() { document.getElementById('updateModal').style.display = 'none'; }
 
     function loadGame() {
-        const savedData = localStorage.getItem('ytSimMedalSave');
+        const savedData = localStorage.getItem('ytSimBulkSave');
         if (savedData) state = { ...state, ...JSON.parse(savedData) };
         updateUI();
     }
 
     function saveGame(isAuto = false) {
-        localStorage.setItem('ytSimMedalSave', JSON.stringify(state));
+        localStorage.setItem('ytSimBulkSave', JSON.stringify(state));
         const snack = document.getElementById('save-snack');
-        snack.innerText = isAuto ? "已自動存檔..." : "存檔成功！";
-        snack.classList.add('show');
-        setTimeout(() => snack.classList.remove('show'), 2000);
+        if(!isAuto) { snack.classList.add('show'); setTimeout(() => snack.classList.remove('show'), 2000); }
     }
 
-    function resetGame() {
-        if (confirm("確定要重置所有數據嗎？這將無法復原。")) {
-            localStorage.removeItem('ytSimMedalSave');
-            location.reload();
-        }
-    }
+    function resetGame() { if (confirm("重置進度？")) { localStorage.removeItem('ytSimBulkSave'); location.reload(); } }
 
     function updateUI() {
-        const numFormat = (num) => Math.floor(num).toLocaleString();
-        const shortFormat = (num) => {
-            if (num >= 1000000) return (num/1000000).toFixed(1) + 'M';
-            if (num >= 1000) return (num/1000).toFixed(1) + 'k';
-            return num;
-        };
+        const num = (n) => Math.floor(n).toLocaleString();
+        const short = (n) => n >= 1000000 ? (n/1000000).toFixed(1)+'M' : (n >= 1000 ? (n/1000).toFixed(1)+'k' : n);
         
-        // 更新數據
-        document.getElementById('subs').innerText = shortFormat(state.subs);
-        document.getElementById('views').innerText = numFormat(state.views);
-        document.getElementById('money').innerText = numFormat(state.money);
+        document.getElementById('subs').innerText = short(state.subs);
+        document.getElementById('views').innerText = num(state.views);
+        document.getElementById('money').innerText = num(state.money);
         document.getElementById('side-raw').innerText = state.rawClips;
         document.getElementById('side-vids').innerText = state.videosCount;
-        document.getElementById('buy-camera').innerText = `價格: $${state.cameraCost}`;
-        document.getElementById('buy-pc').innerText = `價格: $${state.pcCost}`;
-        document.getElementById('camera-info').innerText = `目前設備: ${state.cameraLevel}x 素材`;
-        document.getElementById('pc-info').innerText = `目前設備: ${state.pcLevel}x 流量`;
-        document.getElementById('edit-btn').disabled = state.rawClips <= 0;
+        
+        document.getElementById('camera-info').innerText = `${state.cameraLevel}x 素材/點擊`;
+        document.getElementById('pc-info').innerText = `${state.pcLevel}x 流量加成`;
+        document.getElementById('buy-camera').innerText = `$${num(state.cameraCost)}`;
+        document.getElementById('buy-pc').innerText = `$${num(state.pcCost)}`;
+        
+        document.getElementById('edit-btn').disabled = state.rawClips < 1;
 
-        // 成就/獎牌檢查
+        // 核心邏輯：判斷是否顯示批量剪輯按鈕
+        const bulkBtn = document.getElementById('bulk-edit-container');
+        if (state.rawClips >= 2000) {
+            bulkBtn.style.display = 'block';
+        } else {
+            bulkBtn.style.display = 'none';
+        }
+
         achievements.forEach(ach => {
-            const medalEl = document.getElementById(`ach-${ach.id}`);
+            const el = document.getElementById(`ach-${ach.id}`);
             if (state.subs >= ach.threshold) {
                 if (!state.unlockedAchs.includes(ach.id)) {
                     state.unlockedAchs.push(ach.id);
                     state.money += ach.reward;
-                    // 使用簡單彈窗提示領獎
-                    alert(`🔔 恭喜！你獲得了實體獎牌，並領取了 $${shortFormat(ach.reward)} 獎金！`);
+                    alert(`🎊 獲得獎牌！獎金 $${short(ach.reward)}`);
                 }
-                medalEl.classList.add('unlocked');
+                el.classList.add('unlocked');
             }
         });
     }
 
     function record() { state.rawClips += state.cameraLevel; updateUI(); }
 
-    function edit() {
-        if (state.rawClips > 0) {
-            state.rawClips--;
-            state.videosCount++;
-            let baseViews = Math.floor(Math.random() * 80 + 20);
-            // 流量演算法調整，以應對更高的獎牌門檻
-            let subsMultiplier = 1 + Math.sqrt(state.subs) / 5; // 調整為開根號，避免後期流量爆炸過快，但仍保持成長
-            let multiplier = state.pcLevel * subsMultiplier;
-            let newViews = baseViews * multiplier;
+    // 修改剪輯函式，支援單部或多部
+    function edit(count) {
+        if (state.rawClips >= count) {
+            state.rawClips -= count;
+            state.videosCount += count;
             
-            state.views += newViews;
-            // 觀看轉訂閱率降低一點，讓 20M 更有挑戰性
-            state.subs += Math.floor(newViews * 0.03); 
-            state.money += (newViews * 0.1); // 每觀看收益
+            let totalNewViews = 0;
+            let totalNewSubs = 0;
+            let totalNewMoney = 0;
+
+            // 為了模擬真實感，批量剪輯會逐一部計算隨機數值
+            for (let i = 0; i < count; i++) {
+                let baseViews = Math.floor(Math.random() * 80 + 20);
+                let subsMultiplier = 1 + Math.sqrt(state.subs) / 5;
+                let multiplier = state.pcLevel * subsMultiplier;
+                let newViews = baseViews * multiplier;
+                
+                totalNewViews += newViews;
+                totalNewSubs += Math.floor(newViews * 0.03);
+                totalNewMoney += (newViews * 0.1);
+            }
+
+            state.views += totalNewViews;
+            state.subs += totalNewSubs;
+            state.money += totalNewMoney;
+            
+            if(count > 1) alert(`⚡ 批量剪輯成功！\n發布了 ${count} 部影片\n獲得觀看：${Math.floor(totalNewViews).toLocaleString()}`);
+            
             updateUI();
         }
     }
@@ -355,19 +263,14 @@
         let cost = type === 'camera' ? state.cameraCost : state.pcCost;
         if (state.money >= cost) {
             state.money -= cost;
-            if (type === 'camera') {
-                state.cameraLevel++;
-                state.cameraCost = Math.floor(state.cameraCost * 1.8);
-            } else {
-                state.pcLevel++;
-                state.pcCost = Math.floor(state.pcCost * 1.8);
-            }
+            if (type === 'camera') { state.cameraLevel++; state.cameraCost *= 2; }
+            else { state.pcLevel++; state.pcCost *= 2; }
             updateUI();
-        } else { alert("錢不夠！"); }
+        }
     }
 
     loadGame();
-    setInterval(() => saveGame(true), 15000); // 15秒存檔
+    setInterval(() => saveGame(true), 15000);
 </script>
 
 </body>
