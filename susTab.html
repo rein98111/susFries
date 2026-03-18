@@ -4,77 +4,120 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>sus Tab</title>
-    <style>
-        /* --- CSS 樣式區 --- */
-        body, html {
-            margin: 0; padding: 0; height: 100%;
-            color: white; font-family: "Microsoft JhengHei", sans-serif;
-            overflow: hidden;
-        }
+<style>
+    /* --- CSS 樣式區 --- */
+    body, html {
+        margin: 0; padding: 0; height: 100%;
+        color: white; font-family: "Microsoft JhengHei", sans-serif;
+        overflow: hidden;
+    }
 
-        /* 背景影片 */
-        #bg-video {
-            position: fixed; right: 0; bottom: 0;
-            min-width: 100%; min-height: 100%;
-            z-index: -1; object-fit: cover;
-            filter: brightness(0.5);
-        }
+    /*背景影片：【優化】增加 brightness 和 下移位置 */
+    #bg-video {
+        position: fixed;
+        right: 0;
+        bottom: 0;
+        min-width: 100%;
+        min-height: 100%;
+        z-index: -1;
+        object-fit: cover;
+        /* 【修改】原本亮度偏暗(0.5)，現在稍微調亮到 0.65，Mita 更清楚 */
+        filter: brightness(0.65); 
+        /* 【修改】原本 top 預設為 0，現在往下移 50px */
+        top: 50px; 
+    }
 
-        /* 主容器 */
-        .main-container {
-            display: flex; justify-content: space-between;
-            align-items: flex-start; height: 100vh;
-            padding: 40px; box-sizing: border-box;
-        }
+    /* 主容器 */
+    .main-container {
+        display: flex; justify-content: space-between;
+        align-items: flex-start; height: 100vh;
+        /* 上方 padding 稍微縮減 (原本40px)，配合影片下移，保持資訊欄在視線中心 */
+        padding: 30px 40px; 
+        box-sizing: border-box;
+    }
 
-        /* 通用面板 */
-        .side-panel {
-            width: 280px; background: rgba(0, 0, 0, 0.4);
-            backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 20px; padding: 25px; height: 85vh;
-            display: flex; flex-direction: column;
-        }
+    /* 通用面板 */
+    .side-panel {
+        width: 290px; /* 稍微增加寬度 (原本280px)，平衡大Logo */
+        background: rgba(0, 0, 0, 0.4);
+        backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 20px; padding: 25px; 
+        height: 85vh; /* 保持一致的高度 */
+        display: flex; flex-direction: column;
+        margin-top: 10px; /* 配合影片下移，面板也小下移 */
+    }
 
-        /* 左側資訊 */
-        #clock { font-size: 3rem; font-weight: bold; }
-        #date { font-size: 1.1rem; color: #ddd; margin-bottom: 5px; }
-        #weather { font-size: 1.1rem; color: #00d4ff; margin-bottom: 20px; }
-        .changelog { flex-grow: 1; overflow-y: auto; font-size: 0.9rem; }
+    /* 左側資訊 */
+    #clock { font-size: 3.5rem; font-weight: bold; } /* 稍微加大大大大時間 */
+    #date { font-size: 1.2rem; color: #ddd; margin-bottom: 8px; }
+    #weather { font-size: 1.2rem; color: #00d4ff; margin-bottom: 25px; }
 
-        /* 中間搜尋區 */
-        .center-panel {
-            flex: 1; display: flex; flex-direction: column;
-            align-items: center; margin: 0 40px; padding-top: 12vh;
-        }
-        .search-logo { width: 160px; margin-bottom: 25px; filter: drop-shadow(0 0 8px #fff); }
-        .search-box-container { width: 100%; max-width: 600px; background: rgba(255, 255, 255, 0.1); border-radius: 30px; padding: 5px; }
+    /* 【優化】更新日誌字體與行距 */
+    .changelog { flex-grow: 1; overflow-y: auto; }
+    .changelog h3 { font-size: 1.3rem; margin-top: 5px; } /* 標題稍微放大 */
+    .changelog ul { 
+        padding-left: 20px; 
+        /* 【修改】關鍵字體大小 (原本0.9rem -> 1.05rem)，增加可讀性 */
+        font-size: 1.05rem; 
+        /* 【修改】增加行距 (原本1.4 -> 1.7)，更易讀 */
+        line-height: 1.7; 
+        color: rgba(255,255,255,0.9);
+    }
 
-        /* 右側 YouTube 列表 */
-        .video-list-container { overflow-y: auto; flex-grow: 1; }
-        .video-item {
-            padding: 10px; margin-bottom: 15px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px; cursor: pointer; transition: 0.3s;
-        }
-        .video-item:hover { background: rgba(255, 255, 255, 0.2); }
-        .video-item img { width: 100%; border-radius: 8px; margin-bottom: 8px; }
-        .video-title { font-size: 0.85rem; line-height: 1.4; height: 2.8em; overflow: hidden; }
+    /* 中間搜尋區 */
+    .center-panel {
+        flex: 1; display: flex; flex-direction: column;
+        align-items: center; margin: 0 40px;
+        /* 【修改】原本 12vh 下移太深，現在調回 10vh，配合大Logo和影片位置 */
+        padding-top: 10vh; 
+    }
 
-        /* 影片彈窗 (Modal) */
-        #video-modal {
-            display: none; position: fixed; top: 0; left: 0;
-            width: 100%; height: 100%; background: rgba(0,0,0,0.9);
-            z-index: 100; justify-content: center; align-items: center;
-        }
-        .modal-content { position: relative; width: 80%; max-width: 900px; aspect-ratio: 16/9; }
-        .close-btn { position: absolute; top: -40px; right: 0; font-size: 30px; cursor: pointer; }
+    /* 【優化】大 Logo */
+    .search-logo { 
+        /* 【修改】Logo 寬度 (原本160px -> 260px)，大幅放大 */
+        width: 260px; 
+        margin-bottom: 30px; 
+        /* 稍微加強發光，讓Logo更突出 */
+        filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.5)); 
+        transition: 0.3s ease; /* 增加小互動 */
+    }
+    /* 滑鼠移上去讓 Logo 活潑一點 */
+    .search-logo:hover {
+        transform: scale(1.03);
+    }
 
-        /* 隱藏 Google 雜項 */
-        .gsc-control-cse { background-color: transparent !important; border: none !important; }
-        .gcsc-branding { display: none !important; }
-        ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
-    </style>
+    .search-box-container { 
+        width: 100%; max-width: 620px; /* 搜尋框稍寬配合Logo */
+        background: rgba(255, 255, 255, 0.1); border-radius: 30px; padding: 5px; 
+        border: 1px solid rgba(255, 255, 255, 0.15); /* 增加細邊框 */
+    }
+
+    /* 右側 YouTube 列表 (保持原本很好的設計) */
+    .video-list-container { overflow-y: auto; flex-grow: 1; }
+    .video-item {
+        padding: 10px; margin-bottom: 15px;
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 12px; cursor: pointer; transition: 0.3s;
+    }
+    .video-item:hover { background: rgba(255, 255, 255, 0.15); }
+    .video-item img { width: 100%; border-radius: 8px; margin-bottom: 8px; }
+    .video-title { font-size: 0.88rem; line-height: 1.4; height: 2.8em; overflow: hidden; }
+
+    /* 影片彈窗 (Modal) (保持原本很好設計) */
+    #video-modal {
+        display: none; position: fixed; top: 0; left: 0;
+        width: 100%; height: 100%; background: rgba(0,0,0,0.95);
+        z-index: 100; justify-content: center; align-items: center;
+    }
+    .modal-content { position: relative; width: 85%; max-width: 1000px; aspect-ratio: 16/9; }
+    .close-btn { position: absolute; top: -45px; right: 0; font-size: 35px; cursor: pointer; }
+
+    /* 隱藏 Google 雜項 & 捲動軸優化 */
+    .gsc-control-cse { background-color: transparent !important; border: none !important; }
+    .gcsc-branding { display: none !important; }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
+</style>
 </head>
 <body>
 
