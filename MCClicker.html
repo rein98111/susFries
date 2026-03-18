@@ -3,14 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>MC Clicker v1.6.0 - Prestige & Quests</title>
+    <title>MC Clicker v1.7.0 - Rarity Quests</title>
     <link href="https://fonts.googleapis.com/css2?family=VT323&display=swap" rel="stylesheet">
     <style>
         :root {
             --mc-green: #54FB54; --mc-gui: #C6C6C6;
             --mc-border-dark: #373737; --mc-border-light: #FFFFFF;
             --frenzy-color: #FF5555; --reward-color: #FFD700;
-            --prestige-color: #C0C0C0; --quest-color: #55FF55;
+            --prestige-color: #C0C0C0; 
+            /* 稀有度顏色 */
+            --rarity-common: #55FF55;
+            --rarity-rare: #5555FF;
+            --rarity-epic: #AA00AA;
         }
 
         body {
@@ -35,7 +39,7 @@
             border: 2px solid #000; width: 28px; height: 28px; cursor: pointer; display: flex; justify-content: center; align-items: center;
         }
 
-        /* --- 遊戲畫面 --- */
+        /* --- 遊戲主畫面 --- */
         .game-area {
             flex: 0 0 65%; display: flex; flex-direction: column; border-right: 4px solid #000;
             position: relative; background: #222; overflow: hidden;
@@ -49,7 +53,8 @@
             transition: border 0.3s; z-index: 5;
         }
         body.frenzy .frenzy-overlay { border: 12px solid var(--frenzy-color); animation: flash 0.5s infinite; }
-        body.prestige-mode .frenzy-overlay { border: 12px solid var(--prestige-color); animation: flash 0.8s infinite; }
+        body.quest-mode .frenzy-overlay { border: 12px solid var(--rarity-common); } /* 預設任務顏色 */
+
         @keyframes flash { 0% { opacity: 0.2; } 50% { opacity: 0.6; } 100% { opacity: 0.2; } }
 
         .level-section { padding: 20px 10px; text-align: center; z-index: 10; }
@@ -76,7 +81,7 @@
         }
         @keyframes bounce { from { transform: translateY(0); } to { transform: translateY(-12px); } }
 
-        /* --- 側邊欄 --- */
+        /* --- 商店欄 --- */
         .shop-sidebar {
             flex: 1; background: var(--mc-gui); border-left: 2px solid var(--mc-border-light);
             display: flex; flex-direction: column; padding: 12px; color: #3f3f3f;
@@ -88,7 +93,7 @@
             box-shadow: inset -3px -3px 0 #444, inset 3px 3px 0 #AAA;
         }
         .upgrade-item.unlocked { display: flex; }
-        .upgrade-item.disabled { filter: grayscale(1); opacity: 0.6; }
+        .upgrade-item.disabled { filter: grayscale(1); opacity: 0.6; cursor: not-allowed; }
 
         .btn-ui { font-family: 'VT323'; border: 3px solid #000; padding: 8px; cursor: pointer; margin-top: 5px; font-size: 18px; }
     </style>
@@ -98,15 +103,16 @@
     <div id="notice-overlay" class="overlay">
         <div class="notice-card" id="card-style">
             <div class="close-btn" onclick="closeNotice()">X</div>
-            <h2 id="notice-title" style="margin-top: 0;">!!! AD !!!</h2>
+            <h2 id="notice-title" style="margin-top: 0;">!!! TASK !!!</h2>
+            <p id="rarity-badge" style="font-size: 18px; font-weight: bold; margin: 0;"></p>
             <p id="notice-body" style="font-size: 22px; font-weight: bold; line-height: 1.2;"></p>
-            <button id="notice-btn" onclick="handleNoticeAction()" class="btn-ui" style="background: #55FF55; width: 100%;">CLAIM!</button>
+            <button id="notice-btn" onclick="handleNoticeAction()" class="btn-ui" style="background: #55FF55; width: 100%;">ACCEPT!</button>
         </div>
     </div>
 
     <div class="game-area">
         <div class="frenzy-overlay"></div>
-        <div class="version-tag">v1.6.0</div>
+        <div class="version-tag">v1.7.0</div>
         <div class="prestige-tag" id="pres-display">Prestige: 0</div>
         <div id="lucky-box" onclick="handleLuckyBox()">🎁</div>
         
@@ -117,8 +123,8 @@
         </div>
 
         <div class="main-click-part">
-            <div id="status-display" style="font-size: 26px; display: none; margin-bottom: 10px; color: var(--frenzy-color);">
-                <span id="txt-status">FRENZY</span>: <span id="s-time">15</span>s
+            <div id="status-display" style="font-size: 26px; display: none; margin-bottom: 10px;">
+                <span id="txt-status">STATUS</span>: <span id="s-time">0</span>s
             </div>
             <div class="emerald-display"><span id="txt-emeralds">Emeralds</span>: <span id="em">0</span></div>
             <div id="block">MINE!</div>
@@ -128,75 +134,49 @@
 
     <div class="shop-sidebar">
         <div id="txt-shop-title" style="text-align:center; font-size: 26px; margin-bottom: 12px; border-bottom: 2px solid #888;">SHOP</div>
-        
         <div class="upgrade-list">
-            <div class="upgrade-item unlocked" id="u1" onclick="buy('u1')">
-                <span class="u-name">Wooden Pick</span>
-                <span style="color:#ffff55; font-size:20px;" id="c1">15 E</span>
-            </div>
-            <div class="upgrade-item unlocked" id="u2" onclick="buy('u2')">
-                <span class="u-name">Iron Pick</span>
-                <span style="color:#ffff55; font-size:20px;" id="c2">100 E</span>
-            </div>
-            <div class="upgrade-item" id="u3" onclick="buy('u3')">
-                <span class="u-name">Golden Pick</span>
-                <span style="color:#ffff55; font-size:20px;" id="c3">500 E</span>
-            </div>
-            <div class="upgrade-item" id="u4" onclick="buy('u4')">
-                <span class="u-name">Diamond Mine</span>
-                <span style="color:#ffff55; font-size:20px;" id="c4">2500 E</span>
-            </div>
-            <div class="upgrade-item" id="u5" onclick="buy('u5')">
-                <span class="u-name">Netherite Drill</span>
-                <span style="color:#ffff55; font-size:20px;" id="c5">12000 E</span>
-            </div>
+            <div class="upgrade-item unlocked" id="u1" onclick="buy('u1')"><span class="u-name"></span><span style="color:#ffff55; font-size:20px;" id="c1"></span></div>
+            <div class="upgrade-item unlocked" id="u2" onclick="buy('u2')"><span class="u-name"></span><span style="color:#ffff55; font-size:20px;" id="c2"></span></div>
+            <div class="upgrade-item" id="u3" onclick="buy('u3')"><span class="u-name"></span><span style="color:#ffff55; font-size:20px;" id="c3"></span></div>
+            <div class="upgrade-item" id="u4" onclick="buy('u4')"><span class="u-name"></span><span style="color:#ffff55; font-size:20px;" id="c4"></span></div>
+            <div class="upgrade-item" id="u5" onclick="buy('u5')"><span class="u-name"></span><span style="color:#ffff55; font-size:20px;" id="c5"></span></div>
         </div>
-
         <button onclick="toggleLang()" class="btn-ui" style="background: #eee;">繁體中文 / English</button>
         <button id="btn-reset" onclick="resetGame()" class="btn-ui" style="background: #444; color: #888;">Reset Progress</button>
     </div>
 
     <script>
-        // --- 語言與獎勵字典 ---
         const i18n = {
             en: {
                 shop: "TRADING BAR", lvl: "Level", ems: "Emeralds", reset: "Reset Progress",
                 frenzy: "FRENZY", xpBoost: "XP BOOST", claim: "CLAIM!", pres: "Prestige",
-                quest: "QUEST ACTIVE", questTitle: "Villager Quest!",
-                questBody: "Quickly! A Villager needs clicks! Target: Click {target} times in 20s!",
-                questWin: "Mission Accomplished! You received {reward} Emeralds!",
-                questFail: "Quest Failed! The Villager is disappointed.",
-                presTitle: "ASCENSION AVAILABLE!",
-                presBody: "You have reached Level 1000! Ascend to gain +1 Prestige Point (Each point永久性 +100% Production!). Reset all progress?",
-                presBtn: "ASCEND!",
-                rewards: [
-                    { t: "MEGA FRENZY!", b: "30s of 5X Production!", type: "frenzy", val: 5, dur: 30 },
-                    { t: "EMERALD RAIN!", b: "Instant windfall!", type: "money", val: 1200 },
-                    { t: "XP SURGE!", b: "3X XP gain for 60s!", type: "xp", val: 3, dur: 60 }
+                questActive: "MISSION ONGOING", win: "SUCCESS!", fail: "FAILED!",
+                rarity: ["COMMON", "RARE", "EPIC"],
+                questNames: ["Urgent Mining", "Supply Run", "Legendary Challenge"],
+                questDesc: [
+                    "Click the block {target} times in 20s!",
+                    "Earn {target} Emeralds in 20s!",
+                    "SUPER SPEED! Click {target} times in 15s!"
                 ],
                 upgrades: ["Wooden Pick", "Iron Pick", "Golden Pick", "Diamond Mine", "Netherite Drill"]
             },
             zh: {
                 shop: "交易中心", lvl: "等級", ems: "綠寶石", reset: "重置進度",
-                frenzy: "狂狂模式", xpBoost: "經驗加倍", claim: "立即領取！", pres: "聲望轉生",
-                quest: "任務執行中", questTitle: "村民的求助！",
-                questBody: "快！村民需要方塊！目標：在 20 秒內手動點擊 {target} 下！",
-                questWin: "任務完成！你獲得了 {reward} 綠寶石！",
-                questFail: "任務失敗！村民感到失望。",
-                presTitle: "轉生時刻已到！",
-                presBody: "你已達到 1000 級！轉生可獲得 1 點聲望點數（每點永久性提升全產量 +100%！）。將重置所有進度？",
-                presBtn: "轉生昇華！",
-                rewards: [
-                    { t: "終極狂暴！", b: "30 秒的 5 倍產量加成！", type: "frenzy", val: 5, dur: 30 },
-                    { t: "綠寶石之雨！", b: "天降橫財！獲得大筆綠寶石獎勵！", type: "money", val: 1200 },
-                    { t: "經驗爆發！", b: "接下來 60 秒獲得 3 倍經驗！", type: "xp", val: 3, dur: 60 }
+                frenzy: "狂暴模式", xpBoost: "經驗加倍", claim: "領取獎勵！", pres: "聲望轉生",
+                questActive: "任務執行中", win: "任務成功！", fail: "任務失敗！",
+                rarity: ["普通", "稀有", "史詩"],
+                questNames: ["緊急採礦", "物資籌備", "傳說挑戰"],
+                questDesc: [
+                    "20秒內點擊方塊 {target} 下！",
+                    "20秒內賺取 {target} 顆綠寶石！",
+                    "極限手速！15秒內點擊 {target} 下！",
                 ],
                 upgrades: ["木鎬", "鐵鎬", "金鎬", "鑽石礦場", "獄髓鑽頭"]
             }
         };
 
-        let state = JSON.parse(localStorage.getItem('mc_v160')) || {
-            em: 0, xp: 0, lvl: 1, eps: 0, lang: 'en', prestige: 0, totalClicks: 0,
+        let state = JSON.parse(localStorage.getItem('mc_v170')) || {
+            em: 0, xp: 0, lvl: 1, eps: 0, lang: 'zh', prestige: 0,
             u: { 
                 u1: {c: 15, p: 1, r: 1}, u2: {c: 100, p: 5, r: 1}, 
                 u3: {c: 500, p: 15, r: 10}, u4: {c: 2500, p: 60, r: 35},
@@ -204,9 +184,9 @@
             }
         };
 
-        let currentMode = 'idle'; // idle, milestone, quest
+        let currentMode = 'idle'; 
         let activeBoost = { type: 'none', mult: 1, time: 0 };
-        let questState = { active: false, target: 0, clicks: 0, time: 0, reward: 0 };
+        let quest = { active: false, type: 0, rarity: 0, target: 0, progress: 0, time: 0, reward: 0, startEm: 0 };
         const el = (id) => document.getElementById(id);
 
         function updateUI() {
@@ -216,7 +196,6 @@
             el('txt-lvl').innerText = t.lvl;
             el('txt-emeralds').innerText = t.ems;
             el('btn-reset').innerText = t.reset;
-            el('notice-btn').innerText = t.claim;
 
             el('em').innerText = Math.floor(state.em);
             el('lvl').innerText = state.lvl;
@@ -224,240 +203,174 @@
             let next = state.lvl * 100;
             el('mxp').innerText = next;
             
-            // 產量計算包含聲望
             let presMult = 1 + state.prestige;
             let currentEPS = state.eps * presMult * (activeBoost.type === 'frenzy' ? activeBoost.mult : 1);
             el('eps').innerText = currentEPS.toFixed(1);
             el('xp-fill').style.width = Math.min((state.xp / next * 100), 100) + "%";
 
-            // 商店工具
             Object.keys(state.u).forEach((id, idx) => {
                 let item = state.u[id];
                 if (state.lvl >= item.r) el(id).classList.add('unlocked');
                 el(id).classList.toggle('disabled', state.em < item.c);
                 el(id).querySelector('.u-name').innerText = `${t.upgrades[idx]} (+${item.p} EPS)`;
-                el('c' + id.slice(1)).innerText = item.c + " E";
+                el('c' + id.slice(1)).innerText = Math.floor(item.c) + " E";
             });
 
-            // 狀態顯示
-            if (activeBoost.time > 0) {
+            // 任務與增益狀態顯示
+            if (quest.active) {
+                el('status-display').style.display = 'block';
+                el('txt-status').innerText = t.questActive;
+                el('s-time').innerText = quest.time;
+                let colors = ['var(--rarity-common)', 'var(--rarity-rare)', 'var(--rarity-epic)'];
+                el('status-display').style.color = colors[quest.rarity];
+                document.body.className = 'quest-mode';
+                // 更新方塊文字顯示進度
+                if (quest.type !== 1) el('block').innerText = `${quest.progress}/${quest.target}`;
+            } else if (activeBoost.time > 0) {
                 el('status-display').style.display = 'block';
                 el('txt-status').innerText = activeBoost.type === 'frenzy' ? t.frenzy : t.xpBoost;
                 el('s-time').innerText = activeBoost.time;
+                el('status-display').style.color = 'var(--frenzy-color)';
                 document.body.className = 'frenzy';
-            } else if (questState.active) {
-                el('status-display').style.display = 'block';
-                el('txt-status').innerText = t.quest;
-                el('s-time').innerText = questState.time;
-                el('status-display').style.color = 'var(--quest-color)';
+                el('block').innerText = "MINE!";
             } else {
                 el('status-display').style.display = 'none';
-                el('status-display').style.color = 'var(--frenzy-color)';
                 document.body.className = '';
+                el('block').innerText = "MINE!";
             }
-            localStorage.setItem('mc_v160', JSON.stringify(state));
+            localStorage.setItem('mc_v170', JSON.stringify(state));
         }
 
-        function checkLevel() {
-            let next = state.lvl * 100;
-            if (state.xp >= next) {
-                state.xp -= next;
-                state.lvl++;
-                if (state.lvl === 1000 && currentMode === 'idle') triggerPrestige();
-                else if (state.lvl % 50 === 0) triggerMilestone();
-                updateUI();
-            }
-        }
-
-        // --- 轉生系統 ---
-        function triggerPrestige() {
-            currentMode = 'prestige';
-            const t = i18n[state.lang];
-            el('notice-overlay').style.display = 'flex';
-            el('card-style').style.borderColor = 'var(--prestige-color)';
-            el('notice-title').innerText = t.presTitle;
-            el('notice-title').style.color = 'var(--prestige-color)';
-            el('notice-body').innerText = t.presBody;
-            el('notice-btn').innerText = t.presBtn;
-            el('notice-btn').style.background = 'var(--prestige-color)';
-        }
-
-        function ascend() {
-            state.prestige++;
-            // 重置所有基礎進度
-            state.em = 0; state.xp = 0; state.lvl = 1; state.eps = 0;
-            Object.keys(state.u).forEach(id => {
-                let item = state.u[id];
-                if (id === 'u1') item.c = 15; else if (id === 'u2') item.c = 100;
-                else if (id === 'u3') item.c = 500; else if (id === 'u4') item.c = 2500;
-                else if (id === 'u5') item.c = 12000;
-            });
-            localStorage.clear(); // 清除所有存檔來確保徹底重置
-            // 重新初始化，但保留聲望和語言
-            state = { em: 0, xp: 0, lvl: 1, eps: 0, lang: state.lang, prestige: state.prestige, totalClicks: 0, u: state.u };
-            updateUI();
-            location.reload(); // 重新載入網頁來徹底重置
-        }
-
-        // --- 突發任務 ---
         function triggerQuest() {
-            if (currentMode !== 'idle' || activeBoost.type !== 'none' || questState.active) return;
-            currentMode = 'quest';
-            questState.target = 200 + (state.prestige * 10);
-            questState.reward = Math.floor((state.eps * (1 + state.prestige) * 200) + 1000);
+            if (currentMode !== 'idle' || quest.active) return;
             
-            const t = i18n[state.lang];
-            el('notice-overlay').style.display = 'flex';
-            el('card-style').style.borderColor = 'var(--quest-color)';
-            el('notice-title').innerText = t.questTitle;
-            el('notice-title').style.color = 'var(--quest-color)';
-            el('notice-body').innerText = t.questBody.replace('{target}', questState.target);
-            el('notice-btn').innerText = t.claim;
-            el('notice-btn').style.background = 'var(--quest-color)';
-        }
+            // 隨機稀有度骰子
+            let roll = Math.random() * 100;
+            if (roll < 5) quest.rarity = 2; // Epic
+            else if (roll < 30) quest.rarity = 1; // Rare
+            else quest.rarity = 0; // Common
 
-        function startQuest() {
-            currentMode = 'idle'; // 關閉公告介面
-            questState.active = true;
-            questState.clicks = 0;
-            questState.time = 20;
-            el('notice-overlay').style.display = 'none';
-            updateUI();
-        }
-
-        function completeQuest() {
-            questState.active = false;
+            quest.type = quest.rarity; // 目前設計剛好對應
             const t = i18n[state.lang];
-            if (questState.clicks >= questState.target) {
-                state.em += questState.reward;
-                alert(t.questWin.replace('{reward}', Math.floor(questState.reward)));
-            } else {
-                alert(t.questFail);
+            let presBonus = 1 + (state.prestige * 0.1);
+
+            // 根據類型設定目標
+            if (quest.rarity === 0) { // Common: Click
+                quest.target = Math.floor(150 * presBonus);
+                quest.time = 20;
+                quest.reward = (state.eps * 100) + 500;
+            } else if (quest.rarity === 1) { // Rare: Money
+                quest.target = Math.floor((state.eps * 30 + 1000) * presBonus);
+                quest.time = 20;
+                quest.reward = (state.eps * 300) + 2000;
+            } else { // Epic: Mega Click
+                quest.target = Math.floor(280 * presBonus);
+                quest.time = 15;
+                quest.reward = (state.eps * 1000) + 10000;
             }
-            questState.clicks = 0;
-            el('status-display').style.display = 'none';
-            resetNoticeStyle();
-            updateUI();
-        }
 
-        // --- 里程碑獎勵與廣告保持原樣 ---
-        function triggerMilestone() {
-            if (currentMode !== 'idle' || state.lvl === 1000) return;
-            currentMode = 'milestone';
-            const pool = i18n[state.lang].rewards;
-            const reward = pool[Math.floor(Math.random() * pool.length)];
+            currentMode = 'quest_notice';
             el('notice-overlay').style.display = 'flex';
-            el('card-style').style.borderColor = 'var(--reward-color)';
-            el('notice-title').innerText = reward.t;
-            el('notice-body').innerText = reward.b;
-            window.pendingReward = reward;
+            let colors = ['var(--rarity-common)', 'var(--rarity-rare)', 'var(--rarity-epic)'];
+            el('card-style').style.borderColor = colors[quest.rarity];
+            el('notice-title').innerText = t.questNames[quest.rarity];
+            el('notice-title').style.color = colors[quest.rarity];
+            el('rarity-badge').innerText = `[ ${t.rarity[quest.rarity]} ]`;
+            el('rarity-badge').style.color = colors[quest.rarity];
+            el('notice-body').innerText = t.questDesc[quest.rarity].replace('{target}', quest.target);
+            el('notice-btn').style.background = colors[quest.rarity];
         }
 
         function handleNoticeAction() {
-            if (currentMode === 'milestone') {
-                if (window.pendingReward) {
-                    const r = window.pendingReward;
-                    if (r.type === 'money') state.em += (state.eps * (1 + state.prestige) * r.val) + 500;
-                    else activeBoost = { type: r.type, mult: r.val, time: r.dur };
-                    window.pendingReward = null;
-                }
-            } else if (currentMode === 'quest') {
-                startQuest();
-                return; // 不要在這裡關閉 notice
-            } else if (currentMode === 'prestige') {
-                ascend();
-                return; // 網頁會重新載入
+            if (currentMode === 'quest_notice') {
+                quest.active = true;
+                quest.progress = 0;
+                quest.startEm = state.em;
+                currentMode = 'idle';
+                el('notice-overlay').style.display = 'none';
+                updateUI();
+            } else {
+                closeNotice();
             }
-            closeNotice();
         }
 
-        function closeNotice() {
-            currentMode = 'idle';
-            el('notice-overlay').style.display = 'none';
-            window.pendingReward = null;
-            resetNoticeStyle();
-            updateUI();
-        }
-
-        function resetNoticeStyle() {
-            el('card-style').style.borderColor = '#000';
-            el('notice-title').style.color = '#3f3f3f';
-            el('notice-btn').style.background = '#55FF55';
-        }
-
-        function handleLuckyBox() {
-            el('lucky-box').style.display = 'none';
-            activeBoost = { type: 'frenzy', mult: 2, time: 15 };
+        function endQuest(success) {
+            quest.active = false;
+            const t = i18n[state.lang];
+            if (success) {
+                state.em += quest.reward;
+                if (quest.rarity === 1) activeBoost = { type: 'frenzy', mult: 2, time: 15 };
+                if (quest.rarity === 2) activeBoost = { type: 'frenzy', mult: 5, time: 30 };
+                alert(t.win);
+            } else {
+                alert(t.fail);
+            }
             updateUI();
         }
 
         function mine() {
-            state.totalClicks++;
-            if (questState.active) {
-                questState.clicks++;
-                // 視覺回饋：方塊顯示點擊數
-                el('block').innerText = `${questState.clicks} / ${questState.target}`;
-                setTimeout(() => el('block').innerText = "MINE!", 100);
-                if (questState.clicks >= questState.target) {
-                    completeQuest();
-                }
-                updateUI();
-                return; 
+            if (quest.active && (quest.type === 0 || quest.type === 2)) {
+                quest.progress++;
+                if (quest.progress >= quest.target) endQuest(true);
             }
-            
-            let m = activeBoost.type === 'frenzy' ? activeBoost.mult : 1;
-            let presMult = 1 + state.prestige;
-            state.em += 1 * m * presMult;
-            state.xp += 10 * (activeBoost.type === 'xp' ? activeBoost.mult : 1);
+            let m = (activeBoost.type === 'frenzy') ? activeBoost.mult : 1;
+            state.em += 1 * m * (1 + state.prestige);
+            state.xp += 10;
             checkLevel();
             updateUI();
         }
 
+        function checkLevel() {
+            let next = state.lvl * 100;
+            while (state.xp >= next) {
+                state.xp -= next;
+                state.lvl++;
+                next = state.lvl * 100;
+                if (state.lvl === 1000) triggerPrestigeNotice();
+            }
+        }
+
+        // --- 基礎功能保持 ---
         function buy(id) {
             let item = state.u[id];
             if (state.em >= item.c && state.lvl >= item.r) {
                 state.em -= item.c;
                 state.eps += item.p;
-                item.c = Math.floor(item.c * 1.4);
+                item.c *= 1.4;
                 updateUI();
             }
         }
+        function toggleLang() { state.lang = state.lang === 'zh' ? 'en' : 'zh'; updateUI(); }
+        function resetGame() { if(confirm('Wipe data?')) { localStorage.clear(); location.reload(); } }
+        function closeNotice() { el('notice-overlay').style.display = 'none'; currentMode = 'idle'; }
+        function handleLuckyBox() { el('lucky-box').style.display = 'none'; activeBoost = { type: 'frenzy', mult: 2, time: 15 }; updateUI(); }
 
-        function toggleLang() {
-            state.lang = state.lang === 'en' ? 'zh' : 'en';
-            updateUI();
-        }
-
-        function resetGame() { if(confirm('Reset all?')) { localStorage.clear(); location.reload(); } }
-
-        // --- 循環器 ---
-        setInterval(() => {
+        // --- 核心定時器 ---
+        setInterval(() => { // 自動產出
             if (state.eps > 0) {
-                let m = activeBoost.type === 'frenzy' ? activeBoost.mult : 1;
-                let presMult = 1 + state.prestige;
-                let p = (state.eps * m * presMult) / 10;
-                state.em += p; 
-                state.xp += p * 2 * (activeBoost.type === 'xp' ? activeBoost.mult : 1);
+                let m = (activeBoost.type === 'frenzy') ? activeBoost.mult : 1;
+                let amt = (state.eps * m * (1 + state.prestige)) / 10;
+                state.em += amt; state.xp += amt * 2;
+                if (quest.active && quest.type === 1) {
+                    quest.progress = Math.floor(state.em - quest.startEm);
+                    if (quest.progress >= quest.target) endQuest(true);
+                }
                 checkLevel(); updateUI();
             }
         }, 100);
 
-        setInterval(() => {
-            if (activeBoost.time > 0) {
-                activeBoost.time--;
-                if (activeBoost.time === 0) activeBoost.type = 'none';
-                updateUI();
-            } else if (questState.active) {
-                questState.time--;
-                if (questState.time <= 0) completeQuest();
-                updateUI();
+        setInterval(() => { // 秒級定時器
+            if (activeBoost.time > 0) activeBoost.time--;
+            if (quest.active) {
+                quest.time--;
+                if (quest.time <= 0) endQuest(false);
             }
+            updateUI();
         }, 1000);
 
-        setInterval(() => { if (currentMode === 'idle' && activeBoost.time === 0) el('lucky-box').style.display = 'flex'; }, 45000);
-        setInterval(() => { triggerQuest(); }, 75000); // 每 75 秒嘗試觸發任務
+        setInterval(triggerQuest, 70000); // 每 70 秒嘗試啟動任務
+        setInterval(() => { if (!quest.active && activeBoost.time === 0) el('lucky-box').style.display = 'flex'; }, 45000);
 
-        // 初始化公告
         updateUI();
         el('block').onclick = mine;
         el('block').ontouchstart = (e) => { e.preventDefault(); mine(); };
