@@ -12,7 +12,6 @@
         overflow: hidden;
     }
 
-    /*背景影片：【優化】增加 brightness 和 下移位置 */
     #bg-video {
         position: fixed;
         right: 0;
@@ -21,78 +20,96 @@
         min-height: 100%;
         z-index: -1;
         object-fit: cover;
-        /* 【修改】原本亮度偏暗(0.5)，現在稍微調亮到 0.65，Mita 更清楚 */
         filter: brightness(0.65); 
-        /* 【修改】原本 top 預設為 0，現在往下移 50px */
         top: 0px; 
     }
 
-    /* 主容器 */
     .main-container {
         display: flex; justify-content: space-between;
         align-items: flex-start; height: 100vh;
-        /* 上方 padding 稍微縮減 (原本40px)，配合影片下移，保持資訊欄在視線中心 */
         padding: 30px 40px; 
         box-sizing: border-box;
     }
 
-    /* 通用面板 */
     .side-panel {
-        width: 290px; /* 稍微增加寬度 (原本280px)，平衡大Logo */
+        width: 290px;
         background: rgba(0, 0, 0, 0.4);
         backdrop-filter: blur(12px); border: 1px solid rgba(255, 255, 255, 0.1);
         border-radius: 20px; padding: 25px; 
-        height: 85vh; /* 保持一致的高度 */
+        height: 85vh;
         display: flex; flex-direction: column;
-        margin-top: 10px; /* 配合影片下移，面板也小下移 */
+        margin-top: 10px;
     }
 
-    /* 左側資訊 */
-    #clock { font-size: 3.5rem; font-weight: bold; } /* 稍微加大大大大時間 */
+    #clock { font-size: 3.5rem; font-weight: bold; }
     #date { font-size: 1.2rem; color: #ddd; margin-bottom: 8px; }
     #weather { font-size: 1.2rem; color: #00d4ff; margin-bottom: 25px; }
 
-    /* 【優化】更新日誌字體與行距 */
-    .changelog { flex-grow: 1; overflow-y: auto; }
-    .changelog h3 { font-size: 1.3rem; margin-top: 5px; } /* 標題稍微放大 */
+    .changelog { height: 35%; overflow-y: auto; margin-bottom: 20px; }
+    .changelog h3 { font-size: 1.3rem; margin-top: 5px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 5px; }
     .changelog ul { 
         padding-left: 20px; 
-        /* 【修改】關鍵字體大小 (原本0.9rem -> 1.05rem)，增加可讀性 */
         font-size: 1.05rem; 
-        /* 【修改】增加行距 (原本1.4 -> 1.7)，更易讀 */
         line-height: 1.7; 
         color: rgba(255,255,255,0.9);
     }
 
-    /* 中間搜尋區 */
+    /* --- 常用網站樣式 --- */
+    .quick-links { flex-grow: 1; display: flex; flex-direction: column; }
+    .quick-links h3 { font-size: 1.3rem; margin-bottom: 10px; }
+    .links-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .link-item {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 10px;
+        border-radius: 10px;
+        text-align: center;
+        text-decoration: none;
+        color: white;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        border: 1px solid transparent;
+    }
+    .link-item:hover {
+        background: rgba(255, 255, 255, 0.2);
+        border: 1px solid rgba(0, 212, 255, 0.5);
+        transform: scale(1.05);
+    }
+
     .center-panel {
         flex: 1; display: flex; flex-direction: column;
         align-items: center; margin: 0 40px;
-        /* 【修改】原本 12vh 下移太深，現在調回 10vh，配合大Logo和影片位置 */
         padding-top: 10vh; 
     }
 
-    /* 【優化】大 Logo */
     .search-logo { 
-        /* 【修改】Logo 寬度 (原本160px -> 260px)，大幅放大 */
         width: 260px; 
         margin-bottom: 30px; 
-        /* 稍微加強發光，讓Logo更突出 */
         filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.5)); 
-        transition: 0.3s ease; /* 增加小互動 */
+        transition: 0.3s ease;
     }
-    /* 滑鼠移上去讓 Logo 活潑一點 */
-    .search-logo:hover {
-        transform: scale(1.03);
-    }
+    .search-logo:hover { transform: scale(1.03); }
 
+    /* --- 新的搜尋框樣式 --- */
     .search-box-container { 
-        width: 100%; max-width: 620px; /* 搜尋框稍寬配合Logo */
-        background: rgba(255, 255, 255, 0.1); border-radius: 30px; padding: 5px; 
-        border: 1px solid rgba(255, 255, 255, 0.15); /* 增加細邊框 */
+        width: 100%; max-width: 620px;
+    }
+    .custom-search-input {
+        width: 100%;
+        padding: 15px 25px;
+        font-size: 1.2rem;
+        border: none;
+        border-radius: 30px;
+        background: rgba(255, 255, 255, 0.9);
+        color: #333;
+        outline: none;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+        transition: 0.3s;
+    }
+    .custom-search-input:focus {
+        background: #fff;
+        box-shadow: 0 0 20px rgba(0, 212, 255, 0.5);
     }
 
-    /* 右側 YouTube 列表 (保持原本很好的設計) */
     .video-list-container { overflow-y: auto; flex-grow: 1; }
     .video-item {
         padding: 10px; margin-bottom: 15px;
@@ -103,7 +120,6 @@
     .video-item img { width: 100%; border-radius: 8px; margin-bottom: 8px; }
     .video-title { font-size: 0.88rem; line-height: 1.4; height: 2.8em; overflow: hidden; }
 
-    /* 影片彈窗 (Modal) (保持原本很好設計) */
     #video-modal {
         display: none; position: fixed; top: 0; left: 0;
         width: 100%; height: 100%; background: rgba(0,0,0,0.95);
@@ -112,9 +128,6 @@
     .modal-content { position: relative; width: 85%; max-width: 1000px; aspect-ratio: 16/9; }
     .close-btn { position: absolute; top: -45px; right: 0; font-size: 35px; cursor: pointer; }
 
-    /* 隱藏 Google 雜項 & 捲動軸優化 */
-    .gsc-control-cse { background-color: transparent !important; border: none !important; }
-    .gcsc-branding { display: none !important; }
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.3); border-radius: 10px; }
 </style>
@@ -128,21 +141,35 @@
             <div id="clock">00:00:00</div>
             <div id="date">載入中...</div>
             <div id="weather">桃園市 22°C ☁️</div>
+            
             <div class="changelog">
                 <h3>更新日誌</h3>
                 <ul>
-                    <li>整合 YouTube 影片播放器</li>
-                    <li>新增影片彈窗預覽功能</li>
-                    <li>優化搜尋框毛玻璃視覺</li>
+                    <li>切換為 Google 直接搜尋</li>
+                    <li>新增常用網站捷徑</li>
+                    <li>優化側邊欄排版</li>
                 </ul>
+            </div>
+
+            <div class="quick-links">
+                <h3>常用網站</h3>
+                <div class="links-grid">
+                    <a href="https://www.youtube.com" class="link-item">YouTube</a>
+                    <a href="https://github.com" class="link-item">GitHub</a>
+                    <a href="https://discord.com/app" class="link-item">Discord</a>
+                    <a href="https://web.bahamut.com.tw/" class="link-item">巴哈姆特</a>
+                    <a href="https://www.google.com/gmail/" class="link-item">Gmail</a>
+                    <a href="https://www.twitch.tv/" class="link-item">Twitch</a>
+                </div>
             </div>
         </div>
 
         <div class="center-panel">
             <img src="images/susFries.png" alt="Logo" class="search-logo">
             <div class="search-box-container">
-                <script async src="https://cse.google.com/cse.js?cx=1193b39a9705e4e98"></script>
-                <div class="gcse-search"></div>
+                <form action="https://www.google.com/search" method="GET">
+                    <input type="text" name="q" class="custom-search-input" placeholder="在這裡搜尋 Google..." autocomplete="off">
+                </form>
             </div>
         </div>
 
