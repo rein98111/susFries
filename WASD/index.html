@@ -1,1 +1,243 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WASD Beat | 鍵盤節奏遊戲官方網站</title>
+    <style>
+        :root {
+            --primary: #ff66aa;
+            --primary-glow: rgba(255, 102, 170, 0.3);
+            --bg: #0a0a0a;
+            --card-bg: rgba(255, 255, 255, 0.05);
+        }
 
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: white;
+            font-family: 'Segoe UI', 'Microsoft JhengHei', sans-serif;
+            line-height: 1.6;
+            scroll-behavior: smooth;
+        }
+
+        /* --- 主視覺區 --- */
+        .hero {
+            height: 100vh;
+            background: linear-gradient(to bottom, rgba(0,0,0,0.3), var(--bg)), url('bg.png');
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+            text-align: center;
+            padding: 0 20px;
+        }
+
+        .logo { 
+            font-size: clamp(60px, 12vw, 120px); 
+            font-weight: 900; 
+            letter-spacing: 12px; 
+            color: var(--primary);
+            margin-bottom: 10px;
+            filter: drop-shadow(0 0 15px var(--primary-glow));
+        }
+
+        .tagline { 
+            font-size: clamp(18px, 4vw, 24px); 
+            opacity: 0.9; 
+            margin-bottom: 40px;
+            letter-spacing: 2px;
+        }
+        
+        .play-btn {
+            padding: 18px 60px;
+            font-size: 24px;
+            background: transparent;
+            border: 3px solid var(--primary);
+            color: var(--primary);
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 5px;
+        }
+
+        .play-btn:hover {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 0 40px var(--primary);
+            transform: scale(1.05);
+        }
+
+        /* --- 內容區塊通用樣式 --- */
+        .section {
+            max-width: 1000px;
+            margin: 120px auto;
+            padding: 0 30px;
+        }
+
+        h2 { 
+            border-left: 8px solid var(--primary); 
+            padding-left: 20px; 
+            font-size: 36px; 
+            margin-bottom: 50px;
+            letter-spacing: 2px;
+        }
+
+        /* --- 遊戲特性卡片 --- */
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 30px;
+        }
+
+        .feature-card {
+            background: var(--card-bg);
+            padding: 40px;
+            border-radius: 20px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.4s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-12px);
+            border-color: var(--primary);
+            background: rgba(255, 102, 170, 0.08);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .feature-card h3 { 
+            color: var(--primary); 
+            margin-top: 0; 
+            font-size: 24px;
+            margin-bottom: 15px;
+        }
+
+        .feature-card p {
+            margin: 0;
+            opacity: 0.8;
+            font-size: 17px;
+        }
+
+        /* --- 更新日誌區塊 (優化空行) --- */
+        .log-container {
+            display: flex;
+            flex-direction: column;
+            gap: 60px; /* 這裡控制了不同版本之間的大空行 */
+        }
+
+        .log-item h3 {
+            font-size: 24px;
+            color: var(--primary);
+            margin: 0 0 15px 0;
+            display: flex;
+            align-items: center;
+        }
+
+        .log-item h3::after {
+            content: "";
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, var(--primary), transparent);
+            margin-left: 20px;
+            opacity: 0.3;
+        }
+
+        .log-content {
+            list-style: none;
+            padding-left: 10px;
+            margin: 0;
+        }
+
+        .log-content li {
+            position: relative;
+            padding-left: 25px;
+            margin-bottom: 12px; /* 這裡控制了每一項更新之間的小空行 */
+            opacity: 0.85;
+        }
+
+        .log-content li::before {
+            content: "▹";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+        }
+
+        /* --- 頁尾 --- */
+        footer {
+            text-align: center;
+            padding: 80px 20px;
+            opacity: 0.4;
+            font-size: 14px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        /* 針對行動裝置優化 */
+        @media (max-width: 600px) {
+            .section { margin: 80px auto; }
+            h2 { font-size: 28px; }
+            .play-btn { width: 80%; text-align: center; }
+        }
+    </style>
+</head>
+<body>
+
+    <section class="hero">
+        <div class="logo">WASD BEAT</div>
+        <div class="tagline">絕對精準、極致節奏 —— 屬於鍵盤手的舞台。</div>
+        <a href="game.html" class="play-btn">START PLAYING</a>
+    </section>
+
+    <section class="section">
+        <h2 id="features">遊戲特性</h2>
+        <div class="grid">
+            <div class="feature-card">
+                <h3>經典四鍵操作</h3>
+                <p>回歸最純粹的 <b>WASD</b> 操作邏輯，專為鍵盤玩家打造的直覺反應挑戰。</p>
+            </div>
+            <div class="feature-card">
+                <h3>動態判定系統</h3>
+                <p>極致的縮圈判定機制，致敬經典節奏遊戲 <b>osu!</b>，考驗你的手眼協調。</p>
+            </div>
+            <div class="feature-card">
+                <h3>持續擴充</h3>
+                <p>獨立開發者持續更新，未來將帶來更多熱門曲目與更具難度的挑戰譜面。</p>
+            </div>
+        </div>
+    </section>
+
+    <section class="section">
+        <h2 id="logs">更新日誌</h2>
+        <div class="log-container">
+            
+            <div class="log-item">
+                <h3>v1.0 (2026.03.30) - 正式版發布</h3>
+                <ul class="log-content">
+                    <li>新增連擊 (Combo) 顯示與最高連擊紀錄系統。</li>
+                    <li>新增結算評等功能 (SS / S / A / B / C / D)。</li>
+                    <li>優化選曲介面，支援動態歌曲背景切換。</li>
+                    <li>調整 WASD 按鍵間距，提升操作手感。</li>
+                </ul>
+            </div>
+
+            <div class="log-item">
+                <h3>v0.BETA - 核心引擎開發</h3>
+                <ul class="log-content">
+                    <li>修復鍵盤輸入判定延遲問題。</li>
+                    <li>優化 UI 在不同解析度瀏覽器下的位移 Bug。</li>
+                    <li>初步建立 Jubeat 風格與縮圈判定邏輯。</li>
+                </ul>
+            </div>
+
+        </div>
+    </section>
+
+    <footer>
+        &copy; 2026 WASD Beat. Designed for Rhythm Gamers.
+    </footer>
+
+</body>
+</html>
