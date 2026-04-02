@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Jubeat Mobile - The Ruby of Twilight</title>
+    <style>
+        :root { --bg: #0f0f13; --accent: #ff2d55; --grid: #1c1c24; }
+        body {
+            margin: 0; background: var(--bg); color: white;
+            font-family: system-ui, sans-serif; overflow: hidden;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            height: 100vh; width: 100vw; position: fixed;
+        }
+        #ui { width: 90vmin; max-width: 500px; display: flex; justify-content: space-between; margin-bottom: 10px; font-weight: bold; }
+        #score { color: #ffcc00; font-size: 5vmin; }
+        #combo { font-size: 4vmin; }
+        
+        #game-container {
+            position: relative; width: 95vmin; height: 95vmin; max-width: 550px; max-height: 550px;
+            background: #000; display: grid; grid-template-columns: repeat(4, 1fr);
+            grid-template-rows: repeat(4, 1fr); gap: 6px; padding: 6px; border: 2px solid #333;
+            border-radius: 12px; touch-action: none; -webkit-tap-highlight-color: transparent;
+        }
+        .cell {
+            position: relative; background: var(--grid); border-radius: 8px;
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+        }
+        .cell.active { background: #3a3a4a; }
+
+        /* osu! Style Elements */
+        .note {
+            position: absolute; width: 75%; height: 75%; border-radius: 50%;
+            background: radial-gradient(circle, var(--accent) 30%, transparent 70%);
+            border: 3px solid white; box-sizing: border-box; z-index: 2; pointer-events: none;
+        }
+        .approach {
+            position: absolute; width: 75%; height: 75%; border-radius: 50%;
+            border: 2px solid rgba(255,255,255,0.8); z-index: 3; pointer-events: none;
+            transform: scale(2.5); opacity: 0;
+        }
+
+        #overlay {
+            position: absolute; inset: 0; background: rgba(0,0,0,0.85);
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            z-index: 100; text-align: center; border-radius: 10px;
+        }
+        button {
+            padding: 15px 40px; font-size: 20px; border: none; border-radius: 30px;
+            background: var(--accent); color: white; font-weight: bold; cursor: pointer;
+        }
+        .judge-text {
+            position: absolute; font-size: 4vmin; font-weight: bold; z-index: 10;
+            pointer-events: none; animation: pop 0.4s ease-out forwards;
+        }
+        @keyframes pop {
+            0% { transform: scale(0.5); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: translateY(-20px); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+<div id="ui">
+    <div id="combo">COMBO 0</div>
+    <div id="score">000000</div>
+</div>
+
+<div id="game-container">
+    <div id="overlay">
+        <h1 id="title">The Ruby of Twilight</h1>
+        <p id="author">Cygnus</p>
+        <button id="play-btn">START</button>
+        <p style="font-size: 12px; color: #666; margin-top: 20px;">推薦使用橫屏遊玩</p>
+    </div>
+</div>
+
+<iframe id="video-player" width="0" height="0" src="https://www.youtube.com/embed/yG-0HhHamRc?enablejsapi=1&playsinline=1" frameborder="0"></iframe>
+
+<script src="map.js"></script>
+<script>
+    const CONFIG = { approachTime: 1000, hitWindow: 150 };
+    let state = { score: 0, combo: 0, startTime: 0, activeNotes: [], isPlaying: false, noteIndex: 0 };
+    
+    const container = document.getElementById('game-container');
+    const scoreEl = document.getElementById('score');
+    const comboEl = document.getElementById('combo');
+    
+    // 生成 16 個格子
+    for(let i=0; i<16; i++) {
+        const div = document.createElement('div');
+        div.className = 'cell';
+        div.id = `c-${i}`;
+        container.appendChild(div);
+    }
+
+    let player;
+    function onYouTubeIframeAPIReady() {
+        player = new YT.Player('video-player', {
+            events: { 'onStateChange': (e) => { if(e.data === 1) startLoop(); } }
+        });
+    }
+
+    const tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    document.head.appendChild(tag);
+
+    document.getElementById('play-btn').onclick = () => {
+        document.getElementById('overlay').style.display = 'none';
+        player.playVideo();
+    };
+
+    function startLoop() {
+        state.isPlaying = true;
+        state.startTime = performance.now();
+        requestAnimationFrame(update);
+    }
+
+    function update(now) {
+        if(!state.isPlaying) return;
+        const elapsed = now - state.startTime;
+
+        // 1. 生成音符 (指針優化，不遍歷全譜面)
+        const notes = window.currentSongMap.notes;
+        while(state.noteIndex < notes.length && elapsed >= notes[state.noteIndex].time - CONFIG.approachTime) {
+            const n = notes[state.noteIndex];
+            if(n.cell !== -1) spawn(n);
+            state.noteIndex++;
+        }
+
+        // 2. 更新視覺 & 處理 Miss
+        state.activeNotes = state.activeNotes.filter(n => {
+            const progress = (n.time - elapsed) / CONFIG.approachTime;
+            if (progress > 0) {
+                n.appEl.style.transform = `scale(${1 + progress * 1.5})`;
+                n.appEl.style.opacity = 1 - progress;
+            } else {
+                n.appEl.style.opacity = 0;
+            }
+
+            if (elapsed > n.time + CONFIG.hitWindow) {
+                n.el.remove(); n.appEl.remove();
+                handleJudge("MISS");
+                return false;
+            }
+            return true;
+        });
+
+        requestAnimationFrame(update);
+    }
+
+    function spawn(note) {
+        const cell = document.getElementById(`c-${note.cell}`);
+        const el = document.createElement('div'); el.className = 'note';
+        const appEl = document.createElement('div'); appEl.className = 'approach';
+        cell.appendChild(el); cell.appendChild(appEl);
+        state.activeNotes.push({ ...note, el, appEl });
+    }
+
+    function handleInput(cellIdx) {
+        if(!state.isPlaying) return;
+        const now = performance.now() - state.startTime;
+        const hitIdx = state.activeNotes.findIndex(n => n.cell === cellIdx && Math.abs(now - n.time) < CONFIG.hitWindow);
+
+        if(hitIdx !== -1) {
+            const diff = Math.abs(now - state.activeNotes[hitIdx].time);
+            const judge = diff < 70 ? "PERFECT" : (diff < 110 ? "GREAT" : "GOOD");
+            handleJudge(judge, cellIdx);
+            state.activeNotes[hitIdx].el.remove();
+            state.activeNotes[hitIdx].appEl.remove();
+            state.activeNotes.splice(hitIdx, 1);
+        }
+    }
+
+    function handleJudge(type, idx) {
+        if(type === "MISS") { state.combo = 0; } 
+        else {
+            state.combo++;
+            state.score += (type === "PERFECT" ? 300 : (type === "GREAT" ? 150 : 50));
+            showJudgeEffect(idx, type);
+        }
+        scoreEl.innerText = state.score.toString().padStart(6, '0');
+        comboEl.innerText = `COMBO ${state.combo}`;
+    }
+
+    function showJudgeEffect(idx, text) {
+        const cell = document.getElementById(`c-${idx}`);
+        const el = document.createElement('div');
+        el.className = 'judge-text';
+        el.innerText = text;
+        el.style.color = text === "PERFECT" ? "#ffcc00" : "#fff";
+        cell.appendChild(el);
+        setTimeout(() => el.remove(), 400);
+    }
+
+    // 觸控支援
+    container.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        Array.from(e.changedTouches).forEach(t => {
+            const target = document.elementFromPoint(t.clientX, t.clientY);
+            if(target && target.classList.contains('cell')) {
+                const idx = parseInt(target.id.split('-')[1]);
+                target.classList.add('active');
+                handleInput(idx);
+            }
+        });
+    });
+    container.addEventListener('touchend', (e) => {
+        Array.from(e.changedTouches).forEach(t => {
+            const target = document.elementFromPoint(t.clientX, t.clientY);
+            if(target) target.classList.remove('active');
+        });
+    });
+</script>
+</body>
+</html>
