@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>Jubeat Terminal - Fixed</title>
+    <title>Jubeat Terminal - Map Loader Edition</title>
     <style>
         :root { 
             --bg: #050508; --accent: #00f2ff; --grid-idle: #10101a; 
@@ -20,7 +20,6 @@
             background-image: radial-gradient(circle at 50% 50%, #1a1a2e 0%, #050508 100%);
         }
 
-        /* UI 佈局 */
         #ui { 
             width: 95vmin; max-width: 550px; display: flex; 
             justify-content: space-between; align-items: flex-end;
@@ -30,7 +29,6 @@
         #score { font-size: 8vmin; color: white; text-shadow: 0 0 10px var(--accent); }
         #combo { font-size: 5vmin; color: var(--accent); }
 
-        /* 遊戲網格 */
         #game-container {
             position: relative; width: 95vmin; height: 95vmin; max-width: 550px; max-height: 550px;
             background: rgba(0,0,0,0.6); display: grid; grid-template-columns: repeat(4, 1fr);
@@ -44,7 +42,6 @@
         }
         .cell.active { background: var(--accent); box-shadow: 0 0 30px var(--accent); }
 
-        /* 音符與縮圈 */
         .note {
             position: absolute; inset: 10%; border-radius: 4px;
             background: linear-gradient(135deg, rgba(255,255,255,0.4) 0%, transparent 100%);
@@ -55,7 +52,6 @@
             z-index: 3; pointer-events: none; transform: scale(2.5); opacity: 0;
         }
 
-        /* 判定文字 */
         .judge-text {
             position: absolute; width: 100%; text-align: center;
             font-size: 4vmin; font-weight: bold; z-index: 10; top: 40%;
@@ -63,10 +59,9 @@
         }
         @keyframes judgePop {
             0% { transform: scale(0.5); opacity: 0; }
-            100% { transform: scale(1); opacity: 0; }
+            100% { transform: scale(1.1); opacity: 0; }
         }
 
-        /* 覆蓋層 (開始畫面) */
         #overlay {
             position: absolute; inset: 0; background: rgba(5,5,8,0.98);
             display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -88,6 +83,7 @@
         }
         @keyframes scan { from { top: 0; } to { top: 100%; } }
     </style>
+    <script src="map.js" defer></script>
 </head>
 <body>
 
@@ -99,63 +95,59 @@
 
 <div id="game-container">
     <div id="overlay">
-        <h1 id="title" style="color:var(--accent)">RUBY TWILIGHT</h1>
-        <p id="author">SYSTEM INITIALIZING...</p>
-        <button id="play-btn" disabled>LOADING...</button>
+        <h1 id="title" style="color:var(--accent)">SYSTEM LOADING</h1>
+        <p id="author">CHECKING MAP DATA...</p>
+        <button id="play-btn" disabled>CONNECTING...</button>
     </div>
 </div>
 
 <div id="player-container" style="position:absolute; top:-999px;"><div id="video-player"></div></div>
 
 <script>
-    // --- 譜面輔助函數 ---
-    function generatePattern(start, end, type, step) {
-        let p = []; let cur = start; let i = 0;
-        while(cur < end) {
-            let cell = [0, 5, 10, 15, 12, 9, 6, 3, 1, 4, 11, 14, 2, 7, 8, 13][i % 16];
-            if(type === "circle") cell = [5, 6, 10, 9][i % 4];
-            p.push({time: Math.round(cur), cell: cell});
-            cur += step; i++;
-        }
-        return p;
-    }
-
-    const currentSongMap = {
-        notes: [
-            {time: 680, cell: 5}, {time: 1360, cell: 10}, {time: 2040, cell: 6}, {time: 2720, cell: 9},
-            ...generatePattern(15000, 65000, "zigzag", 680),
-            ...generatePattern(66000, 150000, "circle", 340),
-            {time: 210000, isEndOfMap: true}
-        ]
-    };
-
-    // --- 遊戲邏輯 ---
+    // --- 遊戲核心設定 ---
     const CONFIG = { approachTime: 1000, hitWindow: 150 };
     let state = { score: 0, combo: 0, startTime: 0, activeNotes: [], isPlaying: false, noteIndex: 0 };
-    
+    let player;
+
     const container = document.getElementById('game-container');
     const playBtn = document.getElementById('play-btn');
     const scoreEl = document.getElementById('score');
     const comboEl = document.getElementById('combo');
+    const titleEl = document.getElementById('title');
+    const authorEl = document.getElementById('author');
 
-    // 生成格子
+    // 初始化格子
     for(let i=0; i<16; i++) {
         const div = document.createElement('div');
         div.className = 'cell'; div.id = `c-${i}`;
         container.appendChild(div);
     }
 
-    // YouTube API
-    let player;
+    // --- 加載監控 ---
+    const mapCheck = setInterval(() => {
+        if (window.SONG_MAP) {
+            clearInterval(mapCheck);
+            titleEl.innerText = window.SONG_MAP.title || "CONNECTED";
+            authorEl.innerText = "MAP DETECTED. LOADING PLAYER...";
+            initYouTube();
+        }
+    }, 100);
+
+    function initYouTube() {
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        document.head.appendChild(tag);
+    }
+
     function onYouTubeIframeAPIReady() {
         player = new YT.Player('video-player', {
-            videoId: 'yG-0HhHamRc',
+            videoId: window.SONG_MAP.videoId,
             playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 },
             events: {
                 'onReady': () => {
                     playBtn.disabled = false;
                     playBtn.innerText = "START SESSION";
-                    document.getElementById('author').innerText = "READY TO BOOT";
+                    authorEl.innerText = "SYSTEM ONLINE - READY";
                 },
                 'onStateChange': (e) => {
                     if(e.data === YT.PlayerState.PLAYING && !state.isPlaying) {
@@ -166,7 +158,7 @@
         });
     }
 
-    // 啟動按鈕 (支援 Click & Touch)
+    // --- 遊戲邏輯 ---
     const handleStart = (e) => {
         if (e) e.preventDefault();
         if (playBtn.disabled) return;
@@ -181,17 +173,23 @@
         state.isPlaying = true;
         state.startTime = performance.now();
         state.noteIndex = 0;
+        state.score = 0;
+        state.combo = 0;
         requestAnimationFrame(update);
     }
 
     function update(now) {
         if(!state.isPlaying) return;
         const elapsed = now - state.startTime;
-        const notes = currentSongMap.notes;
+        const notes = window.SONG_MAP.notes;
 
         while(state.noteIndex < notes.length && elapsed >= notes[state.noteIndex].time - CONFIG.approachTime) {
             const n = notes[state.noteIndex];
-            if(n.isEndOfMap) { setTimeout(resetToTitle, 2000); state.isPlaying = false; break; }
+            if(n.isEndOfMap) { 
+                state.isPlaying = false;
+                setTimeout(resetToTitle, 2000); 
+                break; 
+            }
             spawn(n);
             state.noteIndex++;
         }
@@ -222,8 +220,9 @@
     }
 
     function handleJudge(type, idx) {
-        if(type === "MISS") { state.combo = 0; } 
-        else {
+        if(type === "MISS") { 
+            state.combo = 0; 
+        } else {
             state.combo++;
             state.score += (type === "PERFECT" ? 312 : 150);
             showJudgeEffect(idx, type);
@@ -242,27 +241,27 @@
     }
 
     function resetToTitle() {
-        state.isPlaying = false;
         player.stopVideo();
-        player.seekTo(0);
         document.getElementById('overlay').style.display = 'flex';
-        document.getElementById('title').innerText = "FINISH!";
-        document.getElementById('author').innerText = `SCORE: ${state.score}`;
+        titleEl.innerText = "FINISH!";
+        authorEl.innerText = `FINAL SCORE: ${state.score}`;
         playBtn.innerText = "RETRY";
+        playBtn.disabled = false;
     }
 
-    // 遊戲觸控 (多指支援)
+    // 觸控判定
     container.addEventListener('touchstart', (e) => {
         e.preventDefault();
         Array.from(e.changedTouches).forEach(t => {
             const el = document.elementFromPoint(t.clientX, t.clientY);
-            if(el && el.classList.contains('cell')) {
-                const idx = parseInt(el.id.split('-')[1]);
-                el.classList.add('active');
+            if(el && (el.classList.contains('cell') || el.parentElement.classList.contains('cell'))) {
+                const target = el.classList.contains('cell') ? el : el.parentElement;
+                const idx = parseInt(target.id.split('-')[1]);
+                target.classList.add('active');
                 
-                // 判定邏輯
                 const now = performance.now() - state.startTime;
                 const hitIdx = state.activeNotes.findIndex(n => n.cell === idx && Math.abs(now - n.time) < CONFIG.hitWindow);
+                
                 if(hitIdx !== -1) {
                     const diff = Math.abs(now - state.activeNotes[hitIdx].time);
                     handleJudge(diff < 80 ? "PERFECT" : "GREAT", idx);
@@ -270,15 +269,10 @@
                     state.activeNotes[hitIdx].appEl.remove();
                     state.activeNotes.splice(hitIdx, 1);
                 }
-                setTimeout(() => el.classList.remove('active'), 100);
+                setTimeout(() => target.classList.remove('active'), 100);
             }
         });
-    });
-
-    // 載入 API
-    const tag = document.createElement('script');
-    tag.src = "https://www.youtube.com/iframe_api";
-    document.head.appendChild(tag);
+    }, { passive: false });
 </script>
 
 </body>
