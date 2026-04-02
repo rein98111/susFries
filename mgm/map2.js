@@ -1,92 +1,200 @@
-// map2.js - Guitar to Kodoku to Aoi Hoshi (Hayakou Bootleg)
-// BPM: 194 | Full Version Chart
-window.currentSongMap = {
-    title: "Guitar to Kodoku (Full Bootleg)",
-    notes: [
-        // --- [0:00 - 0:14] Intro: Silence / Ambient ---
-        // (休息時間)
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>Jubeat Simulator - Fixed Loader</title>
+    <style>
+        :root { --bg: #050508; --accent: #00f2ff; --grid-idle: #10101a; --grid-border: #1a1a2e; }
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&display=swap');
+        body { margin: 0; background: var(--bg); color: white; font-family: 'Orbitron', sans-serif; overflow: hidden; display: flex; flex-direction: column; align-items: center; justify-content: center; height: 100vh; }
+        #ui { width: 90vmin; max-width: 550px; display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 2px solid var(--grid-border); }
+        #game-container { position: relative; width: 90vmin; height: 90vmin; max-width: 550px; max-height: 550px; display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; padding: 12px; background: #000; border: 4px solid var(--grid-border); border-radius: 8px; touch-action: none; }
+        .cell { position: relative; background: var(--grid-idle); border: 1px solid var(--grid-border); border-radius: 4px; }
+        .cell.active { background: var(--accent); box-shadow: 0 0 20px var(--accent); }
+        .note { position: absolute; inset: 10%; border: 2px solid white; border-radius: 4px; z-index: 2; box-shadow: 0 0 10px white; pointer-events: none; }
+        .approach { position: absolute; inset: 0; border: 2px solid var(--accent); z-index: 1; transform: scale(2.5); opacity: 0; pointer-events: none; }
+        #overlay { position: absolute; inset: 0; background: rgba(0,0,0,0.95); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 100; text-align: center; }
+        button { padding: 15px 40px; font-size: 1.2rem; background: transparent; color: var(--accent); border: 2px solid var(--accent); cursor: pointer; font-family: 'Orbitron'; clip-path: polygon(10% 0, 100% 0, 90% 100%, 0 100%); }
+        button:disabled { border-color: #444; color: #444; cursor: wait; }
+        #status-text { font-size: 12px; color: #666; margin-top: 10px; text-transform: uppercase; }
+    </style>
+</head>
+<body>
 
-        // --- [0:14 - 0:27] Guitar Intro ---
-        {time: 14515, cell: 5}, {time: 14824, cell: 10}, {time: 15133, cell: 6}, {time: 15443, cell: 9},
-        {time: 15752, cell: 0}, {time: 16061, cell: 3}, {time: 16371, cell: 15}, {time: 16680, cell: 12},
-        {time: 17300, cell: 0}, {time: 17454, cell: 4}, {time: 17608, cell: 8}, {time: 17762, cell: 12},
-        {time: 17917, cell: 13}, {time: 18071, cell: 14}, {time: 18225, cell: 15},
+<div id="ui">
+    <div>SCORE: <span id="score">000000</span></div>
+    <div>COMBO: <span id="combo">0</span></div>
+</div>
 
-        // --- [0:28 - 0:38] Pre-Chorus Kick ---
-        ...generateStair(28453, 35000, 154), 
+<div id="game-container">
+    <div id="overlay">
+        <h2 id="song-title">SYSTEM BOOTING</h2>
+        <button id="start-btn" disabled>LOADING...</button>
+        <div id="status-text">Waiting for map data...</div>
+    </div>
+</div>
 
-        // --- [0:39 - 0:41] "Tarinai Tarinai" Vocal Sync ---
-        {time: 39123, cell: 0}, {time: 39432, cell: 5}, {time: 39742, cell: 10}, {time: 40051, cell: 15},
-        {time: 40360, cell: 3}, {time: 40669, cell: 6}, {time: 40979, cell: 9}, {time: 41288, cell: 12},
-        {time: 41597, cell: 5}, {time: 41597, cell: 6}, {time: 41906, cell: 9}, {time: 41906, cell: 10},
+<div id="player-target"></div>
 
-        // --- [0:42 - 1:04] Chorus 1 (The Kick & Snare) ---
-        ...generateJump(42216, 54000, 309), 
+<script>
+    // 1. 選曲與資料初始化
+    const mapId = prompt("請輸入譜面 ID (1 或 2)", "2");
+    const videoIds = { "1": "yG-0HhHamRc", "2": "MRT-MKxlObE" };
+    const targetVideo = videoIds[mapId] || videoIds["1"];
+    
+    let state = { score: 0, combo: 0, isPlaying: false, startTime: 0, noteIndex: 0, activeNotes: [] };
+    const CONFIG = { approachTime: 800, hitWindow: 150 };
 
-        // --- [1:05 - 1:27] Verse 2 (Rhythmic Guitar) ---
-        {time: 65000, cell: 0}, {time: 65154, cell: 1}, {time: 65308, cell: 2}, {time: 65462, cell: 3},
-        {time: 67000, cell: 15}, {time: 67154, cell: 14}, {time: 67308, cell: 13}, {time: 67462, cell: 12},
-        {time: 70000, cell: 5}, {time: 70154, cell: 9}, {time: 70308, cell: 10}, {time: 70462, cell: 6},
+    // 2. 建立網格
+    const container = document.getElementById('game-container');
+    const startBtn = document.getElementById('start-btn');
+    const statusText = document.getElementById('status-text');
 
-        // --- [1:28 - 1:50] First Climax: Staircases ---
-        {time: 88041, cell: 0}, {time: 88118, cell: 1}, {time: 88195, cell: 2}, {time: 88272, cell: 3},
-        {time: 88350, cell: 7}, {time: 88427, cell: 11}, {time: 88504, cell: 15}, {time: 88581, cell: 14},
-        {time: 88658, cell: 13}, {time: 88736, cell: 12}, {time: 88813, cell: 8}, {time: 88890, cell: 4},
-        {time: 89508, cell: 0}, {time: 89508, cell: 3}, {time: 89508, cell: 12}, {time: 89508, cell: 15},
-
-        // --- [1:51 - 2:20] THE DROP (High Tech Glitch Section) ---
-        // 這裡對應 Bootleg 最瘋狂的電音段落：大跨度震刀
-        ...generateGlitch(111000, 140000, 154),
-
-        // --- [2:21 - 2:40] Outro: Final Burn ---
-        {time: 141000, cell: 0}, {time: 141000, cell: 15}, {time: 141309, cell: 3}, {time: 141309, cell: 12},
-        {time: 142000, cell: 5}, {time: 142154, cell: 6}, {time: 142308, cell: 10}, {time: 142462, cell: 9},
-        {time: 150000, cell: 0}, {time: 150309, cell: 5}, {time: 150618, cell: 10}, {time: 150927, cell: 15},
-
-        // 結束標記 (與 YouTube 長度 2:43 對齊)
-        {time: 163000, isEndOfMap: true}
-    ]
-};
-
-// --- 譜面輔助生成器 (精確對位版) ---
-
-// 1. 生成樓梯型陣型 (用於爆發)
-function generateStair(start, end, step) {
-    let p = []; let cur = start; let i = 0;
-    let cells = [0, 1, 2, 3, 7, 11, 15, 14, 13, 12, 8, 4];
-    while(cur < end) {
-        p.push({time: Math.round(cur), cell: cells[i % cells.length]});
-        cur += step; i++;
+    for(let i=0; i<16; i++) {
+        const div = document.createElement('div');
+        div.className = 'cell'; div.id = `c-${i}`;
+        container.appendChild(div);
     }
-    return p;
-}
 
-// 2. 生成對角跳躍 (用於副歌 Kick)
-function generateJump(start, end, step) {
-    let p = []; let cur = start; let i = 0;
-    while(cur < end) {
-        // 交替使用對角線 0+15 和 3+12
-        if(i % 2 === 0) {
-            p.push({time: Math.round(cur), cell: 0});
-            p.push({time: Math.round(cur), cell: 15});
-        } else {
-            p.push({time: Math.round(cur), cell: 3});
-            p.push({time: Math.round(cur), cell: 12});
+    // 3. 核心加載序列
+    function loadMapScript() {
+        return new Promise((resolve, reject) => {
+            const script = document.createElement('script');
+            script.src = `map${mapId}.js?t=` + Date.now(); // 防止快取
+            script.onload = () => {
+                if (window.currentSongMap) {
+                    statusText.innerText = "Map loaded. Initializing YouTube...";
+                    resolve();
+                } else {
+                    reject("Map data structure error");
+                }
+            };
+            script.onerror = () => reject(`File map${mapId}.js not found`);
+            document.head.appendChild(script);
+        });
+    }
+
+    // 4. YouTube API 控制
+    let player;
+    window.onYouTubeIframeAPIReady = function() {
+        player = new YT.Player('player-target', {
+            height: '0', width: '0',
+            videoId: targetVideo,
+            playerVars: { 'playsinline': 1, 'controls': 0, 'disablekb': 1 },
+            events: {
+                'onReady': () => {
+                    startBtn.disabled = false;
+                    startBtn.innerText = "START SESSION";
+                    statusText.innerText = "Ready to play";
+                    document.getElementById('song-title').innerText = window.currentSongMap.title || "UNKNOWN TRACK";
+                },
+                'onStateChange': (e) => {
+                    // 當 YouTube 真正開始播放時才啟動遊戲邏輯
+                    if(e.data === YT.PlayerState.PLAYING && !state.isPlaying) {
+                        startGameLogic();
+                    }
+                }
+            }
+        });
+    };
+
+    // 5. 啟動遊戲
+    async function init() {
+        try {
+            await loadMapScript();
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            document.head.appendChild(tag);
+        } catch (err) {
+            statusText.style.color = "red";
+            statusText.innerText = "ERROR: " + err;
+            console.error(err);
         }
-        cur += step; i++;
     }
-    return p;
-}
 
-// 3. 生成 Glitch 段落 (亂打/震刀)
-function generateGlitch(start, end, step) {
-    let p = []; let cur = start; let i = 0;
-    while(cur < end) {
-        // 模擬 Jubeat 的「亂打」感，但保持手位合理性
-        let pattern = [5, 10, 6, 9, 0, 15, 3, 12];
-        p.push({time: Math.round(cur), cell: pattern[i % pattern.length]});
-        cur += (i % 8 === 7) ? step * 2 : step; // 隨機加入切分停頓
-        i++;
+    startBtn.onclick = () => {
+        document.getElementById('overlay').style.display = 'none';
+        player.playVideo(); // 這裡觸發 YouTube 播放，隨後由 onStateChange 接手
+    };
+
+    function startGameLogic() {
+        state.isPlaying = true;
+        state.startTime = performance.now();
+        requestAnimationFrame(gameLoop);
     }
-    return p;
-}
+
+    // 6. 遊戲主循環
+    function gameLoop(now) {
+        if(!state.isPlaying) return;
+        const elapsed = now - state.startTime;
+        const notes = window.currentSongMap.notes;
+
+        while(state.noteIndex < notes.length && elapsed >= notes[state.noteIndex].time - CONFIG.approachTime) {
+            const n = notes[state.noteIndex];
+            if(n.isEndOfMap) {
+                setTimeout(() => location.reload(), 3000);
+                state.isPlaying = false;
+                break;
+            }
+            spawnNote(n);
+            state.noteIndex++;
+        }
+
+        state.activeNotes = state.activeNotes.filter(n => {
+            const progress = (n.time - elapsed) / CONFIG.approachTime;
+            if(progress > 0) {
+                n.appEl.style.transform = `scale(${1 + progress * 1.5})`;
+                n.appEl.style.opacity = 1 - progress;
+            }
+            if(elapsed > n.time + CONFIG.hitWindow) {
+                n.el.remove(); n.appEl.remove();
+                state.combo = 0; updateUI();
+                return false;
+            }
+            return true;
+        });
+        requestAnimationFrame(gameLoop);
+    }
+
+    function spawnNote(note) {
+        const cell = document.getElementById(`c-${note.cell}`);
+        if(!cell) return;
+        const el = document.createElement('div'); el.className = 'note';
+        const appEl = document.createElement('div'); appEl.className = 'approach';
+        cell.appendChild(el); cell.appendChild(appEl);
+        state.activeNotes.push({ ...note, el, appEl });
+    }
+
+    // 觸控處理
+    container.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        Array.from(e.changedTouches).forEach(t => {
+            const el = document.elementFromPoint(t.clientX, t.clientY);
+            if(el && el.classList.contains('cell')) {
+                const id = parseInt(el.id.split('-')[1]);
+                el.classList.add('active');
+                setTimeout(() => el.classList.remove('active'), 100);
+                
+                const now = performance.now() - state.startTime;
+                const hitIdx = state.activeNotes.findIndex(n => n.cell === id && Math.abs(now - n.time) < CONFIG.hitWindow);
+                if(hitIdx !== -1) {
+                    state.score += 500; state.combo++;
+                    state.activeNotes[hitIdx].el.remove();
+                    state.activeNotes[hitIdx].appEl.remove();
+                    state.activeNotes.splice(hitIdx, 1);
+                    updateUI();
+                }
+            }
+        });
+    });
+
+    function updateUI() {
+        document.getElementById('score').innerText = state.score.toString().padStart(6, '0');
+        document.getElementById('combo').innerText = state.combo;
+    }
+
+    init(); // 啟動加載程序
+</script>
+</body>
+</html>
