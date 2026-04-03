@@ -1,91 +1,65 @@
-// map.js - ヒミツ恋ゴコロ / CHiCO with HoneyWorks
-// 核心邏輯：有人聲對人聲，無人聲對鼓點/吉他，確保無感官空缺。
+// map.js - 彌渡山歌 (PHONK)
+// BPM: 128 (1拍 = 468ms, 1/2拍 = 234ms, 1/4拍 = 117ms)
 
 window.SONG_MAP = {
-    title: "ヒミツ恋ゴコロ",
-    videoId: "QymnTfHHC7c",
+    title: "彌渡山歌 (PHONK)",
+    videoId: "szKsD6tIpA0",
     notes: [
-        // --- [0:00 - 0:10] Intro (鋼琴+背景鼓) ---
-        {time: 0, cell: 0}, {time: 333, cell: 5}, {time: 666, cell: 10}, {time: 1000, cell: 15},
-        {time: 1333, cell: 3}, {time: 1666, cell: 6}, {time: 2000, cell: 9}, {time: 2333, cell: 12},
-        {time: 2666, cell: 5}, {time: 3000, cell: 10}, {time: 3333, cell: 6}, {time: 3666, cell: 9},
-        {time: 4000, cell: 0}, {time: 4333, cell: 1}, {time: 4666, cell: 2}, {time: 5000, cell: 3},
-        {time: 5333, cell: 7}, {time: 5666, cell: 11}, {time: 6000, cell: 15}, {time: 6333, cell: 14},
-        {time: 6666, cell: 13}, {time: 7000, cell: 12}, {time: 7333, cell: 8}, {time: 7666, cell: 4},
-        {time: 8000, cell: 5}, {time: 8333, cell: 10}, {time: 8666, cell: 6}, {time: 9000, cell: 9},
-        {time: 9333, cell: 0}, {time: 9666, cell: 15}, {time: 10000, cell: 3}, {time: 10333, cell: 12},
+        // --- [0:00 - 0:15] 前奏：低頻震動與氛圍 (預熱) ---
+        {time: 0, cell: 0}, {time: 468, cell: 5}, {time: 936, cell: 10}, {time: 1404, cell: 15},
+        {time: 1872, cell: 12}, {time: 2340, cell: 9}, {time: 2808, cell: 6}, {time: 3276, cell: 3},
+        {time: 3744, cell: 0}, {time: 4212, cell: 1}, {time: 4680, cell: 2}, {time: 5148, cell: 3},
+        {time: 5616, cell: 7}, {time: 6084, cell: 11}, {time: 6552, cell: 15}, {time: 7020, cell: 14},
+        {time: 7488, cell: 13}, {time: 7956, cell: 12}, {time: 8424, cell: 8}, {time: 8892, cell: 4},
+        {time: 9360, cell: 5}, {time: 9828, cell: 10}, {time: 10296, cell: 6}, {time: 10764, cell: 9},
+        {time: 11232, cell: 0}, {time: 11700, cell: 15}, {time: 12168, cell: 3}, {time: 12636, cell: 12},
+        {time: 13104, cell: 1}, {time: 13572, cell: 14}, {time: 14040, cell: 2}, {time: 14508, cell: 13},
 
-        // --- [0:10 - 0:21] 吉他切入 (補強鼓點) ---
-        {time: 10600, cell: 0}, {time: 10933, cell: 1}, {time: 11266, cell: 2}, {time: 11600, cell: 3},
-        {time: 11933, cell: 7}, {time: 12266, cell: 11}, {time: 12600, cell: 15}, {time: 12933, cell: 14},
-        {time: 13266, cell: 13}, {time: 13600, cell: 12}, {time: 13933, cell: 8}, {time: 14266, cell: 4},
-        {time: 14600, cell: 5}, {time: 14933, cell: 10}, {time: 15266, cell: 6}, {time: 15600, cell: 9},
-        {time: 16000, cell: 0}, {time: 16333, cell: 1}, {time: 16666, cell: 2}, {time: 17000, cell: 3},
-        {time: 17333, cell: 7}, {time: 17666, cell: 11}, {time: 18000, cell: 15}, {time: 18333, cell: 14},
-        {time: 18666, cell: 13}, {time: 19000, cell: 12}, {time: 19333, cell: 8}, {time: 19666, cell: 4},
-        {time: 20000, cell: 5}, {time: 20333, cell: 10}, {time: 20666, cell: 6}, {time: 21000, cell: 9},
+        // --- [0:15 - 0:30] 人聲切入：山對山來崖對崖 ---
+        {time: 15100, cell: 5}, {time: 15334, cell: 6}, {time: 15568, cell: 10}, {time: 15802, cell: 9},
+        {time: 16270, cell: 5}, {time: 16504, cell: 6}, {time: 16738, cell: 10}, {time: 16972, cell: 9},
+        {time: 17440, cell: 0}, {time: 17674, cell: 1}, {time: 17908, cell: 2}, {time: 18142, cell: 3},
+        {time: 18610, cell: 7}, {time: 18844, cell: 11}, {time: 19078, cell: 15}, {time: 19312, cell: 14},
+        {time: 19780, cell: 0}, {time: 20014, cell: 3}, {time: 20248, cell: 12}, {time: 20482, cell: 15},
+        {time: 20950, cell: 5}, {time: 21184, cell: 10}, {time: 21418, cell: 6}, {time: 21652, cell: 9},
+        {time: 22120, cell: 0}, {time: 22354, cell: 3}, {time: 22588, cell: 12}, {time: 22822, cell: 15},
+        {time: 23290, cell: 5}, {time: 23524, cell: 10}, {time: 23758, cell: 6}, {time: 23992, cell: 9},
+        {time: 24460, cell: 0}, {time: 24928, cell: 15}, {time: 25396, cell: 3}, {time: 25864, cell: 12},
+        {time: 26332, cell: 1}, {time: 26800, cell: 14}, {time: 27268, cell: 2}, {time: 27736, cell: 13},
+        {time: 28204, cell: 4}, {time: 28672, cell: 11}, {time: 29140, cell: 8}, {time: 29608, cell: 7},
 
-        // --- [0:21 - 0:42] A-Melody (人聲對位) ---
-        {time: 21200, cell: 1}, {time: 21533, cell: 2}, {time: 21866, cell: 5}, {time: 22200, cell: 6},
-        {time: 22533, cell: 10}, {time: 22866, cell: 9}, {time: 23200, cell: 5}, {time: 23533, cell: 6},
-        {time: 23866, cell: 0}, {time: 24200, cell: 1}, {time: 24533, cell: 2}, {time: 24866, cell: 3},
-        {time: 25200, cell: 7}, {time: 25533, cell: 11}, {time: 25866, cell: 15}, {time: 26200, cell: 14},
-        {time: 26533, cell: 13}, {time: 26866, cell: 12}, {time: 27200, cell: 8}, {time: 27533, cell: 4},
-        {time: 27866, cell: 5}, {time: 28200, cell: 10}, {time: 28533, cell: 6}, {time: 28866, cell: 9},
-        {time: 29200, cell: 0}, {time: 29533, cell: 1}, {time: 29866, cell: 2}, {time: 30200, cell: 3},
-        {time: 30533, cell: 7}, {time: 30866, cell: 11}, {time: 31200, cell: 15}, {time: 31533, cell: 14},
-        // 補齊 [0:32 - 0:42] 的空白
-        {time: 32000, cell: 5}, {time: 32333, cell: 10}, {time: 32666, cell: 6}, {time: 33000, cell: 9},
-        {time: 33333, cell: 1}, {time: 33666, cell: 2}, {time: 34000, cell: 13}, {time: 34333, cell: 14},
-        {time: 34666, cell: 0}, {time: 35000, cell: 3}, {time: 35333, cell: 12}, {time: 35666, cell: 15},
-        {time: 36000, cell: 5}, {time: 36333, cell: 6}, {time: 36666, cell: 10}, {time: 37000, cell: 9},
-        {time: 37333, cell: 0}, {time: 37666, cell: 3}, {time: 38000, cell: 12}, {time: 38333, cell: 15},
-        {time: 38666, cell: 5}, {time: 39000, cell: 10}, {time: 39333, cell: 6}, {time: 39666, cell: 9},
-        {time: 40000, cell: 1}, {time: 40333, cell: 13}, {time: 40666, cell: 2}, {time: 41000, cell: 14},
-        {time: 41333, cell: 5}, {time: 41666, cell: 10}, {time: 42000, cell: 6}, {time: 42333, cell: 9},
-
-        // --- [0:42 - 0:53] B-Melody (漸強段) ---
-        {time: 42600, cell: 5}, {time: 42933, cell: 6}, {time: 43266, cell: 10}, {time: 43600, cell: 9},
-        {time: 43933, cell: 5}, {time: 44266, cell: 6}, {time: 44600, cell: 10}, {time: 44933, cell: 9},
-        {time: 45266, cell: 0}, {time: 45600, cell: 1}, {time: 45933, cell: 2}, {time: 46266, cell: 3},
-        {time: 46600, cell: 7}, {time: 46933, cell: 11}, {time: 47266, cell: 15}, {time: 47600, cell: 14},
-        {time: 48000, cell: 0}, {time: 48333, cell: 3}, {time: 48666, cell: 12}, {time: 49000, cell: 15},
-        {time: 49333, cell: 5}, {time: 49666, cell: 10}, {time: 50000, cell: 6}, {time: 50333, cell: 9},
-        {time: 50666, cell: 0}, {time: 51000, cell: 3}, {time: 51333, cell: 12}, {time: 51666, cell: 15},
-        {time: 52000, cell: 5}, {time: 52333, cell: 10}, {time: 52666, cell: 6}, {time: 53000, cell: 9},
-        {time: 53333, cell: 0}, {time: 53666, cell: 15},
-
-        // --- [0:53 - 1:15] Chorus (副歌：全 8 分音符密集區) ---
-        // 這裡確保每 166-333ms 都有一個音符
-        {time: 53800, cell: 5}, {time: 54133, cell: 6}, {time: 54466, cell: 10}, {time: 54800, cell: 9},
-        {time: 55133, cell: 5}, {time: 55466, cell: 6}, {time: 55800, cell: 10}, {time: 56133, cell: 9},
-        {time: 56466, cell: 0}, {time: 56466, cell: 15}, {time: 56800, cell: 3}, {time: 56800, cell: 12},
-        {time: 57133, cell: 5}, {time: 57466, cell: 10}, {time: 57800, cell: 6}, {time: 58133, cell: 9},
-        {time: 58466, cell: 1}, {time: 58800, cell: 2}, {time: 59133, cell: 13}, {time: 59466, cell: 14},
-        {time: 59800, cell: 4}, {time: 60133, cell: 5}, {time: 60466, cell: 6}, {time: 60800, cell: 7},
-        {time: 61133, cell: 11}, {time: 61466, cell: 10}, {time: 61800, cell: 9}, {time: 62133, cell: 8},
-        {time: 62466, cell: 0}, {time: 62800, cell: 15}, {time: 63133, cell: 3}, {time: 63466, cell: 12},
-        // 補齊副歌後半段到間奏的銜接
-        {time: 64000, cell: 5}, {time: 64333, cell: 10}, {time: 64666, cell: 6}, {time: 65000, cell: 9},
-        {time: 65333, cell: 0}, {time: 65666, cell: 15}, {time: 66000, cell: 3}, {time: 66333, cell: 12},
-        {time: 66666, cell: 5}, {time: 67000, cell: 6}, {time: 67333, cell: 10}, {time: 67666, cell: 9},
-        {time: 68000, cell: 1}, {time: 68333, cell: 2}, {time: 68666, cell: 13}, {time: 69000, cell: 14},
-        {time: 69333, cell: 0}, {time: 69666, cell: 1}, {time: 70000, cell: 2}, {time: 70333, cell: 3},
-        {time: 70666, cell: 7}, {time: 71000, cell: 11}, {time: 71333, cell: 15}, {time: 71666, cell: 14},
-        {time: 72000, cell: 13}, {time: 72333, cell: 12}, {time: 72666, cell: 8}, {time: 73000, cell: 4},
-        {time: 73333, cell: 5}, {time: 73666, cell: 10}, {time: 74000, cell: 6}, {time: 74333, cell: 9},
-        {time: 74666, cell: 0}, {time: 75000, cell: 15},
-
-        // --- [1:15 - 3:39] 以下按此邏輯補完至結束，無空缺 ---
-        // (因篇幅限制，這裡展示關鍵的 Bridge 段對位，確保整曲流動性)
-        ...Array.from({length: 400}, (_, i) => {
-            const time = 75333 + (i * 333);
-            if (time > 215000) return null;
-            // 根據拍點變換位置，模擬 Jubeat 亂打感
-            const cell = [0, 5, 10, 15, 12, 9, 6, 3, 1, 4, 11, 14, 2, 7, 8, 13][i % 16];
-            return {time: Math.round(time), cell: cell};
+        // --- [0:30 - 0:58] 第一次大 Drop 段 (純鼓點對位) ---
+        // 這裡採用極密集的 8 分音符填充，保證打擊感
+        ...Array.from({length: 120}, (_, i) => {
+            const time = 30000 + (i * 234); // 每 0.23 秒一個音
+            if (time > 58000) return null;
+            // 模擬 Phonk 常見的「井字型」或「對角型」配置
+            const cells = [0, 15, 3, 12, 5, 10, 6, 9, 1, 14, 2, 13, 4, 11, 7, 8];
+            return {time: Math.round(time), cell: cells[i % 16]};
         }).filter(n => n !== null),
 
-        {time: 219000, isEndOfMap: true}
+        // --- [0:58 - 1:28] 第二次人聲段 (蜜蜂本為採花死...) ---
+        {time: 58500, cell: 0}, {time: 58734, cell: 5}, {time: 58968, cell: 10}, {time: 59202, cell: 15},
+        {time: 59670, cell: 3}, {time: 59904, cell: 6}, {time: 60138, cell: 9}, {time: 60372, cell: 12},
+        {time: 60840, cell: 1}, {time: 61074, cell: 2}, {time: 61308, cell: 13}, {time: 61542, cell: 14},
+        {time: 62010, cell: 4}, {time: 62244, cell: 7}, {time: 62478, cell: 8}, {time: 62712, cell: 11},
+        // 補齊 [1:03 - 1:28] 的鼓聲背景
+        ...Array.from({length: 100}, (_, i) => {
+            const time = 63180 + (i * 234);
+            if (time > 128000) return null;
+            const cells = [5, 10, 6, 9, 0, 15, 3, 12];
+            return {time: Math.round(time), cell: cells[i % 8]};
+        }).filter(n => n !== null),
+
+        // --- [1:28 - 2:00] 結尾加速段與 Outro ---
+        {time: 128500, cell: 0}, {time: 128617, cell: 1}, {time: 128734, cell: 2}, {time: 128851, cell: 3},
+        {time: 128968, cell: 7}, {time: 129085, cell: 11}, {time: 129202, cell: 15}, {time: 129319, cell: 14},
+        {time: 129436, cell: 13}, {time: 129553, cell: 12}, {time: 129670, cell: 8}, {time: 129787, cell: 4},
+        {time: 130000, cell: 5}, {time: 130234, cell: 10}, {time: 130468, cell: 6}, {time: 130702, cell: 9},
+        {time: 131170, cell: 0}, {time: 131404, cell: 15}, {time: 131638, cell: 3}, {time: 131872, cell: 12},
+        // 最後的氛圍聲，緩慢減少音符
+        {time: 135000, cell: 0}, {time: 140000, cell: 15}, {time: 145000, cell: 3}, {time: 150000, cell: 12},
+
+        {time: 155000, isEndOfMap: true}
     ]
 };
