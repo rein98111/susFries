@@ -3,12 +3,12 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>C321 捷運模擬器 Pro - LED Red Edition</title>
+    <title>C321 捷運模擬器 - 精準同步版</title>
     <style>
         :root {
             --door-color: #bdc3c7;
             --led-bg: #050505;
-            --led-red: #ff0000; /* 修改為純紅字 */
+            --led-red: #ff0000;
         }
 
         body {
@@ -23,7 +23,7 @@
             overflow: hidden;
         }
 
-        /* 模擬 LED 顯示器 */
+        /* LED 顯示器 */
         .led-display {
             width: 500px;
             height: 50px;
@@ -35,7 +35,6 @@
             position: relative;
             display: flex;
             align-items: center;
-            /* 模擬點陣屏的微弱網格背景 */
             background-image: radial-gradient(#111 1px, transparent 0);
             background-size: 3px 3px;
         }
@@ -44,13 +43,11 @@
             white-space: nowrap;
             position: absolute;
             color: var(--led-red);
-            /* 優先使用寬度一致的等寬點陣感字體 */
             font-family: 'MS Gothic', 'Courier New', 'DotGothic16', monospace;
             font-size: 24px;
             font-weight: bold;
-            letter-spacing: 2px; /* 增加字距模擬點陣感 */
-            animation: marquee 20s linear infinite;
-            /* 紅光發散效果 */
+            letter-spacing: 2px;
+            animation: marquee 25s linear infinite;
             text-shadow: 2px 0 8px rgba(255, 0, 0, 0.8), -2px 0 8px rgba(255, 0, 0, 0.8);
         }
 
@@ -77,11 +74,11 @@
             background-color: var(--door-color);
             border: 2px solid #7f8c8d;
             position: absolute;
-            transition: transform 2.2s cubic-bezier(0.45, 0, 0.55, 1); /* 調整為更像氣動門的平滑感 */
+            /* 調整：速度變慢至 3.5秒，並增加平滑曲線 */
+            transition: transform 3.5s cubic-bezier(0.4, 0, 0.2, 1);
             z-index: 2;
         }
 
-        /* 門縫線條 */
         .door::before {
             content: "";
             position: absolute;
@@ -93,7 +90,7 @@
         .left-door::before { right: 0; }
         .right-door::before { left: 0; }
 
-        .door::after { /* 窗戶 */
+        .door::after {
             content: "";
             position: absolute;
             top: 15%;
@@ -133,19 +130,19 @@
 
         button {
             padding: 15px 30px;
-            font-size: 18px;
+            font-size: 16px;
             cursor: pointer;
             border: none;
             border-radius: 8px;
             color: white;
             font-weight: bold;
-            box-shadow: 0 4px #999;
-            active: transform translateY(4px);
+            box-shadow: 0 4px #666;
+            transition: all 0.1s;
         }
 
         button:active {
             transform: translateY(2px);
-            box-shadow: 0 2px #666;
+            box-shadow: 0 2px #333;
         }
 
         .btn-open { background-color: #27ae60; }
@@ -157,7 +154,6 @@
 </head>
 <body>
 
-    <!-- LED 紅字跑馬燈 -->
     <div class="led-display">
         <div class="led-text">
             你好，為維護車廂乘客的權益，請勿在車廂內飲食、吸煙、嚼食口香糖或檳榔，謝謝。 
@@ -166,14 +162,12 @@
         </div>
     </div>
 
-    <!-- 車門主體 -->
     <div class="train-frame" id="door-frame">
         <div class="interior">往 淡水 Tamsui</div>
         <div class="door left-door"></div>
         <div class="door right-door"></div>
     </div>
 
-    <!-- 控制鈕 -->
     <div class="controls">
         <button class="btn-open" onclick="handleOpen()">開門 OPEN</button>
         <button class="btn-bell" onclick="handleBell()">發車鈴 CHIME</button>
@@ -203,9 +197,14 @@
 
         function handleOpen() {
             stopSounds();
-            doorFrame.classList.add('open');
+            // 音效先響
             playerOpen.seekTo(0);
             playerOpen.playVideo();
+            
+            // 延遲 2 秒後開門
+            setTimeout(() => {
+                doorFrame.classList.add('open');
+            }, 2000);
         }
 
         function handleBell() {
@@ -215,10 +214,17 @@
         }
 
         function handleClose() {
+            // 中斷發車鈴
             playerBell.stopVideo();
-            doorFrame.classList.remove('open');
+            
+            // 音效先響
             playerClose.seekTo(0);
             playerClose.playVideo();
+
+            // 延遲 1 秒後關門
+            setTimeout(() => {
+                doorFrame.classList.remove('open');
+            }, 1000);
         }
 
         function stopSounds() {
