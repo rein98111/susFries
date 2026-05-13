@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C321 捷運車門模擬器</title>
+    <style>
+        body {
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+            background-color: #2c3e50;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            color: white;
+        }
+
+        .simulator-container {
+            background-color: #34495e;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+            text-align: center;
+            width: 350px;
+        }
+
+        h2 { margin-bottom: 20px; color: #ecf0f1; }
+
+        .btn-group {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        button {
+            padding: 15px;
+            font-size: 18px;
+            font-weight: bold;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: transform 0.1s, background-color 0.3s;
+            color: white;
+        }
+
+        button:active { transform: scale(0.95); }
+
+        .btn-open { background-color: #27ae60; } /* 綠色 */
+        .btn-open:hover { background-color: #2ecc71; }
+
+        .btn-bell { background-color: #f1c40f; color: #2c3e50; } /* 黃色 */
+        .btn-bell:hover { background-color: #f39c12; }
+
+        .btn-close { background-color: #c0392b; } /* 紅色 */
+        .btn-close:hover { background-color: #e74c3c; }
+
+        /* 隱藏 YouTube 播放器 */
+        #player-container {
+            display: none;
+        }
+
+        .status-light {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background-color: #7f8c8d;
+            margin: 10px auto;
+            transition: background-color 0.3s;
+        }
+    </style>
+</head>
+<body>
+
+<div class="simulator-container">
+    <h2>C321 模擬器</h2>
+    <div id="status" class="status-light"></div>
+    
+    <div class="btn-group">
+        <button class="btn-open" onclick="playOpen()">開門 (Open)</button>
+        <button class="btn-bell" onclick="playBell()">發車鈴 (Chime)</button>
+        <button class="btn-close" onclick="playClose()">關門 (Close)</button>
+    </div>
+</div>
+
+<!-- YouTube API 容器 -->
+<div id="player-container">
+    <div id="player-open"></div>
+    <div id="player-bell"></div>
+    <div id="player-close"></div>
+</div>
+
+<script>
+    // 載入 YouTube IFrame API
+    var tag = document.createElement('script');
+    tag.src = "https://www.youtube.com/iframe_api";
+    var firstScriptTag = document.getElementsByTagName('script')[0];
+    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+    var playerOpen, playerBell, playerClose;
+
+    function onYouTubeIframeAPIReady() {
+        // 開門聲
+        playerOpen = new YT.Player('player-open', {
+            height: '0', width: '0',
+            videoId: '7GyaYHlSPtA',
+            playerVars: { 'autoplay': 0, 'controls': 0 }
+        });
+        // 發車鈴
+        playerBell = new YT.Player('player-bell', {
+            height: '0', width: '0',
+            videoId: '24qlKW-0iD8',
+            playerVars: { 'autoplay': 0, 'controls': 0 }
+        });
+        // 關門聲
+        playerClose = new YT.Player('player-close', {
+            height: '0', width: '0',
+            videoId: 'pMBrdICaAMQ',
+            playerVars: { 'autoplay': 0, 'controls': 0 }
+        });
+    }
+
+    const statusLight = document.getElementById('status');
+
+    function playOpen() {
+        stopAll();
+        playerOpen.seekTo(0);
+        playerOpen.playVideo();
+        statusLight.style.backgroundColor = '#27ae60';
+    }
+
+    function playBell() {
+        stopAll();
+        playerBell.seekTo(0);
+        playerBell.playVideo();
+        statusLight.style.backgroundColor = '#f1c40f';
+    }
+
+    function playClose() {
+        // 依照要求：按了關門就中斷發車鈴
+        playerBell.stopVideo();
+        
+        playerClose.seekTo(0);
+        playerClose.playVideo();
+        statusLight.style.backgroundColor = '#c0392b';
+    }
+
+    function stopAll() {
+        playerOpen.stopVideo();
+        playerBell.stopVideo();
+        playerClose.stopVideo();
+    }
+</script>
+
+</body>
+</html>
