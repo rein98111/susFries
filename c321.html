@@ -2,75 +2,72 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>C321 捷運模擬器 - 全螢幕旗艦版</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>C321 捷運模擬器 - 最終優化版</title>
     <style>
         :root {
             --door-color: #bdc3c7;
             --led-bg: #050505;
             --led-red: #ff0000;
-            --frame-color: #7f8c8d;
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; touch-action: manipulation; }
 
         body {
             font-family: "Microsoft JhengHei", sans-serif;
-            background-color: #000;
+            background-color: #1a1a1a;
             margin: 0;
             display: flex;
             flex-direction: column;
-            height: 100vh;
-            width: 100vw;
-            overflow: hidden;
             align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            color: white;
         }
 
-        /* LED 顯示器 - 寬度隨螢幕縮放 */
+        /* LED 顯示器 */
         .led-display {
-            width: 95%;
-            height: 8vh;
-            min-height: 50px;
+            width: 90%;
+            max-width: 500px;
+            height: 50px;
             background-color: var(--led-bg);
             border: 4px solid #333;
-            margin-top: 2vh;
+            margin-bottom: 20px;
             overflow: hidden;
             position: relative;
             display: flex;
             align-items: center;
             background-image: radial-gradient(#222 1px, transparent 0);
-            background-size: 4px 4px;
-            flex-shrink: 0;
+            background-size: 3px 3px;
         }
 
         .led-text {
             white-space: nowrap;
             position: absolute;
             color: var(--led-red);
-            font-family: 'MS Gothic', 'Courier New', monospace;
-            font-size: clamp(20px, 4vh, 32px);
+            font-family: 'MS Gothic', monospace;
+            font-size: 22px;
             font-weight: bold;
-            letter-spacing: 2px;
             animation: marquee 20s linear infinite;
-            text-shadow: 0 0 10px rgba(255, 0, 0, 0.9);
+            text-shadow: 0 0 8px red;
         }
 
         @keyframes marquee {
-            0% { transform: translateX(100vw); }
+            0% { transform: translateX(500px); }
             100% { transform: translateX(-100%); }
         }
 
-        /* 車門框架 - 填滿剩餘空間 */
+        /* 車門框架 */
         .train-frame {
-            flex-grow: 1;
-            width: 95%;
-            background-color: var(--frame-color);
+            width: 90%;
+            max-width: 450px;
+            aspect-ratio: 4 / 3;
+            background-color: #7f8c8d;
             border: 10px solid #95a5a6;
-            margin: 2vh 0;
             position: relative;
             overflow: hidden;
             display: flex;
-            box-shadow: inset 0 0 50px rgba(0,0,0,0.5);
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
         }
 
         .door {
@@ -80,95 +77,70 @@
             border: 1px solid #95a5a6;
             position: absolute;
             z-index: 2;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            transition: transform 0.1s linear; /* 基礎過渡，主要由 JS 動畫控制 */
         }
 
-        /* 門縫防夾條 */
         .door::before {
             content: "";
             position: absolute;
             top: 0;
-            width: 8px;
+            width: 6px;
             height: 100%;
-            background-color: #111; /* 橡膠條 */
+            background-color: #111;
         }
+
         .left-door { left: 0; transform: translateX(0); }
         .left-door::before { right: 0; }
         .right-door { right: 0; transform: translateX(0); }
         .right-door::before { left: 0; }
 
-        /* 車窗 */
         .window {
             width: 70%;
-            height: 50%;
+            height: 45%;
             background-color: #1a252f;
-            border: 4px solid #555;
-            border-radius: 10px;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
-        }
-
-        /* 開門動畫 */
-        .open .left-door { animation: openLeft 3.5s forwards cubic-bezier(0.4, 0, 0.2, 1); }
-        .open .right-door { animation: openRight 3.5s forwards cubic-bezier(0.4, 0, 0.2, 1); }
-        @keyframes openLeft { 100% { transform: translateX(-95%); } }
-        @keyframes openRight { 100% { transform: translateX(95%); } }
-
-        /* 關門動畫 - 停頓物理效果 */
-        .close-anim .left-door { animation: closeLeft 5s forwards; }
-        .close-anim .right-door { animation: closeRight 5s forwards; }
-
-        @keyframes closeLeft {
-            0% { transform: translateX(-95%); }
-            60% { transform: translateX(-6%); } 
-            80% { transform: translateX(-6%); } /* 瞬間停住 */
-            100% { transform: translateX(0); }
-        }
-        @keyframes closeRight {
-            0% { transform: translateX(95%); }
-            60% { transform: translateX(6%); }
-            80% { transform: translateX(6%); } /* 瞬間停住 */
-            100% { transform: translateX(0); }
+            border: 3px solid #555;
+            border-radius: 5px;
+            margin: 20% auto;
         }
 
         .interior {
             position: absolute; width: 100%; height: 100%;
-            background: linear-gradient(180deg, #bdc3c7 0%, #95a5a6 100%);
-            z-index: 1; display: flex; flex-direction: column;
-            justify-content: center; align-items: center;
-            color: #555; font-size: 24px; font-weight: bold;
+            background: #bdc3c7; z-index: 1;
+            display: flex; justify-content: center; align-items: center;
+            color: #7f8c8d; font-weight: bold; font-size: 1.2rem;
         }
 
-        /* 控制面板 - 置底 */
+        /* 控制面板 */
         .controls {
-            width: 100%;
-            padding: 20px;
-            background-color: #222;
-            display: flex;
-            justify-content: space-around;
+            margin-top: 30px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
             gap: 10px;
-            flex-shrink: 0;
+            width: 90%;
+            max-width: 450px;
         }
 
         button {
-            flex: 1;
-            padding: 20px 10px;
-            font-size: clamp(14px, 4vw, 20px);
+            padding: 15px 5px;
+            font-size: 14px;
             cursor: pointer;
             border: none;
-            border-radius: 12px;
+            border-radius: 8px;
             color: white;
             font-weight: bold;
-            box-shadow: 0 5px #000;
-            transition: 0.1s;
-            max-width: 250px;
+            box-shadow: 0 4px #000;
         }
 
-        button:active { transform: translateY(3px); box-shadow: 0 2px #000; }
+        button:active { transform: translateY(2px); box-shadow: 0 2px #000; }
         .btn-open { background-color: #27ae60; }
         .btn-bell { background-color: #f1c40f; color: black; }
         .btn-close { background-color: #c0392b; }
+
+        /* 動畫類別定義 */
+        .anim-open { transition: transform 3.5s cubic-bezier(0.4, 0, 0.2, 1) !important; }
+        .anim-close-phase1 { transition: transform 2.5s ease-in !important; }
+        .anim-close-phase2 { transition: transform 0.8s linear !important; } /* 停頓點 */
+        .anim-close-phase3 { transition: transform 1.2s ease-out !important; }
 
         #player-container { display: none; }
     </style>
@@ -178,18 +150,15 @@
     <div class="led-display">
         <div class="led-text">
             你好，為維護車廂乘客的權益，請勿在車廂內飲食、吸煙、嚼食口香糖或檳榔，謝謝。 
-            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+            &nbsp;&nbsp;&nbsp;&nbsp;
             To maintain the rights of passengers, smoking, eating, drinking, or chewing gum or betel nut is not allowed in the train. Thank you.
         </div>
     </div>
 
-    <div class="train-frame" id="door-frame">
-        <div class="interior">
-            <span style="font-size: 40px; margin-bottom: 10px;">淡水</span>
-            <span>Tamsui</span>
-        </div>
-        <div class="door left-door"><div class="window"></div></div>
-        <div class="door right-door"><div class="window"></div></div>
+    <div class="train-frame">
+        <div class="interior">往 淡水 Tamsui</div>
+        <div id="l-door" class="door left-door"><div class="window"></div></div>
+        <div id="r-door" class="door right-door"><div class="window"></div></div>
     </div>
 
     <div class="controls">
@@ -207,7 +176,8 @@
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
         var playerOpen, playerBell, playerClose;
-        const doorFrame = document.getElementById('door-frame');
+        const lDoor = document.getElementById('l-door');
+        const rDoor = document.getElementById('r-door');
 
         function onYouTubeIframeAPIReady() {
             playerOpen = new YT.Player('player-open', { videoId: '7GyaYHlSPtA', height: '0', width: '0' });
@@ -215,13 +185,23 @@
             playerClose = new YT.Player('player-close', { videoId: 'pMBrdICaAMQ', height: '0', width: '0' });
         }
 
+        function clearAnimClasses() {
+            lDoor.className = 'door left-door';
+            rDoor.className = 'door right-door';
+        }
+
         function handleOpen() {
             stopSounds();
-            doorFrame.classList.remove('close-anim', 'open');
-            void doorFrame.offsetWidth; // 強制重繪
             playerOpen.seekTo(0);
             playerOpen.playVideo();
-            setTimeout(() => { doorFrame.classList.add('open'); }, 1000);
+
+            setTimeout(() => {
+                clearAnimClasses();
+                lDoor.classList.add('anim-open');
+                rDoor.classList.add('anim-open');
+                lDoor.style.transform = 'translateX(-95%)';
+                rDoor.style.transform = 'translateX(95%)';
+            }, 1000);
         }
 
         function handleBell() {
@@ -234,15 +214,37 @@
             playerBell.stopVideo();
             playerClose.seekTo(0);
             playerClose.playVideo();
-            doorFrame.classList.remove('open');
-            setTimeout(() => { doorFrame.classList.add('close-anim'); }, 1000);
+
+            setTimeout(() => {
+                // 第一階段：快關
+                clearAnimClasses();
+                lDoor.classList.add('anim-close-phase1');
+                rDoor.classList.add('anim-close-phase1');
+                lDoor.style.transform = 'translateX(-8%)';
+                rDoor.style.transform = 'translateX(8%)';
+
+                // 第二階段：瞬間停住 (2.5秒後執行)
+                setTimeout(() => {
+                    clearAnimClasses();
+                    lDoor.classList.add('anim-close-phase2');
+                    rDoor.classList.add('anim-close-phase2');
+                    // 保持原位
+                    setTimeout(() => {
+                        // 第三階段：緩慢合攏 (0.8秒後執行)
+                        clearAnimClasses();
+                        lDoor.classList.add('anim-close-phase3');
+                        rDoor.classList.add('anim-close-phase3');
+                        lDoor.style.transform = 'translateX(0)';
+                        rDoor.style.transform = 'translateX(0)';
+                    }, 800);
+                }, 2500);
+            }, 1000);
         }
 
         function stopSounds() {
             playerOpen.stopVideo();
             playerBell.stopVideo();
             playerClose.stopVideo();
-            doorFrame.classList.remove('close-anim');
         }
     </script>
 </body>
