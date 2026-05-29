@@ -22,23 +22,22 @@
             width: 100%;
             height: 100%;
         }
-        
-        /* 【核心修改 1】直接對播放器本體以及容器限制：滑鼠移上去時，游標直接隱形，且不產生任何指針事件 */
-        #player {
+        iframe {
             width: 100%;
             height: calc(100% - 40px);
             border: none;
-            pointer-events: none; /* 徹底讓滑鼠無法與 YT 互動 */
         }
         
-        #video-area-wrapper {
+        /* 1% 黑色實體遮罩 */
+        #tv-glass-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: calc(100% - 40px);
-            cursor: none; /* 【終極大招】滑鼠移入影片區域時，游標直接隱形，YT 感受不到滑鼠晃動 */
-            z-index: 5;
+            z-index: 15; 
+            background: rgba(0, 0, 0, 0.01);
+            cursor: none;
         }
 
         /* 左上角播放資訊 */
@@ -46,9 +45,9 @@
             position: absolute;
             top: 25px;
             left: 25px;
-            z-index: 20;
+            z-index: 20; 
             color: #fff;
-            background: rgba(0, 0, 0, 0.6);
+            background: rgba(0, 0, 0, 0.75);
             padding: 12px 20px;
             border-radius: 6px;
             font-size: 1.2rem;
@@ -56,6 +55,7 @@
             pointer-events: none;
             transition: opacity 0.5s ease;
             letter-spacing: 1px;
+            border-left: 4px solid #ff3333;
         }
 
         /* 畫面中央的「點擊開啟聲音」提示蓋板 */
@@ -65,8 +65,8 @@
             left: 0;
             width: 100%;
             height: calc(100% - 40px);
-            background: rgba(0, 0, 0, 0.4);
-            z-index: 25; /* 最上層，用來接收第一次點擊 */
+            background: rgba(0, 0, 0, 0.6);
+            z-index: 25; 
             display: flex;
             justify-content: center;
             align-items: center;
@@ -74,7 +74,7 @@
             transition: opacity 0.5s ease;
         }
         .mute-hint-box {
-            background: rgba(255, 51, 85, 0.9);
+            background: #ff3355;
             color: white;
             padding: 15px 30px;
             border-radius: 30px;
@@ -97,7 +97,6 @@
             display: flex;
             align-items: center;
             z-index: 20;
-            cursor: default; /* 跑馬燈區域恢復正常鼠標 */
         }
         .marquee-content {
             display: inline-block;
@@ -132,7 +131,6 @@
             background: rgba(255, 255, 255, 0.4);
         }
 
-        /* 動畫效果 */
         @keyframes marquee {
             0% { transform: translate3d(0, 0, 0); }
             100% { transform: translate3d(-100%, 0, 0); }
@@ -147,9 +145,8 @@
 <body>
 
     <div id="video-container">
-        <div id="video-area-wrapper">
-            <div id="player"></div>
-        </div>
+        <div id="player"></div>
+        <div id="tv-glass-overlay"></div>
         
         <div id="ui-overlay">
             <span id="video-title">載入中...</span>
@@ -169,7 +166,7 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        const customMarqueeText = "歡迎收看專屬動漫頻道！ <span>【今日強檔】</span> 我們這一家、我家有個魚乾妹 連續馬拉松播放中！ <span>【廣告招租】</span> 歡迎各大廠商洽詢工商。 本網頁支援記憶續播功能，下次開啟自動播放下一集！";
+        const customMarqueeText = "歡迎收看專屬動漫頻道！ <span>【今日強檔】</span> 我們這一家、我家隔壁的魚乾妹 連續馬拉松播放中！ <span>【廣告招租】</span> 歡迎各大廠商洽詢工商。 本網頁支援記憶續播功能，下次開啟自動播放下一集！";
 
         const programList = [
             { id: 'ombIrb-S8BA', title: '我們這一家' },
@@ -213,16 +210,13 @@
         let isPlayingAd = false; 
         let uiTimeout; 
 
+        // 初始化：讀取進度（此處邏輯不變，單純負責載入上次進度）
         function initProgress() {
             document.getElementById('marquee-text').innerHTML = customMarqueeText;
 
             const savedIndex = localStorage.getItem('tv_program_index');
             if (savedIndex !== null) {
-                let nextIndex = parseInt(savedIndex) + 1;
-                if (nextIndex >= programList.length) {
-                    nextIndex = 0;
-                }
-                currentProgramIndex = nextIndex;
+                currentProgramIndex = parseInt(savedIndex) % programList.length;
             } else {
                 currentProgramIndex = 0;
             }
@@ -237,7 +231,7 @@
                 playerVars: {
                     'autoplay': 1,
                     'mute': 1,
-                    'controls': 0,        // 【核心修改 2】直接強制關閉 YT 所有的原生控制面板
+                    'controls': 0, 
                     'rel': 0,
                     'modestbranding': 1,
                     'iv_load_policy': 3,
@@ -250,7 +244,7 @@
                 }
             });
             
-            updateUI(currentVideo.title);
+            updateUI(`${currentVideo.title} (第 ${currentProgramIndex + 1}/${programList.length} 集)`);
         }
 
         function onPlayerReady(event) {
@@ -276,36 +270,42 @@
             }
         }
 
+        // 【核心時序修正】
         function playNext() {
             if (!isPlayingAd) {
+                // 1. 正片播完了 -> 「立刻」把正片指針推向下一 wholesome 集並儲存
                 isPlayingAd = true;
+                
+                // 先算出下一集是誰
+                currentProgramIndex++;
+                if (currentProgramIndex >= programList.length) {
+                    currentProgramIndex = 0; // 播完最後一集回到第一集
+                }
+                // 立刻儲存最新排班進度，這樣就算播廣告時斷電、刷新，下次進來也是播新的一集
+                localStorage.setItem('tv_program_index', currentProgramIndex);
+
+                // 接著抽隨機廣告播放
                 const randomIndex = Math.floor(Math.random() * adList.length);
                 const currentAd = adList[randomIndex];
                 
                 player.loadVideoById(currentAd.id);
-                updateUI(currentAd.title);
+                updateUI(`${currentAd.title} (隨機廣告破口)`);
                 
             } else {
+                // 2. 廣告播完了 -> 直接切換到剛剛已經排班好的 currentProgramIndex 正片
                 isPlayingAd = false;
                 const currentVideo = programList[currentProgramIndex];
                 
                 player.loadVideoById(currentVideo.id);
-                updateUI(currentVideo.title);
-                
-                localStorage.setItem('tv_program_index', currentProgramIndex);
-                
-                currentProgramIndex++;
-                if (currentProgramIndex >= programList.length) {
-                    currentProgramIndex = 0; 
-                }
+                updateUI(`${currentVideo.title} (第 ${currentProgramIndex + 1}/${programList.length} 集)`);
             }
         }
 
-        function updateUI(title) {
+        function updateUI(displayText) {
             const titleEl = document.getElementById('video-title');
             const overlay = document.getElementById('ui-overlay');
 
-            titleEl.innerText = `現在播放：${title}`;
+            titleEl.innerText = `現在播放：${displayText}`;
 
             clearTimeout(uiTimeout);
             overlay.style.opacity = "1";
