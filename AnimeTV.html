@@ -22,7 +22,6 @@
             width: 100%;
             height: 100%;
         }
-        /* 調整影片高度，留出底部給跑馬燈，確保不會遮擋 YT 控制列 */
         iframe {
             width: 100%;
             height: calc(100% - 40px);
@@ -46,7 +45,33 @@
             letter-spacing: 1px;
         }
 
-        /* 底部跑馬燈容器 */
+        /* 畫面中央的「點擊開啟聲音」提示蓋板 */
+        #mute-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 40px);
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 20;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            transition: opacity 0.5s ease;
+        }
+        .mute-hint-box {
+            background: rgba(255, 51, 85, 0.9);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 30px;
+            font-size: 1.3rem;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+            animation: pulse 1.5s infinite;
+        }
+
+        /* 底部跑馬燈 */
         #marquee-container {
             position: absolute;
             bottom: 0;
@@ -54,30 +79,28 @@
             width: 100%;
             height: 40px;
             background: rgba(20, 20, 20, 0.95);
-            border-top: 2px solid #ff3333; /* 電視台質感的紅色頂條 */
+            border-top: 2px solid #ff3333;
             overflow: hidden;
             display: flex;
             align-items: center;
             z-index: 10;
         }
-        /* 跑馬燈內容軌道 */
         .marquee-content {
             display: inline-block;
             white-space: nowrap;
-            padding-left: 100%; /* 從螢幕最右側外面開始跑 */
-            animation: marquee 25s linear infinite; /* 25秒跑完一輪，數字越小跑越快 */
+            padding-left: 100%;
+            animation: marquee 25s linear infinite;
             color: #ffffff;
             font-size: 1.1rem;
             font-weight: bold;
             letter-spacing: 2px;
         }
-        /* 跑馬燈中的重點文字顏色（可用 <span> 標註） */
         .marquee-content span {
             color: #ffcc00; 
             margin: 0 10px;
         }
 
-        /* 全螢幕按鈕調整位置，避免重疊 */
+        /* 全螢幕按鈕 */
         .btn-fullscreen {
             position: absolute;
             bottom: 60px;
@@ -95,10 +118,15 @@
             background: rgba(255, 255, 255, 0.4);
         }
 
-        /* CSS 跑馬燈動畫 */
+        /* 動畫效果 */
         @keyframes marquee {
             0% { transform: translate3d(0, 0, 0); }
             100% { transform: translate3d(-100%, 0, 0); }
+        }
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
         }
     </style>
 </head>
@@ -111,6 +139,10 @@
             <span id="video-title">載入中...</span>
         </div>
 
+        <div id="mute-overlay" onclick="unmuteTV()">
+            <div class="mute-hint-box"> can-play 📺 點擊畫面開啟電視聲音與全螢幕 </div>
+        </div>
+
         <div id="marquee-container">
             <div id="marquee-text" class="marquee-content">歡迎收看個人自訂電視台...</div>
         </div>
@@ -121,11 +153,8 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // ================= 自訂跑馬燈文字 =================
-        // 你可以在這裡自由修改想跑的文字，支援放入 HTML 標籤（如 <span> 讓字變黃色）
         const customMarqueeText = "歡迎收看專屬動漫頻道！ <span>【今日強檔】</span> 我們這一家、我家有個魚乾妹 連續馬拉松播放中！ <span>【廣告招租】</span> 歡迎各大廠商洽詢工商。 本網頁支援記憶續播功能，下次開啟自動播放下一集！";
 
-        // ================= 自訂節目表與廣告連結 =================
         const programList = [
             { id: 'ombIrb-S8BA', title: '我們這一家' },
             { id: 'jcHJ-gI6QA8', title: '我們這一家' },
@@ -162,16 +191,13 @@
             { id: 'LkxwwIyXJxE', title: '崩壞：星穹鐵道' },
             { id: 'AyQQZ37OPfU', title: '維他露P+' }
         ];
-        // ========================================================
 
         let player;
         let currentProgramIndex = 0;
         let isPlayingAd = false; 
         let uiTimeout; 
 
-        // 初始化跑馬燈文字與播放進度
         function initProgress() {
-            // 寫入自訂的跑馬燈文字
             document.getElementById('marquee-text').innerHTML = customMarqueeText;
 
             const savedIndex = localStorage.getItem('tv_program_index');
@@ -194,6 +220,7 @@
                 videoId: currentVideo.id,
                 playerVars: {
                     'autoplay': 1,
+                    'mute': 1,           // 【關鍵修改】預設靜音，這是確保瀏覽器允許 100% 自動播放的必要設定
                     'controls': 1,
                     'rel': 0,
                     'modestbranding': 1,
@@ -211,7 +238,23 @@
         }
 
         function onPlayerReady(event) {
-            event.target.playVideo();
+            event.target.playVideo(); // 這邊會直接在背景順暢地全自動播放
+        }
+
+        // 解除靜音並順便啟動全螢幕的函式
+        function unmuteTV() {
+            if (player && typeof player.unMute === 'function') {
+                player.unMute();     // 解除靜音
+                player.setVolume(50); // 設定預設音量為 50%
+                
+                // 隱藏中央提示蓋板
+                const overlay = document.getElementById('mute-overlay');
+                overlay.style.opacity = '0';
+                setTimeout(() => overlay.style.display = 'none', 500);
+
+                // 自動切換成全螢幕，讓看電視的儀式感拉滿！
+                enterFullScreen();
+            }
         }
 
         function onPlayerStateChange(event) {
@@ -259,10 +302,19 @@
             }, 5000);
         }
 
+        // 強制進入全螢幕
+        function enterFullScreen() {
+            const docEl = window.document.documentElement;
+            const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            if (requestFullScreen) {
+                requestFullScreen.call(docEl);
+            }
+        }
+
+        // 切換全螢幕按鈕（保留手動切換功能）
         function toggleFullScreen() {
             const doc = window.document;
             const docEl = doc.documentElement;
-
             const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
             const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
 
