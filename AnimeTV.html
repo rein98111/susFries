@@ -28,12 +28,25 @@
             border: none;
         }
         
+        /* 【關鍵修改】全螢幕完全透明的隱形遮罩 */
+        /* 擋在 YouTube 前面，讓鼠標移上去時無法觸發 YT 原生進度條 */
+        #tv-glass-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: calc(100% - 40px);
+            z-index: 15; /* 數字大於 player，小於 UI 提示 */
+            background: transparent; /* 完全透明 */
+            cursor: default;
+        }
+
         /* 左上角播放資訊 */
         #ui-overlay {
             position: absolute;
             top: 25px;
             left: 25px;
-            z-index: 10;
+            z-index: 20; /* 確保在隱形玻璃之上 */
             color: #fff;
             background: rgba(0, 0, 0, 0.6);
             padding: 12px 20px;
@@ -53,7 +66,7 @@
             width: 100%;
             height: calc(100% - 40px);
             background: rgba(0, 0, 0, 0.4);
-            z-index: 20;
+            z-index: 25; /* 最上層，點擊後會消失 */
             display: flex;
             justify-content: center;
             align-items: center;
@@ -83,7 +96,7 @@
             overflow: hidden;
             display: flex;
             align-items: center;
-            z-index: 10;
+            z-index: 20;
         }
         .marquee-content {
             display: inline-block;
@@ -105,7 +118,7 @@
             position: absolute;
             bottom: 60px;
             right: 20px;
-            z-index: 10;
+            z-index: 20;
             padding: 10px 15px;
             background: rgba(255, 255, 255, 0.2);
             color: white;
@@ -135,12 +148,14 @@
     <div id="video-container">
         <div id="player"></div>
         
+        <div id="tv-glass-overlay"></div>
+        
         <div id="ui-overlay">
             <span id="video-title">載入中...</span>
         </div>
 
         <div id="mute-overlay" onclick="unmuteTV()">
-            <div class="mute-hint-box"> can-play 📺 點擊畫面開啟電視聲音與全螢幕 </div>
+            <div class="mute-hint-box">📺 點擊畫面開啟電視聲音與全螢幕</div>
         </div>
 
         <div id="marquee-container">
@@ -220,7 +235,7 @@
                 videoId: currentVideo.id,
                 playerVars: {
                     'autoplay': 1,
-                    'mute': 1,           // 【關鍵修改】預設靜音，這是確保瀏覽器允許 100% 自動播放的必要設定
+                    'mute': 1,           // 預設靜音以利自動播放
                     'controls': 1,
                     'rel': 0,
                     'modestbranding': 1,
@@ -238,21 +253,19 @@
         }
 
         function onPlayerReady(event) {
-            event.target.playVideo(); // 這邊會直接在背景順暢地全自動播放
+            event.target.playVideo();
         }
 
-        // 解除靜音並順便啟動全螢幕的函式
+        // 解除靜音、關閉提示、進入全螢幕
         function unmuteTV() {
             if (player && typeof player.unMute === 'function') {
-                player.unMute();     // 解除靜音
-                player.setVolume(50); // 設定預設音量為 50%
+                player.unMute();     
+                player.setVolume(50); 
                 
-                // 隱藏中央提示蓋板
                 const overlay = document.getElementById('mute-overlay');
                 overlay.style.opacity = '0';
                 setTimeout(() => overlay.style.display = 'none', 500);
 
-                // 自動切換成全螢幕，讓看電視的儀式感拉滿！
                 enterFullScreen();
             }
         }
@@ -302,7 +315,6 @@
             }, 5000);
         }
 
-        // 強制進入全螢幕
         function enterFullScreen() {
             const docEl = window.document.documentElement;
             const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
@@ -311,7 +323,6 @@
             }
         }
 
-        // 切換全螢幕按鈕（保留手動切換功能）
         function toggleFullScreen() {
             const doc = window.document;
             const docEl = doc.documentElement;
