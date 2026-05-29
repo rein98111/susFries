@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>模擬電視台 Simulator</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body, html {
+            width: 100%;
+            height: 100%;
+            background-color: #000;
+            overflow: hidden;
+            font-family: "Microsoft JhengHei", Arial, sans-serif;
+        }
+        #video-container {
+            position: relative;
+            width: 100%;
+            height: 100%;
+        }
+        /* 調整影片高度，留出底部給跑馬燈，確保不會遮擋 YT 控制列 */
+        iframe {
+            width: 100%;
+            height: calc(100% - 40px);
+            border: none;
+        }
+        
+        /* 左上角播放資訊 */
+        #ui-overlay {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            z-index: 10;
+            color: #fff;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 12px 20px;
+            border-radius: 6px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            pointer-events: none;
+            transition: opacity 0.5s ease;
+            letter-spacing: 1px;
+        }
+
+        /* 底部跑馬燈容器 */
+        #marquee-container {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 40px;
+            background: rgba(20, 20, 20, 0.95);
+            border-top: 2px solid #ff3333; /* 電視台質感的紅色頂條 */
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            z-index: 10;
+        }
+        /* 跑馬燈內容軌道 */
+        .marquee-content {
+            display: inline-block;
+            white-space: nowrap;
+            padding-left: 100%; /* 從螢幕最右側外面開始跑 */
+            animation: marquee 25s linear infinite; /* 25秒跑完一輪，數字越小跑越快 */
+            color: #ffffff;
+            font-size: 1.1rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+        /* 跑馬燈中的重點文字顏色（可用 <span> 標註） */
+        .marquee-content span {
+            color: #ffcc00; 
+            margin: 0 10px;
+        }
+
+        /* 全螢幕按鈕調整位置，避免重疊 */
+        .btn-fullscreen {
+            position: absolute;
+            bottom: 60px;
+            right: 20px;
+            z-index: 10;
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid #fff;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.3s;
+        }
+        .btn-fullscreen:hover {
+            background: rgba(255, 255, 255, 0.4);
+        }
+
+        /* CSS 跑馬燈動畫 */
+        @keyframes marquee {
+            0% { transform: translate3d(0, 0, 0); }
+            100% { transform: translate3d(-100%, 0, 0); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="video-container">
+        <div id="player"></div>
+        
+        <div id="ui-overlay">
+            <span id="video-title">載入中...</span>
+        </div>
+
+        <div id="marquee-container">
+            <div id="marquee-text" class="marquee-content">歡迎收看個人自訂電視台...</div>
+        </div>
+
+        <button class="btn-fullscreen" onclick="toggleFullScreen()">切換全螢幕</button>
+    </div>
+
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        // ================= 自訂跑馬燈文字 =================
+        // 你可以在這裡自由修改想跑的文字，支援放入 HTML 標籤（如 <span> 讓字變黃色）
+        const customMarqueeText = "歡迎收看專屬動漫頻道！ <span>【今日強檔】</span> 我們這一家、我家有個魚乾妹 連續馬拉松播放中！ <span>【廣告招租】</span> 歡迎各大廠商洽詢工商。 本網頁支援記憶續播功能，下次開啟自動播放下一集！";
+
+        // ================= 自訂節目表與廣告連結 =================
+        const programList = [
+            { id: 'ombIrb-S8BA', title: '我們這一家' },
+            { id: 'jcHJ-gI6QA8', title: '我們這一家' },
+            { id: 'Uj_zlIr3sGM', title: '我家有個魚乾妹' },
+            { id: 'IDclXJgqaqw', title: '我家有個魚乾妹' },
+            { id: 'mfe2DUbarXM', title: '我家有個魚乾妹' },
+            { id: 'opc7PdVqaqg', title: '我家有個魚乾妹' },
+            { id: 'rCwGxXscJT0', title: '我家有個魚乾妹' },
+            { id: 'WDUlPpM55hc', title: '我家有個魚乾妹' },
+            { id: 'sBvxWZjyW2M', title: '新我們這一家' },
+            { id: '3Ywp5U-H_A8', title: '新我們這一家' },
+            { id: 'Po4nOBbTyQU', title: '我家有個魚乾妹' },
+            { id: '3LfGA29BTdY', title: '我家有個魚乾妹' },
+            { id: 'LC_BTd5NFiE', title: '我家有個魚乾妹' },
+            { id: 'ev-4zvnjSqw', title: '我家有個魚乾妹' },
+            { id: '6Wo9lJu-PtM', title: '我家有個魚乾妹' },
+            { id: '80c4wBJwbN4', title: '我家有個魚乾妹' },
+            { id: 'YOi2TP1rY30', title: '我們這一家' },
+            { id: 'Gp_wDSfyDJw', title: '我們這一家' }
+        ];
+
+        const adList = [
+            { id: 'R435z0xeEHo', title: 'NTE' },
+            { id: 'QavLBFVBQeE', title: 'Estella' },
+            { id: 'Z-dKaljWczc', title: '才女のお世話' },
+            { id: 'IV70efSGbPc', title: '緞帶英雄' },
+            { id: 'xlYkUeVnsd0', title: 'NTE' },
+            { id: 'N2LdhOe7onQ', title: '保莉達び魔力補給飲料' },
+            { id: 'orJGumjCC7o', title: 'NTE' },
+            { id: 'TJXSiIESLyc', title: '絕區零' },
+            { id: 'Lmy9TdnkIJo', title: '鳴潮' },
+            { id: '2dMctUEBHY4', title: '崩壞：星穹鐵道' },
+            { id: 'XuQSD1hrNhg', title: '崩壞：星穹鐵道' },
+            { id: 'LkxwwIyXJxE', title: '崩壞：星穹鐵道' },
+            { id: 'AyQQZ37OPfU', title: '維他露P+' }
+        ];
+        // ========================================================
+
+        let player;
+        let currentProgramIndex = 0;
+        let isPlayingAd = false; 
+        let uiTimeout; 
+
+        // 初始化跑馬燈文字與播放進度
+        function initProgress() {
+            // 寫入自訂的跑馬燈文字
+            document.getElementById('marquee-text').innerHTML = customMarqueeText;
+
+            const savedIndex = localStorage.getItem('tv_program_index');
+            if (savedIndex !== null) {
+                let nextIndex = parseInt(savedIndex) + 1;
+                if (nextIndex >= programList.length) {
+                    nextIndex = 0;
+                }
+                currentProgramIndex = nextIndex;
+            } else {
+                currentProgramIndex = 0;
+            }
+        }
+
+        function onYouTubeIframeAPIReady() {
+            initProgress();
+            const currentVideo = programList[currentProgramIndex];
+
+            player = new YT.Player('player', {
+                videoId: currentVideo.id,
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 1,
+                    'rel': 0,
+                    'modestbranding': 1,
+                    'iv_load_policy': 3,
+                    'cc_load_policy': 0,
+                    'fs': 0
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+            
+            updateUI(currentVideo.title);
+        }
+
+        function onPlayerReady(event) {
+            event.target.playVideo();
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                playNext();
+            }
+        }
+
+        function playNext() {
+            if (!isPlayingAd) {
+                isPlayingAd = true;
+                const randomIndex = Math.floor(Math.random() * adList.length);
+                const currentAd = adList[randomIndex];
+                
+                player.loadVideoById(currentAd.id);
+                updateUI(currentAd.title);
+                
+            } else {
+                isPlayingAd = false;
+                const currentVideo = programList[currentProgramIndex];
+                
+                player.loadVideoById(currentVideo.id);
+                updateUI(currentVideo.title);
+                
+                localStorage.setItem('tv_program_index', currentProgramIndex);
+                
+                currentProgramIndex++;
+                if (currentProgramIndex >= programList.length) {
+                    currentProgramIndex = 0; 
+                }
+            }
+        }
+
+        function updateUI(title) {
+            const titleEl = document.getElementById('video-title');
+            const overlay = document.getElementById('ui-overlay');
+
+            titleEl.innerText = `現在播放：${title}`;
+
+            clearTimeout(uiTimeout);
+            overlay.style.opacity = "1";
+
+            uiTimeout = setTimeout(() => {
+                overlay.style.opacity = "0"; 
+            }, 5000);
+        }
+
+        function toggleFullScreen() {
+            const doc = window.document;
+            const docEl = doc.documentElement;
+
+            const requestFullScreen = docEl.requestFullscreen || docEl.mozRequestFullScreen || docEl.webkitRequestFullScreen || docEl.msRequestFullscreen;
+            const cancelFullScreen = doc.exitFullscreen || doc.mozCancelFullScreen || doc.webkitExitFullscreen || doc.msExitFullscreen;
+
+            if (!doc.fullscreenElement && !doc.mozFullScreenElement && !doc.webkitFullscreenElement && !doc.msFullscreenElement) {
+                requestFullScreen.call(docEl);
+            } else {
+                cancelFullScreen.call(doc);
+            }
+        }
+    </script>
+</body>
+</html>
