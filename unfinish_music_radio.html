@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="zh-TW" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UNFINISH Music Radio</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Inter & Outfit -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Outfit', 'Noto Sans TC', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            accent: '#8b5cf6',
+                            glow: 'rgba(139, 92, 246, 0.4)',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 6s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    
+    <style>
+        /* Glassmorphism Styles */
+        .glass-panel {
+            background: rgba(18, 18, 24, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4);
+        }
+        
+        .glass-btn {
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .glass-btn:hover {
+            background: rgba(255, 255, 255, 0.2);
+            border-color: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        .glass-btn:active {
+            transform: translateY(0);
+        }
+
+        /* Custom Range Input */
+        input[type="range"] {
+            -webkit-appearance: none;
+            appearance: none;
+            background: transparent;
+            cursor: pointer;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            background: rgba(255, 255, 255, 0.2);
+            height: 4px;
+            border-radius: 2px;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            margin-top: -6px;
+            background-color: #ffffff;
+            height: 16px;
+            width: 16px;
+            border-radius: 50%;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.8);
+            transition: transform 0.1s ease;
+        }
+
+        input[type="range"]::-webkit-slider-thumb:hover {
+            transform: scale(1.2);
+        }
+
+        /* Ambient Glow Effect */
+        .glow-effect {
+            box-shadow: 0 0 35px -5px rgba(139, 92, 246, 0.3);
+        }
+        
+        /* Hide YouTube API Container completely */
+        #youtube-player-container {
+            position: absolute;
+            top: -9999px;
+            left: -9999px;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            pointer-events: none;
+        }
+    </style>
+</head>
+<body class="h-full bg-black text-white font-sans overflow-hidden select-none">
+
+    <!-- Fullscreen Video Background -->
+    <div class="fixed inset-0 w-full h-full overflow-hidden z-0">
+        <!-- Main video element -->
+        <video id="bg-video" autoplay loop muted playsinline class="object-cover w-full h-full scale-105 transition-transform duration-1000">
+            <source src="loop.mp4" type="video/mp4">
+            <!-- Fallback background image if video fails to load -->
+            Your browser does not support HTML5 video.
+        </video>
+        <!-- Dark Overlay Gradient -->
+        <div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-black/60 pointer-events-none"></div>
+    </div>
+
+    <!-- Hidden YouTube API Embed Player -->
+    <div id="youtube-player-container">
+        <div id="yt-player"></div>
+    </div>
+
+    <!-- Main UI Layout Container -->
+    <div class="relative z-10 flex flex-col justify-between h-full p-6 md:p-10 max-w-7xl mx-auto">
+        
+        <!-- Top Header Navigation -->
+        <header class="flex justify-between items-center w-full">
+            <div class="flex items-center space-x-3">
+                <div class="w-3 h-3 rounded-full bg-purple-500 animate-pulse"></div>
+                <h1 class="text-xl md:text-2xl font-bold tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-white via-gray-200 to-purple-300">
+                    UNFINISH <span class="font-light text-purple-400">Music Radio</span>
+                </h1>
+            </div>
+
+            <!-- Header Action Controls -->
+            <div class="flex items-center space-x-3">
+                <button id="toggle-visuals-btn" title="切換背景視覺效果" class="glass-btn w-10 h-10 rounded-full flex items-center justify-center text-sm text-gray-300 hover:text-white">
+                    <i class="fa-solid fa-eye"></i>
+                </button>
+                <button id="fullscreen-btn" title="全螢幕" class="glass-btn w-10 h-10 rounded-full flex items-center justify-center text-sm text-gray-300 hover:text-white">
+                    <i class="fa-solid fa-expand"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Overlay Start Screen (Required for Audio Autoplay policy) -->
+        <div id="start-overlay" class="absolute inset-0 z-50 flex flex-col items-center justify-center bg-black/70 backdrop-blur-md transition-opacity duration-700">
+            <div class="text-center space-y-6 max-w-md px-6">
+                <div class="w-20 h-20 mx-auto rounded-full bg-purple-600/20 border border-purple-500/40 flex items-center justify-center text-purple-400 text-3xl animate-pulse-slow">
+                    <i class="fa-solid fa-radio"></i>
+                </div>
+                <div>
+                    <h2 class="text-3xl font-bold tracking-wide text-white mb-2">UNFINISH Radio</h2>
+                    <p class="text-gray-400 text-sm">隨機播放無間斷 Lofi / Chill 音樂電台</p>
+                </div>
+                <button id="start-btn" class="w-full py-4 px-8 rounded-2xl bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-semibold shadow-lg shadow-purple-600/30 transition-all duration-300 transform hover:scale-105 active:scale-95 flex items-center justify-center space-x-3">
+                    <i class="fa-solid fa-play"></i>
+                    <span>開啟 Chill 音樂之旅</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Middle-Bottom Music Player UI Container -->
+        <main class="w-full max-w-2xl mx-auto my-auto md:my-0 md:mb-8 transition-all duration-500" id="player-card">
+            <div class="glass-panel glow-effect rounded-3xl p-6 md:p-8 space-y-5">
+                
+                <!-- Song Metadata Display -->
+                <div class="flex items-center space-x-4">
+                    <!-- Album / Audio Animation Icon -->
+                    <div class="relative w-14 h-14 md:w-16 md:h-16 rounded-2xl bg-purple-950/60 border border-purple-500/30 flex items-center justify-center overflow-hidden shrink-0">
+                        <div id="playing-bars" class="flex items-end justify-center space-x-1 h-6 w-8 opacity-50">
+                            <span class="w-1 bg-purple-400 rounded-full h-2 transition-all duration-300"></span>
+                            <span class="w-1 bg-purple-400 rounded-full h-5 transition-all duration-300"></span>
+                            <span class="w-1 bg-purple-400 rounded-full h-3 transition-all duration-300"></span>
+                            <span class="w-1 bg-purple-400 rounded-full h-4 transition-all duration-300"></span>
+                        </div>
+                    </div>
+
+                    <!-- Song Title & Channel Info -->
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center space-x-2">
+                            <span id="badge-live" class="px-2 py-0.5 text-[10px] font-bold tracking-widest uppercase bg-purple-500/20 text-purple-300 border border-purple-500/30 rounded-md">RADIO</span>
+                            <span id="status-text" class="text-xs text-gray-400">正在準備播放...</span>
+                        </div>
+                        <h2 id="song-title" class="text-lg md:text-xl font-bold truncate text-white mt-1">
+                            載入播放清單中...
+                        </h2>
+                    </div>
+                </div>
+
+                <!-- Progress Bar & Duration Info -->
+                <div class="space-y-2">
+                    <div class="relative w-full h-2 bg-white/10 rounded-full overflow-hidden cursor-pointer group" id="progress-container">
+                        <div id="progress-bar" class="h-full bg-gradient-to-r from-purple-500 to-indigo-400 rounded-full w-0 transition-all duration-200"></div>
+                    </div>
+                    <div class="flex justify-between text-xs text-gray-400 font-mono">
+                        <span id="current-time">00:00</span>
+                        <span id="duration-time">00:00</span>
+                    </div>
+                </div>
+
+                <!-- Player Controls Row -->
+                <div class="flex items-center justify-between pt-2">
+                    <!-- Left: Shuffle / Repeat status -->
+                    <button id="shuffle-btn" title="隨機模式 (預設開啟)" class="glass-btn w-10 h-10 rounded-xl text-purple-400 flex items-center justify-center">
+                        <i class="fa-solid fa-shuffle text-sm"></i>
+                    </button>
+
+                    <!-- Center: Playback Buttons -->
+                    <div class="flex items-center space-x-4">
+                        <button id="prev-btn" title="上一首" class="glass-btn w-11 h-11 rounded-2xl flex items-center justify-center text-gray-200 hover:text-white">
+                            <i class="fa-solid fa-backward-step"></i>
+                        </button>
+                        
+                        <button id="play-pause-btn" title="播放 / 暫停" class="w-14 h-14 rounded-2xl bg-white text-black hover:bg-gray-200 flex items-center justify-center shadow-lg transition-all duration-200 transform hover:scale-105 active:scale-95">
+                            <i id="play-icon" class="fa-solid fa-play text-lg ml-0.5"></i>
+                        </button>
+
+                        <button id="next-btn" title="下一首" class="glass-btn w-11 h-11 rounded-2xl flex items-center justify-center text-gray-200 hover:text-white">
+                            <i class="fa-solid fa-forward-step"></i>
+                        </button>
+                    </div>
+
+                    <!-- Right: Volume Slider Popover/Toggle -->
+                    <div class="flex items-center space-x-2 group relative">
+                        <button id="mute-btn" title="靜音" class="glass-btn w-10 h-10 rounded-xl text-gray-300 flex items-center justify-center hover:text-white">
+                            <i id="volume-icon" class="fa-solid fa-volume-high text-sm"></i>
+                        </button>
+                        <div class="w-20 md:w-24">
+                            <input type="range" id="volume-slider" min="0" max="100" value="80" class="w-full">
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Bottom Minimal Footer -->
+        <footer class="flex justify-between items-center text-xs text-gray-400 font-light pt-4">
+            <p>© UNFINISH Radio • Continuous Lo-Fi Beats</p>
+            <p class="hidden sm:block">Press <kbd class="px-1.5 py-0.5 text-[10px] bg-white/10 rounded border border-white/20">Space</kbd> to Play/Pause</p>
+        </footer>
+
+    </div>
+
+    <script>
+        // Playlist Configuration
+        const PLAYLIST_ID = 'RDEMSnknokAxXSABZmvX2Dlxsw';
+        const DEFAULT_VIDEO_ID = 'gSowyBF6mD0';
+
+        // DOM Elements
+        const bgVideo = document.getElementById('bg-video');
+        const startOverlay = document.getElementById('start-overlay');
+        const startBtn = document.getElementById('start-btn');
+        const playPauseBtn = document.getElementById('play-pause-btn');
+        const playIcon = document.getElementById('play-icon');
+        const prevBtn = document.getElementById('prev-btn');
+        const nextBtn = document.getElementById('next-btn');
+        const shuffleBtn = document.getElementById('shuffle-btn');
+        const songTitleEl = document.getElementById('song-title');
+        const statusTextEl = document.getElementById('status-text');
+        const currentTimeEl = document.getElementById('current-time');
+        const durationTimeEl = document.getElementById('duration-time');
+        const progressBar = document.getElementById('progress-bar');
+        const progressContainer = document.getElementById('progress-container');
+        const volumeSlider = document.getElementById('volume-slider');
+        const muteBtn = document.getElementById('mute-btn');
+        const volumeIcon = document.getElementById('volume-icon');
+        const playingBars = document.getElementById('playing-bars');
+        const toggleVisualsBtn = document.getElementById('toggle-visuals-btn');
+        const playerCard = document.getElementById('player-card');
+        const fullscreenBtn = document.getElementById('fullscreen-btn');
+
+        // State Variables
+        let player = null;
+        let isPlaying = false;
+        let isMuted = false;
+        let previousVolume = 80;
+        let updateTimer = null;
+        let isShuffleActive = true;
+
+        // Load YouTube IFrame Player API asynchronously
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        // Called automatically when YouTube API is ready
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('yt-player', {
+                height: '100',
+                width: '100',
+                playerVars: {
+                    'listType': 'playlist',
+                    'list': PLAYLIST_ID,
+                    'autoplay': 0,
+                    'controls': 0,
+                    'disablekb': 1,
+                    'fs': 0,
+                    'modestbranding': 1,
+                    'rel': 0
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange,
+                    'onError': onPlayerError
+                }
+            });
+        }
+
+        // YouTube Player Ready Event
+        function onPlayerReady(event) {
+            statusTextEl.textContent = '準備就緒';
+            // Enable shuffle mode by default
+            player.setShuffle(true);
+            // Loop playlist continuous
+            player.setLoop(true);
+            
+            // Set initial volume
+            player.setVolume(volumeSlider.value);
+        }
+
+        // YouTube Player State Change Handler
+        function onPlayerStateChange(event) {
+            // YT.PlayerState: PLAYING (1), PAUSED (2), BUFFERING (3), CUED (5)
+            if (event.data === YT.PlayerState.PLAYING) {
+                isPlaying = true;
+                updatePlayButtonUI(true);
+                updateSongDetails();
+                startProgressTimer();
+                animatePlayingBars(true);
+                statusTextEl.textContent = '正在播放';
+            } else if (event.data === YT.PlayerState.PAUSED) {
+                isPlaying = false;
+                updatePlayButtonUI(false);
+                stopProgressTimer();
+                animatePlayingBars(false);
+                statusTextEl.textContent = '已暫停';
+            } else if (event.data === YT.PlayerState.BUFFERING) {
+                statusTextEl.textContent = '載入中...';
+            } else if (event.data === YT.PlayerState.ENDED) {
+                // Auto play next song when current finishes
+                player.nextVideo();
+            }
+        }
+
+        function onPlayerError(event) {
+            console.warn('YouTube Player error code:', event.data);
+            statusTextEl.textContent = '載入錯誤，自動跳下一首';
+            setTimeout(() => {
+                if (player) player.nextVideo();
+            }, 1000);
+        }
+
+        // Start playing radio playlist
+        function startRadio() {
+            if (!player) return;
+
+            // Fade out overlay
+            startOverlay.classList.add('opacity-0', 'pointer-events-none');
+            setTimeout(() => {
+                startOverlay.style.display = 'none';
+            }, 700);
+
+            // Play video background
+            if (bgVideo) {
+                bgVideo.play().catch(e => console.log('Video play blocked:', e));
+            }
+
+            // Shuffle playlist and start video
+            player.setShuffle(true);
+            // Play first random track in the shuffled playlist
+            player.playVideoAt(0);
+        }
+
+        // Toggle Play / Pause
+        function togglePlayPause() {
+            if (!player) return;
+            if (isPlaying) {
+                player.pauseVideo();
+            } else {
+                player.playVideo();
+            }
+        }
+
+        // Update Play Button Graphic
+        function updatePlayButtonUI(playing) {
+            if (playing) {
+                playIcon.className = 'fa-solid fa-pause text-lg';
+            } else {
+                playIcon.className = 'fa-solid fa-play text-lg ml-0.5';
+            }
+        }
+
+        // Equalizer Animation Toggle
+        function animatePlayingBars(active) {
+            const bars = playingBars.querySelectorAll('span');
+            if (active) {
+                playingBars.classList.remove('opacity-50');
+                bars.forEach((bar, idx) => {
+                    bar.style.animation = `pulse 0.8s ease-in-out infinite alternate ${idx * 0.2}s`;
+                });
+            } else {
+                playingBars.classList.add('opacity-50');
+                bars.forEach(bar => {
+                    bar.style.animation = 'none';
+                });
+            }
+        }
+
+        // Format Seconds to MM:SS
+        function formatTime(seconds) {
+            if (isNaN(seconds) || seconds === null) return "00:00";
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins < 10 ? '0' : ''}${mins}:${secs < 10 ? '0' : ''}${secs}`;
+        }
+
+        // Update Song Metadata from YouTube Video Data
+        function updateSongDetails() {
+            if (!player || !player.getVideoData) return;
+            
+            const videoData = player.getVideoData();
+            if (videoData && videoData.title) {
+                songTitleEl.textContent = videoData.title;
+            } else {
+                songTitleEl.textContent = "UNFINISH Radio Station";
+            }
+        }
+
+        // Update Progress Bar & Times
+        function updateProgress() {
+            if (!player || !player.getCurrentTime) return;
+
+            const currentTime = player.getCurrentTime() || 0;
+            const duration = player.getDuration() || 0;
+
+            currentTimeEl.textContent = formatTime(currentTime);
+            durationTimeEl.textContent = formatTime(duration);
+
+            if (duration > 0) {
+                const percent = (currentTime / duration) * 100;
+                progressBar.style.width = `${percent}%`;
+            }
+        }
+
+        function startProgressTimer() {
+            stopProgressTimer();
+            updateTimer = setInterval(updateProgress, 500);
+        }
+
+        function stopProgressTimer() {
+            if (updateTimer) clearInterval(updateTimer);
+        }
+
+        // Event Listeners setup
+        startBtn.addEventListener('click', startRadio);
+
+        playPauseBtn.addEventListener('click', togglePlayPause);
+
+        prevBtn.addEventListener('click', () => {
+            if (player) player.previousVideo();
+        });
+
+        nextBtn.addEventListener('click', () => {
+            if (player) player.nextVideo();
+        });
+
+        shuffleBtn.addEventListener('click', () => {
+            isShuffleActive = !isShuffleActive;
+            if (player) player.setShuffle(isShuffleActive);
+            if (isShuffleActive) {
+                shuffleBtn.classList.add('text-purple-400');
+                shuffleBtn.classList.remove('text-gray-400');
+            } else {
+                shuffleBtn.classList.remove('text-purple-400');
+                shuffleBtn.classList.add('text-gray-400');
+            }
+        });
+
+        // Seek Bar Click Event
+        progressContainer.addEventListener('click', (e) => {
+            if (!player || !player.getDuration) return;
+            const rect = progressContainer.getBoundingClientRect();
+            const clickPosition = (e.clientX - rect.left) / rect.width;
+            const targetTime = clickPosition * player.getDuration();
+            player.seekTo(targetTime, true);
+        });
+
+        // Volume Control
+        volumeSlider.addEventListener('input', (e) => {
+            const val = e.target.value;
+            if (player) player.setVolume(val);
+            
+            if (val == 0) {
+                volumeIcon.className = 'fa-solid fa-volume-xmark text-sm';
+            } else if (val < 50) {
+                volumeIcon.className = 'fa-solid fa-volume-low text-sm';
+            } else {
+                volumeIcon.className = 'fa-solid fa-volume-high text-sm';
+            }
+        });
+
+        muteBtn.addEventListener('click', () => {
+            if (!player) return;
+            if (isMuted) {
+                player.unMute();
+                volumeSlider.value = previousVolume;
+                volumeIcon.className = 'fa-solid fa-volume-high text-sm';
+                isMuted = false;
+            } else {
+                previousVolume = volumeSlider.value;
+                player.mute();
+                volumeSlider.value = 0;
+                volumeIcon.className = 'fa-solid fa-volume-xmark text-sm';
+                isMuted = true;
+            }
+        });
+
+        // Toggle UI Visibility (Cinematic View)
+        let isUiVisible = true;
+        toggleVisualsBtn.addEventListener('click', () => {
+            isUiVisible = !isUiVisible;
+            if (isUiVisible) {
+                playerCard.classList.remove('opacity-0', 'pointer-events-none', 'translate-y-4');
+                toggleVisualsBtn.innerHTML = '<i class="fa-solid fa-eye"></i>';
+            } else {
+                playerCard.classList.add('opacity-0', 'pointer-events-none', 'translate-y-4');
+                toggleVisualsBtn.innerHTML = '<i class="fa-solid fa-eye-slash"></i>';
+            }
+        });
+
+        // Fullscreen Toggle
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.error(`Error attempting to enable fullscreen: ${err.message}`);
+                });
+                fullscreenBtn.innerHTML = '<i class="fa-solid fa-compress"></i>';
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                    fullscreenBtn.innerHTML = '<i class="fa-solid fa-expand"></i>';
+                }
+            }
+        });
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            // Ignore shortcut if user is typing in input
+            if (e.target.tagName === 'INPUT') return;
+
+            if (e.code === 'Space') {
+                e.preventDefault();
+                togglePlayPause();
+            } else if (e.code === 'ArrowRight') {
+                if (player) player.nextVideo();
+            } else if (e.code === 'ArrowLeft') {
+                if (player) player.previousVideo();
+            }
+        });
+
+        // Video Error Handling - Fallback if loop.mp4 fails to load
+        bgVideo.addEventListener('error', () => {
+            console.warn("Background video loop.mp4 not found or failed to load. Applying styled fallback gradient.");
+            bgVideo.style.display = 'none';
+            document.body.classList.add('bg-gradient-to-br', 'from-purple-950', 'via-black', 'to-slate-950');
+        });
+    </script>
+</body>
+</html>
