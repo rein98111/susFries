@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>系統鎖定 - 請輸入密碼</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body, html {
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .lock-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.4);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .lock-card {
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            padding: 40px;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+            text-align: center;
+            color: #fff;
+            width: 320px;
+        }
+
+        .lock-card h2 {
+            margin-bottom: 20px;
+            font-size: 24px;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            color: #fff;
+            font-size: 18px;
+            text-align: center;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .input-group input:focus {
+            background: rgba(255, 255, 255, 0.3);
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+
+        button {
+            width: 100%;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            background: linear-gradient(to right, #00c6ff, #0072ff);
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+        }
+
+        .error-message {
+            color: #ff4d4d;
+            font-size: 14px;
+            margin-top: 15px;
+            min-height: 20px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="lock-overlay">
+        <div class="lock-card">
+            <h2>🔒 系統已鎖定</h2>
+            <div class="input-group">
+                <input type="password" id="passwordInput" placeholder="請輸入密碼" autofocus autocomplete="off">
+            </div>
+            <button id="submitBtn">驗證並前往 Google</button>
+            <div class="error-message" id="errorMsg"></div>
+        </div>
+    </div>
+
+    <script>
+        // 「071638」的 SHA-256 哈希值
+        const PASSWORD_HASH = "2472d880be2ae0f8d1eb18ca53fdf538cce8d0bd4f8fb251ee415bb615e47da3";
+
+        // 計算 SHA-256 的輔助函式
+        async function sha256(str) {
+            const buffer = new TextEncoder().encode(str);
+            const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
+            const hashArray = Array.from(new Uint8Array(hashBuffer));
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        }
+
+        const passwordInput = document.getElementById("passwordInput");
+        const errorMsg = document.getElementById("errorMsg");
+        const submitBtn = document.getElementById("submitBtn");
+
+        async function checkPassword() {
+            const inputVal = passwordInput.value;
+            const inputHash = await sha256(inputVal);
+
+            if (inputHash === PASSWORD_HASH) {
+                errorMsg.style.color = "#4dff88";
+                errorMsg.innerText = "驗證成功！導向中...";
+                
+                // 開啟 Google 新分頁
+                window.open("https://www.google.com", "_blank");
+                
+                // 清空輸入框
+                passwordInput.value = "";
+            } else {
+                errorMsg.style.color = "#ff4d4d";
+                errorMsg.innerText = "密碼錯誤！";
+                passwordInput.value = "";
+                passwordInput.focus();
+            }
+        }
+
+        submitBtn.addEventListener("click", checkPassword);
+
+        passwordInput.addEventListener("keypress", function(e) {
+            if (e.key === "Enter") {
+                checkPassword();
+            }
+        });
+
+        // 鎖定效果：禁用右鍵
+        document.addEventListener('contextmenu', e => e.preventDefault());
+
+        // 鎖定效果：點擊空白處強制對焦密碼框
+        document.addEventListener('click', function(e) {
+            if (e.target !== passwordInput && e.target !== submitBtn) {
+                passwordInput.focus();
+            }
+        });
+    </script>
+</body>
+</html>
