@@ -103,7 +103,7 @@
 </head>
 <body>
 
-    <div class="lock-overlay">
+    <div class="lock-overlay" id="overlay">
         <div class="lock-card">
             <h2>🔒 系統已鎖定</h2>
             <div class="input-group">
@@ -115,39 +115,61 @@
     </div>
 
     <script>
-        // 「071638」的 SHA-256 哈希值
-        const PASSWORD_HASH = "2472d880be2ae0f8d1eb18ca53fdf538cce8d0bd4f8fb251ee415bb615e47da3";
+        // 「071638」的加密哈希值[cite: 1]
+        const TARGET_HASH = "2472d880be2ae0f8d1eb18ca53fdf538cce8d0bd4f8fb251ee415bb615e47da3";
 
-        // 計算 SHA-256 的輔助函式
         async function sha256(str) {
             const buffer = new TextEncoder().encode(str);
             const hashBuffer = await crypto.subtle.digest('SHA-256', buffer);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
-            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+            return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').toLowerCase();
         }
 
         const passwordInput = document.getElementById("passwordInput");
         const errorMsg = document.getElementById("errorMsg");
         const submitBtn = document.getElementById("submitBtn");
 
-        async function checkPassword() {
-            const inputVal = passwordInput.value;
-            const inputHash = await sha256(inputVal);
+        // 全螢幕觸發函式
+        function goFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(() => {});
+            }
+        }
 
-            if (inputHash === PASSWORD_HASH) {
-                errorMsg.style.color = "#4dff88";
-                errorMsg.innerText = "驗證成功！導向中...";
-                
-                // 開啟 Google 新分頁
-                window.open("https://www.google.com", "_blank");
-                
-                // 清空輸入框
-                passwordInput.value = "";
-            } else {
-                errorMsg.style.color = "#ff4d4d";
-                errorMsg.innerText = "密碼錯誤！";
-                passwordInput.value = "";
-                passwordInput.focus();
+        async function checkPassword() {
+            goFullscreen(); // 點擊時嘗試進入全螢幕
+
+            const inputVal = passwordInput.value.trim();
+            if (!inputVal) return;
+
+            try {
+                const inputHash = await sha256(inputVal);
+
+                if (inputHash === TARGET_HASH) {
+                    errorMsg.style.color = "#4dff88";
+                    errorMsg.innerText = "驗證成功！導向中...";
+
+                    // 嘗試開啟新分頁，若被瀏覽器阻擋則直接在當前頁面轉址到 Google
+                    const newWin = window.open("https://www.google.com", "_blank");
+                    if (!newWin || newWin.closed || typeof newWin.closed === 'undefined') {
+                        window.location.href = "https://www.google.com";
+                    }
+
+                    passwordInput.value = "";
+                } else {
+                    errorMsg.style.color = "#ff4d4d";
+                    errorMsg.innerText = "密碼錯誤！";
+                    passwordInput.value = "";
+                    passwordInput.focus();
+                }
+            } catch (err) {
+                // 相容性保底備案
+                if (inputVal === "071638") {
+                    window.location.href = "https://www.google.com";
+                } else {
+                    errorMsg.style.color = "#ff4d4d";
+                    errorMsg.innerText = "密碼錯誤！";
+                }
             }
         }
 
@@ -159,15 +181,16 @@
             }
         });
 
-        // 鎖定效果：禁用右鍵
-        document.addEventListener('contextmenu', e => e.preventDefault());
-
-        // 鎖定效果：點擊空白處強制對焦密碼框
+        // 鎖定效果：第一次點擊頁面任意區域即請求進入全螢幕
         document.addEventListener('click', function(e) {
+            goFullscreen();
             if (e.target !== passwordInput && e.target !== submitBtn) {
                 passwordInput.focus();
             }
         });
+
+        // 鎖定效果：禁用右鍵[cite: 1]
+        document.addEventListener('contextmenu', e => e.preventDefault());
     </script>
 </body>
 </html>
