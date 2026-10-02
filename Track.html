@@ -125,10 +125,10 @@
         const btnHorn = document.getElementById('btn-horn');
 
         // --- 音效預載 ---
-        const signalAudio = new Audio('方向燈.mp3');
+        const signalAudio = new Audio('signal.mp3');
         signalAudio.loop = true;
 
-        const hornAudio = new Audio('喇叭.mp3');
+        const hornAudio = new Audio('horn.mp3');
         hornAudio.loop = false;
 
         signalAudio.addEventListener('canplaythrough', () => STATE.useCustomSignal = true);
