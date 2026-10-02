@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>卡車模組</title>
+
+    <!-- iOS 專用 PWA 強制全螢幕與圖示設定 -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="卡車模組">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@700&display=swap" rel="stylesheet">
+
+    <style>
+        * {
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #000000;
+            color: #ffffff;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            overflow: hidden;
+            /* 適應 iOS 瀏海與底部安全區域 */
+            padding-top: env(safe-area-inset-top);
+            padding-bottom: env(safe-area-inset-bottom);
+            padding-left: env(safe-area-inset-left);
+            padding-right: env(safe-area-inset-right);
+        }
+
+        /* 簡潔清晰的數字字體 */
+        .speed-font {
+            font-family: 'Chakra Petch', sans-serif;
+            font-weight: 700;
+        }
+
+        /* 方向燈閃爍動畫 */
+        @keyframes blink-signal {
+            0%, 49% {
+                opacity: 1;
+                filter: drop-shadow(0 0 25px #22c55e);
+                color: #22c55e;
+            }
+            50%, 100% {
+                opacity: 0.15;
+                filter: none;
+                color: #15803d;
+            }
+        }
+
+        .signal-active {
+            animation: blink-signal 0.7s infinite;
+        }
+
+        /* 大型按鈕點擊微反饋 */
+        .touch-btn:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="h-[100dvh] w-screen flex flex-col justify-between p-6 bg-black">
+
+    <!-- 首次點擊以解鎖手機音效與 GPS 權限的全螢幕遮罩 -->
+    <div id="start-overlay" class="fixed inset-0 bg-black z-50 flex items-center justify-center p-6">
+        <button id="start-btn" class="w-full max-w-xs py-10 bg-emerald-600 active:bg-emerald-500 text-white font-bold text-3xl rounded-3xl shadow-2xl tracking-wider border-2 border-emerald-400">
+            點擊啟動
+        </button>
+    </div>
+
+    <!-- 主介面網格佈局 (上中：時速表，左/右：大綠三角形，中下：喇叭) -->
+    <main class="w-full h-full flex flex-col justify-between items-center py-4">
+
+        <!-- 1. 中上：簡潔時速表 -->
+        <div class="w-full flex flex-col items-center justify-center mt-2">
+            <div class="flex items-baseline justify-center">
+                <span id="speed-display" class="speed-font text-8xl sm:text-9xl text-amber-500 tracking-tight">00</span>
+                <span class="speed-font text-2xl text-amber-500/80 ml-2">km/h</span>
+            </div>
+        </div>
+
+        <!-- 2. 中間：左右兩側綠色大三角形方向燈 -->
+        <div class="w-full flex justify-between items-center px-2 my-auto">
+            <!-- 左方向燈按鈕 (綠色大三角形 ◄) -->
+            <button id="btn-left" class="touch-btn w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center text-emerald-800 transition">
+                <i class="fa-solid fa-caret-left text-[110px] sm:text-[140px]"></i>
+            </button>
+
+            <!-- 右方向燈按鈕 (綠色大三角形 ►) -->
+            <button id="btn-right" class="touch-btn w-36 h-36 sm:w-44 sm:h-44 flex items-center justify-center text-emerald-800 transition">
+                <i class="fa-solid fa-caret-right text-[110px] sm:text-[140px]"></i>
+            </button>
+        </div>
+
+        <!-- 3. 中下：大型喇叭按鈕 -->
+        <div class="w-full flex justify-center mb-4">
+            <button id="btn-horn" class="touch-btn w-full max-w-xs h-32 bg-amber-500 active:bg-amber-400 text-black rounded-3xl flex items-center justify-center shadow-lg border-2 border-amber-300">
+                <i class="fa-solid fa-bullhorn text-6xl"></i>
+            </button>
+        </div>
+
+    </main>
+
+    <script>
+        // --- 狀態管理 ---
+        const STATE = {
+            left: false,
+            right: false,
+            audioCtx: null,
+            useCustomSignal: false,
+            useCustomHorn: false
+        };
+
+        // --- DOM 元素 ---
+        const startOverlay = document.getElementById('start-overlay');
+        const startBtn = document.getElementById('start-btn');
+        const speedDisplay = document.getElementById('speed-display');
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+        const btnHorn = document.getElementById('btn-horn');
+
+        // --- 音效預載 ---
+        const signalAudio = new Audio('方向燈.mp3');
+        signalAudio.loop = true;
+
+        const hornAudio = new Audio('喇叭.mp3');
+        hornAudio.loop = false;
+
+        signalAudio.addEventListener('canplaythrough', () => STATE.useCustomSignal = true);
+        hornAudio.addEventListener('canplaythrough', () => STATE.useCustomHorn = true);
+
+        // --- Web Audio API 音效備援 (若無 MP3 檔案) ---
+        let signalInterval = null;
+        let relayHigh = true;
+
+        function initAudio() {
+            if (!STATE.audioCtx) {
+                STATE.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (STATE.audioCtx.state === 'suspended') {
+                STATE.audioCtx.resume();
+            }
+        }
+
+        // 繼電器滴答聲 (方向燈)
+        function playRelayClick() {
+            if (!STATE.audioCtx) return;
+            const osc = STATE.audioCtx.createOscillator();
+            const gain = STATE.audioCtx.createGain();
+
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(relayHigh ? 1100 : 750, STATE.audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(80, STATE.audioCtx.currentTime + 0.03);
+
+            gain.gain.setValueAtTime(0.3, STATE.audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.001, STATE.audioCtx.currentTime + 0.03);
+
+            osc.connect(gain);
+            gain.connect(STATE.audioCtx.destination);
+
+            osc.start();
+            osc.stop(STATE.audioCtx.currentTime + 0.035);
+
+            relayHigh = !relayHigh;
+        }
+
+        // 卡車氣喇叭聲 (喇叭)
+        function playSynthHorn() {
+            if (!STATE.audioCtx) return;
+            const now = STATE.audioCtx.currentTime;
+            const osc1 = STATE.audioCtx.createOscillator();
+            const osc2 = STATE.audioCtx.createOscillator();
+            const gain = STATE.audioCtx.createGain();
+
+            osc1.type = 'sawtooth';
+            osc2.type = 'sawtooth';
+
+            osc1.frequency.setValueAtTime(180, now);
+            osc2.frequency.setValueAtTime(225, now);
+
+            gain.gain.setValueAtTime(0, now);
+            gain.gain.linearRampToValueAtTime(0.6, now + 0.04);
+            gain.gain.setValueAtTime(0.6, now + 0.5);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.65);
+
+            osc1.connect(gain);
+            osc2.connect(gain);
+            gain.connect(STATE.audioCtx.destination);
+
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 0.65);
+            osc2.stop(now + 0.65);
+        }
+
+        // --- 方向燈邏輯 ---
+        function startSignalSound() {
+            if (STATE.useCustomSignal) {
+                signalAudio.currentTime = 0;
+                signalAudio.play().catch(() => {});
+            } else {
+                if (signalInterval) clearInterval(signalInterval);
+                playRelayClick();
+                signalInterval = setInterval(playRelayClick, 350);
+            }
+        }
+
+        function stopSignalSound() {
+            if (STATE.useCustomSignal) {
+                signalAudio.pause();
+                signalAudio.currentTime = 0;
+            }
+            if (signalInterval) {
+                clearInterval(signalInterval);
+                signalInterval = null;
+            }
+        }
+
+        function updateSignals() {
+            btnLeft.classList.remove('signal-active');
+            btnRight.classList.remove('signal-active');
+
+            let isAnyActive = false;
+
+            if (STATE.left) {
+                btnLeft.classList.add('signal-active');
+                isAnyActive = true;
+            } else if (STATE.right) {
+                btnRight.classList.add('signal-active');
+                isAnyActive = true;
+            }
+
+            if (isAnyActive) {
+                startSignalSound();
+            } else {
+                stopSignalSound();
+            }
+        }
+
+        function toggleLeft() {
+            initAudio();
+            STATE.left = !STATE.left;
+            if (STATE.left) STATE.right = false;
+            updateSignals();
+        }
+
+        function toggleRight() {
+            initAudio();
+            STATE.right = !STATE.right;
+            if (STATE.right) STATE.left = false;
+            updateSignals();
+        }
+
+        function triggerHorn() {
+            initAudio();
+            if (STATE.useCustomHorn) {
+                hornAudio.currentTime = 0;
+                hornAudio.play().catch(() => {});
+            } else {
+                playSynthHorn();
+            }
+        }
+
+        // --- 地理位置 (GPS) 車速監聽 ---
+        function initGPS() {
+            if ("geolocation" in navigator) {
+                navigator.geolocation.watchPosition(
+                    (pos) => {
+                        const mps = pos.coords.speed;
+                        if (mps !== null && !isNaN(mps) && mps >= 0) {
+                            const kmh = Math.round(mps * 3.6);
+                            speedDisplay.textContent = String(kmh).padStart(2, '0');
+                        } else {
+                            speedDisplay.textContent = "00";
+                        }
+                    },
+                    (err) => {
+                        speedDisplay.textContent = "00";
+                    },
+                    {
+                        enableHighAccuracy: true,
+                        maximumAge: 1000,
+                        timeout: 5000
+                    }
+                );
+            } else {
+                speedDisplay.textContent = "00";
+            }
+        }
+
+        // --- 事件綁定 ---
+        startBtn.addEventListener('click', () => {
+            initAudio();
+            initGPS();
+            startOverlay.classList.add('hidden');
+        });
+
+        btnLeft.addEventListener('click', toggleLeft);
+        btnRight.addEventListener('click', toggleRight);
+        btnHorn.addEventListener('click', triggerHorn);
+    </script>
+</body>
+</html>
