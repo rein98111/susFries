@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Announcements & Updates</title>
+  <style>
+    :root {
+      --bg: #0f1115;
+      --surface: #181b21;
+      --surface-hover: #1f232b;
+      --border: #2a2f3a;
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-hover: #0284c7;
+      --tag-bg: rgba(56, 189, 248, 0.12);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC", sans-serif;
+      background-color: var(--bg);
+      color: var(--text-main);
+      line-height: 1.6;
+      padding: 24px 16px;
+    }
+
+    .container {
+      max-width: 820px;
+      margin: 0 auto;
+    }
+
+    header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding-bottom: 16px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    header h1 {
+      font-size: 1.35rem;
+      font-weight: 700;
+      letter-spacing: 0.03em;
+    }
+
+    .btn {
+      background: var(--surface);
+      color: var(--text-main);
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 6px;
+      font-size: 0.875rem;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .btn:hover { background: var(--surface-hover); border-color: var(--text-muted); }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #090d16;
+      border: none;
+      font-weight: 600;
+    }
+
+    .btn-primary:hover { background: var(--accent-hover); color: #fff; }
+    .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    /* 發文面板 */
+    #editor-panel {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      margin-bottom: 28px;
+    }
+
+    #editor-panel.active { display: block; }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 140px 1fr;
+      gap: 12px;
+      margin-bottom: 12px;
+    }
+
+    input, select, textarea {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      color: var(--text-main);
+      padding: 10px 12px;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-family: inherit;
+    }
+
+    input:focus, select:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+
+    textarea {
+      min-height: 110px;
+      resize: vertical;
+      margin-bottom: 12px;
+    }
+
+    .editor-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .editor-footer input { max-width: 220px; }
+
+    /* 文章列表 */
+    .post-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .post-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 20px;
+      transition: border-color 0.15s ease;
+    }
+
+    .post-card:hover { border-color: #3b4252; }
+
+    .post-meta {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .post-tag {
+      background: var(--tag-bg);
+      color: var(--accent);
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+    }
+
+    .post-title {
+      font-size: 1.125rem;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-main);
+    }
+
+    .post-content {
+      font-size: 0.925rem;
+      color: #cbd5e1;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .status-msg {
+      text-align: center;
+      color: var(--text-muted);
+      padding: 40px 0;
+      font-size: 0.9rem;
+    }
+
+    @media (max-width: 600px) {
+      .form-row { grid-template-columns: 1fr; }
+      .editor-footer { flex-direction: column; align-items: stretch; }
+      .editor-footer input { max-width: 100%; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <h1>ANNOUNCEMENTS & LOGS</h1>
+    <button class="btn" id="toggle-editor-btn">新增公告</button>
+  </header>
+
+  <!-- 發文編輯區 -->
+  <section id="editor-panel">
+    <div class="form-row">
+      <select id="post-tag">
+        <option value="公告">公告</option>
+        <option value="更新日誌">更新日誌</option>
+        <option value="隨筆">隨筆</option>
+        <option value="重要">重要</option>
+      </select>
+      <input type="text" id="post-title" placeholder="輸入文章或公告標題..." required>
+    </div>
+    <textarea id="post-content" placeholder="輸入內文（支援直接換行）..."></textarea>
+    <div class="editor-footer">
+      <input type="password" id="admin-pass" placeholder="輸入管理密碼">
+      <div style="display: flex; gap: 8px;">
+        <button class="btn" id="cancel-btn">取消</button>
+        <button class="btn btn-primary" id="submit-btn">一鍵發布</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- 列表顯示區 -->
+  <main id="post-container" class="post-list">
+    <div class="status-msg">載入資料中...</div>
+  </main>
+</div>
+
+<script>
+  // 請替換成你的 Google Apps Script 網頁應用程式網址
+  const GAS_URL = "https://script.google.com/macros/s/AKfycbwCd-pr-MwFAjf6Vbh9vr2OrQfKeZiSZ-_qe-yOXxFgBRZX_hgYS0kM3K8T72WZEeSp/exec";
+
+  const toggleBtn = document.getElementById('toggle-editor-btn');
+  const cancelBtn = document.getElementById('cancel-btn');
+  const editorPanel = document.getElementById('editor-panel');
+  const submitBtn = document.getElementById('submit-btn');
+  const postContainer = document.getElementById('post-container');
+
+  // 切換發文面板
+  toggleBtn.addEventListener('click', () => {
+    editorPanel.classList.toggle('active');
+    if (editorPanel.classList.contains('active')) {
+      document.getElementById('post-title').focus();
+    }
+  });
+
+  cancelBtn.addEventListener('click', () => {
+    editorPanel.classList.remove('active');
+  });
+
+  // 防止 XSS 攻擊的字串跳脫
+  function escapeHTML(str) {
+    return String(str).replace(/[&<>'"]/g, tag => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[tag]));
+  }
+
+  // 讀取文章列表
+  async function loadPosts() {
+    try {
+      const res = await fetch(GAS_URL);
+      const posts = await res.json();
+
+      if (!posts || posts.length === 0) {
+        postContainer.innerHTML = '<div class="status-msg">目前尚無任何公告。</div>';
+        return;
+      }
+
+      postContainer.innerHTML = posts.map(post => `
+        <article class="post-card">
+          <div class="post-meta">
+            <span class="post-tag">${escapeHTML(post.tag)}</span>
+            <time>${escapeHTML(post.date)}</time>
+          </div>
+          <h2 class="post-title">${escapeHTML(post.title)}</h2>
+          <div class="post-content">${escapeHTML(post.content)}</div>
+        </article>
+      `).join('');
+    } catch (err) {
+      postContainer.innerHTML = '<div class="status-msg">無法載入資料，請確認 GAS 網址與權限設定。</div>';
+    }
+  }
+
+  // 送出新文章
+  submitBtn.addEventListener('click', async () => {
+    const tag = document.getElementById('post-tag').value;
+    const title = document.getElementById('post-title').value.trim();
+    const content = document.getElementById('post-content').value.trim();
+    const password = document.getElementById('admin-pass').value;
+
+    if (!title || !content || !password) {
+      alert('請填寫標題、內文與管理密碼');
+      return;
+    }
+
+    submitBtn.disabled = true;
+    submitBtn.textContent = '發布中...';
+
+    try {
+      // 使用 text/plain 避免觸發瀏覽器的 CORS Preflight (OPTIONS) 請求
+      const res = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ tag, title, content, password })
+      });
+
+      const result = await res.json();
+
+      if (result.status === 'success') {
+        document.getElementById('post-title').value = '';
+        document.getElementById('post-content').value = '';
+        editorPanel.classList.remove('active');
+        await loadPosts(); // 重新抓取最新列表
+      } else {
+        alert('發布失敗：' + result.message);
+      }
+    } catch (err) {
+      alert('連線發生錯誤，請稍後再試。');
+    } finally {
+      submitBtn.disabled = false;
+      submitBtn.textContent = '一鍵發布';
+    }
+  });
+
+  // 頁面載入時自動抓取
+  loadPosts();
+</script>
+
+</body>
+</html>
