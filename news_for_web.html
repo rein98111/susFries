@@ -38,8 +38,32 @@
     }
 
     .page-wrapper {
+      position: relative;
+      z-index: 1;
       max-width: 1080px;
       margin: 0 auto;
+    }
+
+    /* 右側固定看板娘圖片 */
+    .fixed-side-mascot {
+      position: fixed;
+      right: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      height: 72vh;           /* 依螢幕高度自動縮放，可自行調整如 550px */
+      max-height: 680px;
+      width: auto;
+      z-index: 10;
+      pointer-events: none;   /* 穿透點擊，不會擋住網頁按鈕 */
+      user-select: none;
+      filter: drop-shadow(0 8px 24px rgba(0, 0, 0, 0.45));
+    }
+
+    /* 螢幕較窄時自動隱藏，避免遮擋中間內容 */
+    @media (max-width: 1360px) {
+      .fixed-side-mascot {
+        display: none;
+      }
     }
 
     /* 1. 頂部置頂活動 Banner */
@@ -428,7 +452,7 @@
       background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
     }
 
-    /* 5. My Most Played Beatmaps 區塊（仿截圖 Popular Beatmaps） */
+    /* 5. My Most Played Beatmaps 區塊 */
     .beatmaps-widget {
       margin-top: 4px;
     }
@@ -594,6 +618,13 @@
 </head>
 <body>
 
+<!-- 固定在右側中間的看板娘圖片 -->
+<img
+  class="fixed-side-mascot"
+  src="sliver white cat ear girl.png"
+  alt="Mascot"
+>
+
 <div class="page-wrapper">
   <!-- 置頂橫幅 Banner -->
   <a id="top-promo-banner" class="top-promo-banner" href="#" target="_blank" rel="noopener noreferrer">
@@ -718,7 +749,6 @@
       youtube: "https://www.youtube.com/@susfries-osu",
       twitch: "https://www.twitch.tv/sus_osu"
     },
-    // 支援純網址字串，也支援附帶手動備援欄位的物件
     mostPlayedBeatmaps: [
       "https://osu.ppy.sh/beatmapsets/2080199#osu/4772679",
       "https://osu.ppy.sh/beatmapsets/2071765#osu/4354499",
@@ -749,16 +779,13 @@
     }[tag]));
   }
 
-  // 解析譜面網址（支援 osu.ppy.sh 與 osu.titanic.sh）
   function parseBeatmapUrl(rawUrl) {
     try {
       const url = new URL(rawUrl.trim());
       const host = url.hostname.toLowerCase();
       const isTitanic = host.includes('titanic.sh');
 
-      // 匹配 /beatmapsets/{setId} 或 /s/{setId}
       const setMatch = url.pathname.match(/\/(?:beatmapsets|s)\/(\d+)/);
-      // 匹配 #osu/{beatmapId} 或 /beatmaps/{beatmapId} 或 /b/{beatmapId}
       const hashMatch = url.hash.match(/\/(\d+)/);
       const mapMatch = url.pathname.match(/\/(?:beatmaps|b)\/(\d+)/);
 
@@ -771,124 +798,6 @@
     } catch {
       return { rawUrl, isTitanic: false, setId: null, beatmapId: null };
     }
-  }
-
-  // 從多個公開鏡像來源抓取 osu! 譜面資訊（Catboy -> Nerinyan -> Titanic -> 備援）
-  async function fetchBeatmapMetadata(entry) {
-    const manual = typeof entry === 'object' && entry !== null ? entry : { url: entry };
-    const rawUrl = String(manual.url || '').trim();
-    const parsed = parseBeatmapUrl(rawUrl);
-
-    // 1. 如果是 osu.titanic.sh 連結
-    if (parsed.isTitanic) {
-      try {
-        let targetSetId = parsed.setId;
-        if (!targetSetId && parsed.beatmapId) {
-          const bRes = await fetch(`https://api.titanic.sh/beatmaps/${parsed.beatmapId}`);
-          if (bRes.ok) {
-            const bData = await bRes.json();
-            targetSetId = bData.set_id || bData.beatmapset_id;
-          }
-        }
-        if (targetSetId) {
-          const sRes = await fetch(`https://api.titanic.sh/beatmapsets/${targetSetId}`);
-          if (sRes.ok) {
-            const sData = await sRes.json();
-            const maps = sData.beatmaps || [];
-            const targetMap = maps.find(m => String(m.id) === String(parsed.beatmapId)) || maps[0] || {};
-            const playCount = targetMap.playcount ?? targetMap.play_count ?? sData.play_count ?? 0;
-            return {
-              url: rawUrl,
-              title: sData.title || manual.title || `Beatmapset #${targetSetId}`,
-              artist: sData.artist || manual.artist || 'Unknown Artist',
-              creator: sData.creator || manual.creator || 'Unknown',
-              playCount,
-              coverUrl: `https://assets.titanic.sh/beatmaps/${targetSetId}/covers/list.jpg`
-            };
-          }
-        }
-      } catch (e) {
-        // Titanic API 異常時走下方備援
-      }
-    }
-
-    // 2. 如果是 osu.ppy.sh 連結：先試 Catboy API，失敗再試 Nerinyan API
-    if (!parsed.isTitanic) {
-      let data = null;
-
-      try {
-        if (parsed.setId) {
-          const res = await fetch(`https://catboy.best/api/v2/sets/${parsed.setId}`);
-          if (res.ok) {
-            const json = await res.json();
-            if (json && json.title) data = json;
-          }
-        } else if (parsed.beatmapId) {
-          const res = await fetch(`https://catboy.best/api/v2/b/${parsed.beatmapId}`);
-          if (res.ok) {
-            const bJson = await res.json();
-            if (bJson && bJson.beatmapset) {
-              data = { ...bJson.beatmapset, beatmaps: bJson.beatmapset.beatmaps || [bJson] };
-            }
-          }
-        }
-      } catch (e) {
-        // Catboy 異常時改試 Nerinyan
-      }
-
-      if (!data) {
-        try {
-          if (parsed.setId) {
-            const res = await fetch(`https://api.nerinyan.moe/search?q=${parsed.setId}&option=s`);
-            if (res.ok) {
-              const list = await res.json();
-              data = Array.isArray(list) ? list.find(item => String(item.id) === String(parsed.setId)) || list[0] : list;
-            }
-          } else if (parsed.beatmapId) {
-            const res = await fetch(`https://api.nerinyan.moe/search?q=${parsed.beatmapId}&option=b`);
-            if (res.ok) {
-              const list = await res.json();
-              data = Array.isArray(list) ? list[0] : list;
-            }
-          }
-        } catch (e) {
-          // Nerinyan 異常時改走下方備援
-        }
-      }
-
-      if (data && data.title) {
-        const setId = data.id || parsed.setId;
-        const maps = data.beatmaps || [];
-        const targetMap = maps.find(m => String(m.id) === String(parsed.beatmapId)) || maps[0] || {};
-        const playCount = targetMap.playcount ?? data.play_count ?? null;
-
-        return {
-          url: rawUrl,
-          title: data.title,
-          artist: data.artist || 'Unknown Artist',
-          creator: data.creator || 'Unknown',
-          playCount,
-          coverUrl: setId ? `https://assets.ppy.sh/beatmaps/${setId}/covers/list.jpg` : ''
-        };
-      }
-    }
-
-    // 3. 若所有 API 都抓不到時的備援顯示
-    const fallbackSetId = parsed.setId || '';
-    const fallbackCover = fallbackSetId
-      ? (parsed.isTitanic
-          ? `https://assets.titanic.sh/beatmaps/${fallbackSetId}/covers/list.jpg`
-          : `https://assets.ppy.sh/beatmaps/${fallbackSetId}/covers/list.jpg`)
-      : '';
-
-    return {
-      url: rawUrl,
-      title: manual.title || (fallbackSetId ? `Beatmapset #${fallbackSetId}` : `Beatmap #${parsed.beatmapId || 'Link'}`),
-      artist: manual.artist || (parsed.isTitanic ? 'osu!titanic' : 'osu!'),
-      creator: manual.creator || 'susFries',
-      playCount: typeof manual.playCount === 'number' ? manual.playCount : null,
-      coverUrl: fallbackCover
-    };
   }
 
   async function renderMostPlayedBeatmaps() {
@@ -955,7 +864,6 @@
     }).join('');
   }
 
-  // 以下為原本的新聞列表與發文邏輯
   const toggleBtn = document.getElementById('toggle-editor-btn');
   const cancelBtn = document.getElementById('cancel-btn');
   const editorPanel = document.getElementById('editor-panel');
