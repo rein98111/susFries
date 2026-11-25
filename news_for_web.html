@@ -42,7 +42,7 @@
       margin: 0 auto;
     }
 
-    /* 1. 頂部置頂活動 Banner（仿截圖上方橫幅） */
+    /* 1. 頂部置頂活動 Banner */
     .top-promo-banner {
       position: relative;
       display: flex;
@@ -104,7 +104,7 @@
       border-radius: 8px;
       padding: 22px;
       display: grid;
-      grid-template-columns: minmax(0, 1fr) 300px;
+      grid-template-columns: minmax(0, 1fr) 310px;
       gap: 24px;
       align-items: start;
     }
@@ -227,7 +227,7 @@
       max-width: 190px;
     }
 
-    /* 3. 公告卡片（上方可選 Banner + 下方左日期右內容） */
+    /* 3. 公告卡片 */
     .post-list {
       display: flex;
       flex-direction: column;
@@ -247,7 +247,6 @@
       border-color: #54466e;
     }
 
-    /* 卡片上方的橫幅圖片 */
     .osu-news-banner {
       display: block;
       width: 100%;
@@ -262,7 +261,6 @@
       align-items: stretch;
     }
 
-    /* 左側日期欄（對齊截圖中 24 / Nov 2026 的排版） */
     .osu-news-date {
       flex: 0 0 92px;
       display: flex;
@@ -289,7 +287,6 @@
       font-weight: 500;
     }
 
-    /* 右側標題與內文 */
     .osu-news-body {
       flex: 1;
       min-width: 0;
@@ -346,7 +343,7 @@
       word-break: break-word;
     }
 
-    /* 4. 右側欄（仿 osu! 狀態列 + 彩色大按鈕） */
+    /* 4. 右側欄（狀態 + 社群大按鈕 + My Most Played Beatmaps） */
     .sidebar {
       display: flex;
       flex-direction: column;
@@ -384,17 +381,16 @@
       display: block;
     }
 
-    /* osu! 風格右側彩色長條按鈕 */
     .osu-action-btn {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 15px 18px;
+      padding: 14px 18px;
       border-radius: 6px;
       text-decoration: none;
       color: #ffffff;
       font-weight: 700;
-      font-size: 0.98rem;
+      font-size: 0.96rem;
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
       transition: transform 0.12s ease, filter 0.15s ease;
     }
@@ -432,8 +428,114 @@
       background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
     }
 
-    .btn-site {
-      background: linear-gradient(135deg, #2b8ead 0%, #1d6b85 100%);
+    /* 5. My Most Played Beatmaps 區塊（仿截圖 Popular Beatmaps） */
+    .beatmaps-widget {
+      margin-top: 4px;
+    }
+
+    .beatmaps-widget-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+
+    .beatmaps-widget-title {
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .beatmap-list {
+      display: flex;
+      flex-direction: column;
+      gap: 9px;
+    }
+
+    .beatmap-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 6px;
+      text-decoration: none;
+      color: var(--text-main);
+      transition: background-color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+    }
+
+    .beatmap-card:hover {
+      background: var(--surface-elevated);
+      border-color: var(--accent);
+      transform: translateX(2px);
+    }
+
+    .beatmap-cover {
+      width: 58px;
+      height: 58px;
+      border-radius: 5px;
+      object-fit: cover;
+      background: #171222;
+      flex-shrink: 0;
+    }
+
+    .beatmap-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .beatmap-title {
+      font-size: 0.88rem;
+      font-weight: 700;
+      color: var(--text-main);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.25;
+    }
+
+    .beatmap-artist {
+      font-size: 0.76rem;
+      font-weight: 600;
+      color: var(--text-secondary);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      line-height: 1.25;
+    }
+
+    .beatmap-meta {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .beatmap-plays {
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+      color: var(--accent);
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      flex-shrink: 0;
+    }
+
+    .beatmap-chevron {
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      padding-right: 4px;
+      flex-shrink: 0;
+    }
+
+    .beatmap-card:hover .beatmap-chevron {
+      color: var(--accent);
     }
 
     .status-msg {
@@ -493,10 +595,10 @@
 <body>
 
 <div class="page-wrapper">
-  <!-- 置頂橫幅 Banner（可在下方 JS 的 SITE_CONFIG 修改圖片與文字） -->
+  <!-- 置頂橫幅 Banner -->
   <a id="top-promo-banner" class="top-promo-banner" href="#" target="_blank" rel="noopener noreferrer">
-    <div id="top-promo-title" class="top-promo-title">susFries Mapping &amp; Dev Hub</div>
-    <div id="top-promo-sub" class="top-promo-sub">最新譜面進度、工具更新與日常公告</div>
+    <div id="top-promo-title" class="top-promo-title"></div>
+    <div id="top-promo-sub" class="top-promo-sub"></div>
   </a>
 
   <div class="main-panel">
@@ -537,8 +639,8 @@
       </main>
     </div>
 
-    <!-- 右側欄：個人連結與狀態區 -->
-    <aside class="sidebar" aria-label="個人頻道與連結">
+    <!-- 右側欄：個人連結與 Most Played Beatmaps -->
+    <aside class="sidebar" aria-label="個人頻道與最常遊玩譜面">
       <div class="sidebar-stats">
         <div class="stats-row">
           <div>
@@ -550,7 +652,6 @@
             <div class="stat-item-val" id="stat-latest-date">--</div>
           </div>
         </div>
-        <!-- 裝飾波浪線（仿截圖右側折線） -->
         <svg class="sparkline" viewBox="0 0 260 36" preserveAspectRatio="none" aria-hidden="true">
           <path d="M0,28 Q45,26 80,12 T160,18 T245,20" fill="none" stroke="#8b5cf6" stroke-width="2" />
           <circle cx="245" cy="20" r="3.5" fill="#ff66aa" />
@@ -560,7 +661,7 @@
       <a id="link-osu" class="osu-action-btn btn-osu-profile" href="https://osu.ppy.sh/" target="_blank" rel="noopener noreferrer">
         <div>
           <span>osu! profile</span>
-          <span class="osu-action-sub">Stats / Beatmaps</span>
+          <span class="osu-action-sub">susFries · Beatmaps &amp; Stats</span>
         </div>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2.4"/>
@@ -568,25 +669,35 @@
         </svg>
       </a>
 
-      <a id="link-youtube" class="osu-action-btn btn-youtube" href="https://www.youtube.com/@sunoFries" target="_blank" rel="noopener noreferrer">
+      <a id="link-youtube" class="osu-action-btn btn-youtube" href="https://www.youtube.com/@susfries-osu" target="_blank" rel="noopener noreferrer">
         <div>
           <span>YouTube</span>
-          <span class="osu-action-sub">@susfries-osu / Rhythm game channel</span>
+          <span class="osu-action-sub">@susfries-osu · Music &amp; Clips</span>
         </div>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M23 7s-.2-1.6-.9-2.3c-.9-.9-1.9-.9-2.4-1C16.4 3.5 12 3.5 12 3.5s-4.4 0-7.7.2c-.5.1-1.5.1-2.4 1C1.2 5.4 1 7 1 7S.8 8.9.8 10.8v1.8c0 1.9.2 3.8.2 3.8s.2 1.6.9 2.3c.9.9 2.1.9 2.6 1 1.9.2 7.5.2 7.5.2s4.4 0 7.7-.2c.5-.1 1.5-.1 2.4-1 .7-.7.9-2.3.9-2.3s.2-1.9.2-3.8v-1.8C23.2 8.9 23 7 23 7zM9.8 15.1V8.4l6.2 3.4-6.2 3.3z"/>
         </svg>
       </a>
 
-      <a id="link-twitch" class="osu-action-btn btn-twitch" href="https://www.twitch.tv/" target="_blank" rel="noopener noreferrer">
+      <a id="link-twitch" class="osu-action-btn btn-twitch" href="https://www.twitch.tv/sus_osu" target="_blank" rel="noopener noreferrer">
         <div>
           <span>Twitch</span>
-          <span class="osu-action-sub">Live Stream</span>
+          <span class="osu-action-sub">Live Stream &amp; Mapping</span>
         </div>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M4.3 2L2 6.2v14.3h5.2V23h3l2.5-2.5h3.8L22 15V2H4.3zm15.7 12l-3.2 3.2h-5l-2.6 2.6v-2.6H5.2V4h14.8v10zM15.5 7.2h2v5.3h-2V7.2zm-4.8 0h2v5.3h-2V7.2z"/>
         </svg>
       </a>
+
+      <!-- My Most Played Beatmaps 前五列表 -->
+      <section class="beatmaps-widget" aria-label="My Most Played Beatmaps">
+        <div class="beatmaps-widget-header">
+          <h2 class="beatmaps-widget-title">My Most Played Beatmaps</h2>
+        </div>
+        <div id="beatmap-list" class="beatmap-list">
+          <div class="status-msg" style="padding: 18px 12px;">讀取譜面資訊中...</div>
+        </div>
+      </section>
     </aside>
   </div>
 </div>
@@ -594,22 +705,30 @@
 <script>
   const GAS_URL = "https://script.google.com/macros/s/AKfycbwn0s8lZAHSqHl08WLpt0vjO75K-i413VGLT6cwJCdLvLcC-Rrw5owtDrbGAWNCdXiV/exec";
 
-  // 頁面設定區：可直接改這裡的置頂 Banner 圖片、文字與右側連結網址
+  // 頁面設定區
   const SITE_CONFIG = {
     topBanner: {
       title: "NEW BEATMAP UPLOADED!",
       subtitle: "MONTAGEM FUKKIRETA - DJ RIO FUNK",
-      imageUrl: "https://i.ibb.co/4gfC71hW/123.jpg", // 填入 .png 或 .jpg 網址就會顯示置頂大圖，留空則顯示深紫漸層底
+      imageUrl: "https://i.ibb.co/4gfC71hW/123.jpg",
       linkUrl: "https://osu.ppy.sh/beatmapsets/2658809#osu/6019549"
     },
     links: {
-      osu: "https://osu.ppy.sh/users/28993856",      // 換成你的 osu! 個人頁面網址
+      osu: "https://osu.ppy.sh/users/28993856",
       youtube: "https://www.youtube.com/@susfries-osu",
-      twitch: "https://www.twitch.tv/sus_osu", // 換成你的 Twitch 頻道網址
-    }
+      twitch: "https://www.twitch.tv/sus_osu"
+    },
+    // 支援純網址字串，也支援附帶手動備援欄位的物件
+    mostPlayedBeatmaps: [
+      "https://osu.ppy.sh/beatmapsets/2080199#osu/4772679",
+      "https://osu.ppy.sh/beatmapsets/2071765#osu/4354499",
+      "https://osu.ppy.sh/beatmapsets/2350019#osu/5074326",
+      "https://osu.ppy.sh/beatmapsets/2092199#osu/4454581",
+      "https://osu.ppy.sh/beatmapsets/2262664#osu/5447438"
+    ]
   };
 
-  // 套用頁面設定
+  // 套用頁面基本設定
   (function applySiteConfig() {
     const bannerEl = document.getElementById('top-promo-banner');
     document.getElementById('top-promo-title').textContent = SITE_CONFIG.topBanner.title;
@@ -624,6 +743,219 @@
     document.getElementById('link-twitch').href = SITE_CONFIG.links.twitch;
   })();
 
+  function escapeHTML(str) {
+    return String(str).replace(/[&<>'"]/g, tag => ({
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
+    }[tag]));
+  }
+
+  // 解析譜面網址（支援 osu.ppy.sh 與 osu.titanic.sh）
+  function parseBeatmapUrl(rawUrl) {
+    try {
+      const url = new URL(rawUrl.trim());
+      const host = url.hostname.toLowerCase();
+      const isTitanic = host.includes('titanic.sh');
+
+      // 匹配 /beatmapsets/{setId} 或 /s/{setId}
+      const setMatch = url.pathname.match(/\/(?:beatmapsets|s)\/(\d+)/);
+      // 匹配 #osu/{beatmapId} 或 /beatmaps/{beatmapId} 或 /b/{beatmapId}
+      const hashMatch = url.hash.match(/\/(\d+)/);
+      const mapMatch = url.pathname.match(/\/(?:beatmaps|b)\/(\d+)/);
+
+      return {
+        rawUrl: rawUrl.trim(),
+        isTitanic,
+        setId: setMatch ? setMatch[1] : null,
+        beatmapId: hashMatch ? hashMatch[1] : (mapMatch ? mapMatch[1] : null)
+      };
+    } catch {
+      return { rawUrl, isTitanic: false, setId: null, beatmapId: null };
+    }
+  }
+
+  // 從多個公開鏡像來源抓取 osu! 譜面資訊（Catboy -> Nerinyan -> Titanic -> 備援）
+  async function fetchBeatmapMetadata(entry) {
+    const manual = typeof entry === 'object' && entry !== null ? entry : { url: entry };
+    const rawUrl = String(manual.url || '').trim();
+    const parsed = parseBeatmapUrl(rawUrl);
+
+    // 1. 如果是 osu.titanic.sh 連結
+    if (parsed.isTitanic) {
+      try {
+        let targetSetId = parsed.setId;
+        if (!targetSetId && parsed.beatmapId) {
+          const bRes = await fetch(`https://api.titanic.sh/beatmaps/${parsed.beatmapId}`);
+          if (bRes.ok) {
+            const bData = await bRes.json();
+            targetSetId = bData.set_id || bData.beatmapset_id;
+          }
+        }
+        if (targetSetId) {
+          const sRes = await fetch(`https://api.titanic.sh/beatmapsets/${targetSetId}`);
+          if (sRes.ok) {
+            const sData = await sRes.json();
+            const maps = sData.beatmaps || [];
+            const targetMap = maps.find(m => String(m.id) === String(parsed.beatmapId)) || maps[0] || {};
+            const playCount = targetMap.playcount ?? targetMap.play_count ?? sData.play_count ?? 0;
+            return {
+              url: rawUrl,
+              title: sData.title || manual.title || `Beatmapset #${targetSetId}`,
+              artist: sData.artist || manual.artist || 'Unknown Artist',
+              creator: sData.creator || manual.creator || 'Unknown',
+              playCount,
+              coverUrl: `https://assets.titanic.sh/beatmaps/${targetSetId}/covers/list.jpg`
+            };
+          }
+        }
+      } catch (e) {
+        // Titanic API 異常時走下方備援
+      }
+    }
+
+    // 2. 如果是 osu.ppy.sh 連結：先試 Catboy API，失敗再試 Nerinyan API
+    if (!parsed.isTitanic) {
+      let data = null;
+
+      try {
+        if (parsed.setId) {
+          const res = await fetch(`https://catboy.best/api/v2/sets/${parsed.setId}`);
+          if (res.ok) {
+            const json = await res.json();
+            if (json && json.title) data = json;
+          }
+        } else if (parsed.beatmapId) {
+          const res = await fetch(`https://catboy.best/api/v2/b/${parsed.beatmapId}`);
+          if (res.ok) {
+            const bJson = await res.json();
+            if (bJson && bJson.beatmapset) {
+              data = { ...bJson.beatmapset, beatmaps: bJson.beatmapset.beatmaps || [bJson] };
+            }
+          }
+        }
+      } catch (e) {
+        // Catboy 異常時改試 Nerinyan
+      }
+
+      if (!data) {
+        try {
+          if (parsed.setId) {
+            const res = await fetch(`https://api.nerinyan.moe/search?q=${parsed.setId}&option=s`);
+            if (res.ok) {
+              const list = await res.json();
+              data = Array.isArray(list) ? list.find(item => String(item.id) === String(parsed.setId)) || list[0] : list;
+            }
+          } else if (parsed.beatmapId) {
+            const res = await fetch(`https://api.nerinyan.moe/search?q=${parsed.beatmapId}&option=b`);
+            if (res.ok) {
+              const list = await res.json();
+              data = Array.isArray(list) ? list[0] : list;
+            }
+          }
+        } catch (e) {
+          // Nerinyan 異常時改走下方備援
+        }
+      }
+
+      if (data && data.title) {
+        const setId = data.id || parsed.setId;
+        const maps = data.beatmaps || [];
+        const targetMap = maps.find(m => String(m.id) === String(parsed.beatmapId)) || maps[0] || {};
+        const playCount = targetMap.playcount ?? data.play_count ?? null;
+
+        return {
+          url: rawUrl,
+          title: data.title,
+          artist: data.artist || 'Unknown Artist',
+          creator: data.creator || 'Unknown',
+          playCount,
+          coverUrl: setId ? `https://assets.ppy.sh/beatmaps/${setId}/covers/list.jpg` : ''
+        };
+      }
+    }
+
+    // 3. 若所有 API 都抓不到時的備援顯示
+    const fallbackSetId = parsed.setId || '';
+    const fallbackCover = fallbackSetId
+      ? (parsed.isTitanic
+          ? `https://assets.titanic.sh/beatmaps/${fallbackSetId}/covers/list.jpg`
+          : `https://assets.ppy.sh/beatmaps/${fallbackSetId}/covers/list.jpg`)
+      : '';
+
+    return {
+      url: rawUrl,
+      title: manual.title || (fallbackSetId ? `Beatmapset #${fallbackSetId}` : `Beatmap #${parsed.beatmapId || 'Link'}`),
+      artist: manual.artist || (parsed.isTitanic ? 'osu!titanic' : 'osu!'),
+      creator: manual.creator || 'susFries',
+      playCount: typeof manual.playCount === 'number' ? manual.playCount : null,
+      coverUrl: fallbackCover
+    };
+  }
+
+  async function renderMostPlayedBeatmaps() {
+    const container = document.getElementById('beatmap-list');
+    const entries = (SITE_CONFIG.mostPlayedBeatmaps || []).slice(0, 5);
+
+    if (entries.length === 0) {
+      container.innerHTML = '<div class="status-msg" style="padding: 18px 12px;">尚未設定譜面連結。</div>';
+      return;
+    }
+
+    const urls = entries.map(e => (typeof e === 'object' && e !== null ? e.url : e)).filter(Boolean);
+    let items = [];
+
+    try {
+      const apiUrl = `${GAS_URL}?action=beatmaps&urls=${encodeURIComponent(urls.join(','))}`;
+      const res = await fetch(apiUrl);
+      if (res.ok) {
+        items = await res.json();
+      }
+    } catch (err) {
+      items = [];
+    }
+
+    if (!Array.isArray(items) || items.length === 0) {
+      items = urls.map(rawUrl => {
+        const parsed = parseBeatmapUrl(rawUrl);
+        return {
+          url: rawUrl,
+          title: parsed.setId ? `Beatmapset #${parsed.setId}` : `Beatmap #${parsed.beatmapId || 'Link'}`,
+          artist: parsed.isTitanic ? 'osu!titanic' : 'osu!',
+          creator: 'susFries',
+          playCount: null,
+          coverUrl: parsed.setId ? `https://assets.ppy.sh/beatmaps/${parsed.setId}/covers/list.jpg` : ''
+        };
+      });
+    }
+
+    container.innerHTML = items.map(item => {
+      const playsText = typeof item.playCount === 'number'
+        ? `<span class="beatmap-plays" title="Play Count">▶ ${item.playCount.toLocaleString()}</span>`
+        : '';
+
+      return `
+        <a class="beatmap-card" href="${escapeHTML(item.url)}" target="_blank" rel="noopener noreferrer">
+          <img
+            class="beatmap-cover"
+            src="${escapeHTML(item.coverUrl)}"
+            alt="${escapeHTML(item.title)}"
+            loading="lazy"
+            onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%2258%22 height=%2258%22><rect width=%2258%22 height=%2258%22 fill=%22%232e2640%22/><circle cx=%2229%22 cy=%2229%22 r=%2212%22 fill=%22none%22 stroke=%22%23ff66aa%22 stroke-width=%222.5%22/></svg>'"
+          >
+          <div class="beatmap-info">
+            <div class="beatmap-title" title="${escapeHTML(item.title)}">${escapeHTML(item.title)}</div>
+            <div class="beatmap-artist" title="${escapeHTML(item.artist)}">${escapeHTML(item.artist)}</div>
+            <div class="beatmap-meta">
+              <span>by ${escapeHTML(item.creator)}</span>
+              ${playsText}
+            </div>
+          </div>
+          <span class="beatmap-chevron" aria-hidden="true">›</span>
+        </a>
+      `;
+    }).join('');
+  }
+
+  // 以下為原本的新聞列表與發文邏輯
   const toggleBtn = document.getElementById('toggle-editor-btn');
   const cancelBtn = document.getElementById('cancel-btn');
   const editorPanel = document.getElementById('editor-panel');
@@ -641,13 +973,6 @@
     editorPanel.classList.remove('active');
   });
 
-  function escapeHTML(str) {
-    return String(str).replace(/[&<>'"]/g, tag => ({
-      '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;'
-    }[tag]));
-  }
-
-  // 解析日期（仿截圖中 24 / Nov 2026 的格式）
   function parseDateParts(dateStr) {
     if (!dateStr) {
       return { day: '--', ym: 'Unknown', full: '' };
@@ -687,7 +1012,6 @@
     }
   }
 
-  // 僅允許 http/https 開頭的圖片連結，避免無效協定
   function isValidHttpUrl(urlStr) {
     if (!urlStr) return false;
     try {
@@ -788,6 +1112,7 @@
   });
 
   loadPosts();
+  renderMostPlayedBeatmaps();
 </script>
 
 </body>
