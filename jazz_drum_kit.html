@@ -1,0 +1,1361 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>MONOCHROME DRUMS // 極簡黑白爵士鼓工作室</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@500;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-dark: #0A0A0A;
+      --surface-dark: #141414;
+      --border-dim: rgba(255, 255, 255, 0.16);
+      --border-bright: rgba(255, 255, 255, 0.85);
+    }
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+      -webkit-user-select: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: var(--bg-dark);
+      color: #FFFFFF;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      margin: 0;
+    }
+
+    .font-mono-tech {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    /* 背景微細建築網格與同心圓聲波紋理 */
+    .studio-bg {
+      background-color: #0A0A0A;
+      background-image:
+        radial-gradient(circle at 50% 52%, rgba(255, 255, 255, 0.045) 0%, transparent 65%),
+        linear-gradient(to right, rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+      background-size: 100% 100%, 44px 44px, 44px 44px;
+    }
+
+    /* 自訂極簡黑白滑桿 */
+    input[type="range"].mono-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    input[type="range"].mono-slider::-webkit-slider-runnable-track {
+      height: 3px;
+      background: rgba(255, 255, 255, 0.22);
+      border-radius: 999px;
+    }
+
+    input[type="range"].mono-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      height: 14px;
+      width: 14px;
+      border-radius: 50%;
+      background: #FFFFFF;
+      border: 2px solid #0A0A0A;
+      box-shadow: 0 0 0 1.5px #FFFFFF;
+      margin-top: -5.5px;
+      transition: transform 0.1s ease;
+    }
+
+    input[type="range"].mono-slider::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+
+    /* 鼓與鈸的基礎幾何造型 */
+    .drum-piece {
+      position: absolute;
+      transform: translate(-50%, -50%);
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: transform 0.05s cubic-bezier(0.2, 0.9, 0.3, 1),
+                  background-color 0.06s ease,
+                  box-shadow 0.08s ease,
+                  border-color 0.06s ease;
+      will-change: transform, background-color;
+    }
+
+    /* 鈸片專屬同心金屬車削紋路 */
+    .cymbal-surface {
+      background:
+        radial-gradient(circle at center,
+          rgba(255,255,255,0.22) 0%,
+          rgba(255,255,255,0.12) 11%,
+          #0E0E0E 12%,
+          #161616 25%,
+          #0D0D0D 38%,
+          #181818 52%,
+          #0E0E0E 68%,
+          #1A1A1A 84%,
+          #111111 100%);
+      border: 1.5px solid rgba(255, 255, 255, 0.55);
+      box-shadow:
+        0 14px 35px rgba(0, 0, 0, 0.85),
+        inset 0 0 0 1px rgba(255, 255, 255, 0.12),
+        inset 0 0 24px rgba(255, 255, 255, 0.06);
+    }
+
+    /* 鼓皮專屬雙層鼓框與微霧面質感 */
+    .drum-head {
+      background: radial-gradient(circle at 50% 45%, #1B1B1B 0%, #101010 72%, #090909 100%);
+      border: 3px solid rgba(255, 255, 255, 0.85);
+      box-shadow:
+        0 16px 36px rgba(0, 0, 0, 0.9),
+        0 0 0 5px #0A0A0A,
+        0 0 0 6.5px rgba(255, 255, 255, 0.28),
+        inset 0 0 22px rgba(255, 255, 255, 0.06);
+    }
+
+    /* 小鼓專屬雙圈強調 */
+    .snare-head {
+      background: radial-gradient(circle at 50% 45%, #222222 0%, #111111 70%, #080808 100%);
+      border: 3.5px solid #FFFFFF;
+      box-shadow:
+        0 18px 40px rgba(0, 0, 0, 0.92),
+        0 0 0 5px #0A0A0A,
+        0 0 0 7px rgba(255, 255, 255, 0.45),
+        inset 0 0 28px rgba(255, 255, 255, 0.09);
+    }
+
+    /* 底鼓（Bass Drum）中央沉穩厚重感 */
+    .bass-head {
+      background: radial-gradient(circle at 50% 50%, #171717 0%, #0C0C0C 78%, #050505 100%);
+      border: 3px solid rgba(255, 255, 255, 0.72);
+      box-shadow:
+        0 18px 44px rgba(0, 0, 0, 0.95),
+        0 0 0 5px #0A0A0A,
+        0 0 0 6.5px rgba(255, 255, 255, 0.24),
+        inset 0 0 25px rgba(255, 255, 255, 0.05);
+    }
+
+    .drum-piece:hover {
+      border-color: #FFFFFF;
+      box-shadow:
+        0 16px 38px rgba(0, 0, 0, 0.92),
+        0 0 24px rgba(255, 255, 255, 0.16);
+    }
+
+    /* 打擊瞬間的黑白反轉閃光與震動狀態 */
+    .drum-piece.is-hit {
+      transform: translate(-50%, -50%) scale(0.955);
+      background: #FFFFFF !important;
+      border-color: #FFFFFF !important;
+      box-shadow:
+        0 0 42px rgba(255, 255, 255, 0.75),
+        0 0 12px rgba(255, 255, 255, 0.95) !important;
+    }
+
+    .drum-piece.is-hit .drum-label,
+    .drum-piece.is-hit .drum-key,
+    .drum-piece.is-hit .drum-sub {
+      color: #0A0A0A !important;
+    }
+
+    .drum-piece.is-hit .hihat-pill {
+      background-color: #0A0A0A !important;
+      color: #FFFFFF !important;
+      border-color: #0A0A0A !important;
+    }
+
+    /* 擴散波紋動畫 */
+    @keyframes rippleOut {
+      0% {
+        transform: translate(-50%, -50%) scale(0.95);
+        opacity: 0.85;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1.42);
+        opacity: 0;
+      }
+    }
+
+    .hit-ripple {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      border: 2px solid #FFFFFF;
+      pointer-events: none;
+      animation: rippleOut 0.36s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    /* 鈸片微妙搖晃動畫 */
+    @keyframes cymbalWobble {
+      0% { transform: translate(-50%, -50%) rotate(0deg) scale(0.96); }
+      25% { transform: translate(-50%, -50%) rotate(-1.6deg) scale(1.01); }
+      50% { transform: translate(-50%, -50%) rotate(1.3deg) scale(0.995); }
+      75% { transform: translate(-50%, -50%) rotate(-0.7deg) scale(1.002); }
+      100% { transform: translate(-50%, -50%) rotate(0deg) scale(1); }
+    }
+
+    .cymbal-wobble {
+      animation: cymbalWobble 0.42s ease-out;
+    }
+
+    /* 隱藏捲軸但保留滾動 */
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="studio-bg flex flex-col justify-between">
+
+  <!-- ==================== 頂部極簡工作室控制列 ==================== -->
+  <header class="relative z-30 flex flex-wrap items-center justify-between gap-3 px-4 sm:px-7 py-3.5 border-b border-white/15 bg-[#0A0A0A]/90 backdrop-blur-md">
+    <!-- 左側品牌標誌 -->
+    <div class="flex items-center gap-3">
+      <div class="w-8 h-8 rounded-full border border-white flex items-center justify-center bg-white text-black font-mono-tech font-extrabold text-xs tracking-tighter">
+        JD
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="text-sm sm:text-base font-extrabold tracking-widest uppercase text-white">MONOCHROME DRUMS</h1>
+          <span class="hidden md:inline-block text-[10px] font-mono-tech px-1.5 py-0.5 border border-white/30 rounded text-white/70">WEB AUDIO SYNTH</span>
+        </div>
+        <p class="text-[11px] text-white/50 hidden sm:block">極簡黑白爵士鼓工作室 · 零延遲物理合成音源</p>
+      </div>
+    </div>
+
+    <!-- 中央與右側控制區：主音量 (0%~150%) + 鍵位設定按鈕 -->
+    <div class="flex items-center gap-3 sm:gap-5">
+      <!-- 主音量控制模組 -->
+      <div class="flex items-center gap-2.5 px-3 py-1.5 rounded-full border border-white/20 bg-white/[0.03]">
+        <button id="muteToggleBtn" title="靜音 / 恢復音量" class="text-white/80 hover:text-white transition focus:outline-none">
+          <svg id="volIconNormal" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+            <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
+          </svg>
+          <svg id="volIconMuted" class="w-4 h-4 hidden text-white/40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+            <line x1="23" y1="9" x2="17" y2="15"></line>
+            <line x1="17" y1="9" x2="23" y2="15"></line>
+          </svg>
+        </button>
+
+        <span class="text-[11px] font-medium text-white/60 hidden md:inline">主音量</span>
+
+        <input
+          id="masterVolumeSlider"
+          type="range"
+          min="0"
+          max="150"
+          value="100"
+          class="mono-slider w-20 sm:w-28"
+        />
+
+        <span id="masterVolumeValue" class="font-mono-tech text-xs font-bold w-11 text-right text-white">100%</span>
+      </div>
+
+      <!-- 鍵位設定按鈕 -->
+      <button
+        id="openKeybindModalBtn"
+        class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white text-black hover:bg-white/90 active:scale-95 transition font-semibold text-xs sm:text-sm shadow-[0_0_20px_rgba(255,255,255,0.2)]"
+      >
+        <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect>
+          <line x1="6" y1="8" x2="6.01" y2="8"></line>
+          <line x1="10" y1="8" x2="10.01" y2="8"></line>
+          <line x1="14" y1="8" x2="14.01" y2="8"></line>
+          <line x1="18" y1="8" x2="18.01" y2="8"></line>
+          <line x1="8" y1="12" x2="8.01" y2="12"></line>
+          <line x1="12" y1="12" x2="12.01" y2="12"></line>
+          <line x1="16" y1="12" x2="16.01" y2="12"></line>
+          <line x1="7" y1="16" x2="17" y2="16"></line>
+        </svg>
+        <span>鍵位設定</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- ==================== 中央互動式 8 件式爵士鼓舞台 ==================== -->
+  <main class="relative flex-1 w-full flex items-center justify-center overflow-hidden">
+    <!-- 舞台背景裝飾同心圓準星 -->
+    <div class="pointer-events-none absolute inset-0 flex items-center justify-center opacity-20">
+      <div class="w-[min(86vw,760px)] h-[min(86vw,760px)] rounded-full border border-white/20"></div>
+      <div class="absolute w-[min(60vw,520px)] h-[min(60vw,520px)] rounded-full border border-dashed border-white/20"></div>
+    </div>
+
+    <!-- 鼓組等比例響應式舞台容器 (參考俯視配置圖座標) -->
+    <div id="drumStage" class="relative w-full max-w-[980px] h-full max-h-[660px] mx-auto">
+
+      <!-- 1. Crash (左上方大鈸) -->
+      <div
+        id="pad-crash"
+        data-drum="crash"
+        style="left: 19%; top: 23%; width: clamp(128px, 23vw, 235px); height: clamp(128px, 23vw, 235px); z-index: 15;"
+        class="drum-piece cymbal-surface"
+      >
+        <div class="w-4 h-4 rounded-full border border-white/60 bg-black mb-1.5 flex items-center justify-center">
+          <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+        </div>
+        <span class="drum-label text-[11px] sm:text-xs font-bold tracking-widest uppercase text-white/75">Crash</span>
+        <span id="key-label-crash" class="drum-key font-mono-tech text-xl sm:text-3xl font-extrabold text-white mt-0.5">R</span>
+      </div>
+
+      <!-- 2. Tom 1 (中上方小筒鼓) -->
+      <div
+        id="pad-tom1"
+        data-drum="tom1"
+        style="left: 42%; top: 23%; width: clamp(104px, 16.5vw, 168px); height: clamp(104px, 16.5vw, 168px); z-index: 12;"
+        class="drum-piece drum-head"
+      >
+        <span class="drum-label text-[10px] sm:text-xs font-bold tracking-widest uppercase text-white/70">Tom 1</span>
+        <span id="key-label-tom1" class="drum-key font-mono-tech text-xl sm:text-2xl font-extrabold text-white mt-0.5">T</span>
+      </div>
+
+      <!-- 3. Tom 2 (中右方中筒鼓) -->
+      <div
+        id="pad-tom2"
+        data-drum="tom2"
+        style="left: 61.5%; top: 26%; width: clamp(114px, 18.5vw, 188px); height: clamp(114px, 18.5vw, 188px); z-index: 12;"
+        class="drum-piece drum-head"
+      >
+        <span class="drum-label text-[10px] sm:text-xs font-bold tracking-widest uppercase text-white/70">Tom 2</span>
+        <span id="key-label-tom2" class="drum-key font-mono-tech text-xl sm:text-2xl font-extrabold text-white mt-0.5">Y</span>
+      </div>
+
+      <!-- 4. Ride (右上方疊音鈸) -->
+      <div
+        id="pad-ride"
+        data-drum="ride"
+        style="left: 82%; top: 23%; width: clamp(136px, 24.5vw, 250px); height: clamp(136px, 24.5vw, 250px); z-index: 15;"
+        class="drum-piece cymbal-surface"
+      >
+        <div class="w-4 h-4 rounded-full border border-white/60 bg-black mb-1.5 flex items-center justify-center">
+          <div class="w-1.5 h-1.5 rounded-full bg-white"></div>
+        </div>
+        <span class="drum-label text-[11px] sm:text-xs font-bold tracking-widest uppercase text-white/75">Ride</span>
+        <span id="key-label-ride" class="drum-key font-mono-tech text-xl sm:text-3xl font-extrabold text-white mt-0.5">U</span>
+      </div>
+
+      <!-- 5. Hi-hat (左下方腳踏鈸 - 支援閉鈸 Closed 與 開鈸 Open 雙按鍵) -->
+      <div
+        id="pad-hihat"
+        data-drum="hihatClosed"
+        style="left: 16.5%; top: 63%; width: clamp(126px, 21vw, 212px); height: clamp(126px, 21vw, 212px); z-index: 16;"
+        class="drum-piece cymbal-surface px-2"
+      >
+        <div class="w-3.5 h-3.5 rounded-full border border-white/60 bg-black mb-1 flex items-center justify-center">
+          <div class="w-1 h-1 rounded-full bg-white"></div>
+        </div>
+        <span class="drum-label text-[11px] sm:text-xs font-bold tracking-widest uppercase text-white/80">Hi-Hat</span>
+        <!-- 雙鍵顯示區塊 -->
+        <div class="flex flex-col sm:flex-row items-center gap-1 sm:gap-1.5 mt-1.5">
+          <button
+            type="button"
+            data-drum-trigger="hihatClosed"
+            class="hihat-pill px-2 py-0.5 rounded border border-white/40 bg-black/75 text-white font-mono-tech text-[11px] sm:text-xs font-extrabold hover:bg-white hover:text-black transition"
+          >
+            閉:<span id="key-label-hihatClosed">F</span>
+          </button>
+          <button
+            type="button"
+            data-drum-trigger="hihatOpen"
+            class="hihat-pill px-2 py-0.5 rounded border border-white/40 bg-black/75 text-white font-mono-tech text-[11px] sm:text-xs font-extrabold hover:bg-white hover:text-black transition"
+          >
+            開:<span id="key-label-hihatOpen">G</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 6. Bass Drum (中央偏下方大鼓 Kick) -->
+      <div
+        id="pad-kick"
+        data-drum="kick"
+        style="left: 51.5%; top: 47.5%; width: clamp(126px, 20vw, 205px); height: clamp(126px, 20vw, 205px); z-index: 10;"
+        class="drum-piece bass-head"
+      >
+        <span class="drum-label text-[10px] sm:text-xs font-bold tracking-widest uppercase text-white/70">Bass Drum</span>
+        <span id="key-label-kick" class="drum-key font-mono-tech text-base sm:text-xl font-extrabold text-white mt-0.5 px-2 py-0.5 border border-white/25 rounded">SPACE</span>
+      </div>
+
+      <!-- 7. Snare (中下方小鼓) -->
+      <div
+        id="pad-snare"
+        data-drum="snare"
+        style="left: 36.5%; top: 69.5%; width: clamp(126px, 20.5vw, 210px); height: clamp(126px, 20.5vw, 210px); z-index: 14;"
+        class="drum-piece snare-head"
+      >
+        <span class="drum-label text-[11px] sm:text-xs font-bold tracking-widest uppercase text-white/80">Snare</span>
+        <span id="key-label-snare" class="drum-key font-mono-tech text-2xl sm:text-3xl font-extrabold text-white mt-0.5">J</span>
+      </div>
+
+      <!-- 8. Floor Tom (右下方落地鼓) -->
+      <div
+        id="pad-floortom"
+        data-drum="floortom"
+        style="left: 69.5%; top: 68.5%; width: clamp(132px, 22vw, 224px); height: clamp(132px, 22vw, 224px); z-index: 13;"
+        class="drum-piece drum-head"
+      >
+        <span class="drum-label text-[11px] sm:text-xs font-bold tracking-widest uppercase text-white/75">Floor Tom</span>
+        <span id="key-label-floortom" class="drum-key font-mono-tech text-2xl sm:text-3xl font-extrabold text-white mt-0.5">K</span>
+      </div>
+
+    </div>
+
+    <!-- 底部操作微提示 -->
+    <div class="pointer-events-none absolute bottom-3 left-4 sm:left-7 flex items-center gap-2 text-[11px] text-white/45 font-mono-tech">
+      <span class="inline-block w-2 h-2 rounded-full bg-white/70 animate-pulse"></span>
+      <span>支援鍵盤即時敲擊與滑鼠/觸控點擊 · 閉鈸可切斷開鈸延音</span>
+    </div>
+  </main>
+
+  <!-- ==================== 右下角 YouTube 音樂跟練浮動面板 ==================== -->
+  <aside
+    id="ytPracticePanel"
+    class="fixed bottom-4 right-4 z-40 w-[310px] sm:w-[340px] rounded-2xl border border-white/25 bg-[#111111]/95 backdrop-blur-xl shadow-[0_20px_50px_rgba(0,0,0,0.9)] transition-all duration-300 overflow-hidden"
+  >
+    <!-- 面板標題與折疊按鈕 -->
+    <div class="flex items-center justify-between px-4 py-2.5 border-b border-white/15 bg-white/[0.03]">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-white"></span>
+        <span class="text-xs font-bold tracking-wider uppercase text-white">YouTube 跟練播放器</span>
+      </div>
+      <button
+        id="toggleYtPanelBtn"
+        title="折疊 / 展開播放器"
+        class="p-1 rounded-lg text-white/70 hover:text-white hover:bg-white/10 transition"
+      >
+        <svg id="ytChevronIcon" class="w-4 h-4 transition-transform duration-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+          <polyline points="6 9 12 15 18 9"></polyline>
+        </svg>
+      </button>
+    </div>
+
+    <!-- 面板可折疊內容區 -->
+    <div id="ytPanelBody" class="p-3.5 space-y-3">
+      <!-- 網址輸入與載入列 -->
+      <div class="flex gap-1.5">
+        <input
+          id="ytUrlInput"
+          type="text"
+          placeholder="貼上 YouTube 網址或影片 ID..."
+          class="flex-1 min-w-0 px-3 py-1.5 rounded-lg bg-black border border-white/20 text-xs text-white placeholder-white/35 focus:outline-none focus:border-white font-mono-tech"
+        />
+        <button
+          id="loadYtBtn"
+          class="px-3 py-1.5 rounded-lg bg-white text-black font-bold text-xs hover:bg-white/90 active:scale-95 transition shrink-0"
+        >
+          載入
+        </button>
+      </div>
+
+      <!-- 內建無版權練習鼓點/伴奏預設集 -->
+      <div class="flex items-center gap-1.5 overflow-x-auto no-scrollbar pb-0.5">
+        <span class="text-[10px] text-white/45 shrink-0">快速載入:</span>
+        <button type="button" data-yt-preset="5qap5aO4i9A" class="yt-preset-btn px-2 py-0.5 rounded border border-white/20 text-[10px] text-white/80 hover:bg-white hover:text-black transition shrink-0">Lo-Fi 節拍</button>
+        <button type="button" data-yt-preset="jfKfPfyJRdk" class="yt-preset-btn px-2 py-0.5 rounded border border-white/20 text-[10px] text-white/80 hover:bg-white hover:text-black transition shrink-0">Chill Beats</button>
+        <button type="button" data-yt-preset="rUxyKA_-grg" class="yt-preset-btn px-2 py-0.5 rounded border border-white/20 text-[10px] text-white/80 hover:bg-white hover:text-black transition shrink-0">100 BPM 伴奏</button>
+      </div>
+
+      <!-- 16:9 內嵌 YouTube 播放器容器 (灰階高對比濾鏡融入黑白美學) -->
+      <div class="relative w-full aspect-video rounded-xl overflow-hidden border border-white/15 bg-black">
+        <div id="ytPlayerContainer" class="w-full h-full grayscale contrast-125"></div>
+        <div id="ytFallbackMsg" class="hidden absolute inset-0 flex flex-col items-center justify-center p-4 text-center bg-black/90 text-xs text-white/70">
+          <p class="font-semibold text-white mb-1">無法載入 YouTube 播放器</p>
+          <p class="text-[11px] text-white/50">請確認網路連線或嘗試貼上其他可嵌入的 YouTube 影片網址。</p>
+        </div>
+      </div>
+
+      <!-- 播放控制與伴奏獨立音量 -->
+      <div class="flex items-center justify-between gap-3 pt-0.5">
+        <div class="flex items-center gap-1.5">
+          <button
+            id="ytPlayPauseBtn"
+            class="flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-white/30 bg-white/10 hover:bg-white hover:text-black text-white text-xs font-semibold transition"
+          >
+            <span id="ytPlayPauseText">播放 / 暫停</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-2 flex-1 justify-end">
+          <span class="text-[10px] text-white/50 shrink-0">伴奏音量</span>
+          <input
+            id="ytVolumeSlider"
+            type="range"
+            min="0"
+            max="100"
+            value="65"
+            class="mono-slider w-20"
+          />
+          <span id="ytVolumeValue" class="font-mono-tech text-[11px] text-white/80 w-8 text-right">65%</span>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ==================== 自由鍵位自訂模態視窗 ==================== -->
+  <div
+    id="keybindModal"
+    class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+  >
+    <div class="w-full max-w-lg rounded-2xl border border-white/25 bg-[#111111] shadow-[0_25px_70px_rgba(0,0,0,0.95)] overflow-hidden">
+      <!-- Modal 標頭 -->
+      <div class="flex items-center justify-between px-6 py-4 border-b border-white/15">
+        <div>
+          <h2 class="text-base font-extrabold tracking-wide text-white">自訂鼓組鍵位配置</h2>
+          <p class="text-xs text-white/50 mt-0.5">點擊任一按鍵欄位後，按下鍵盤任意鍵即可綁定（自動儲存）</p>
+        </div>
+        <button id="closeKeybindModalBtn" class="p-1.5 rounded-lg text-white/60 hover:text-white hover:bg-white/10 transition">
+          <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+
+      <!-- 衝突提示訊息橫幅 -->
+      <div id="keybindConflictBanner" class="hidden px-6 py-2.5 bg-white text-black text-xs font-semibold flex items-center justify-between">
+        <span id="keybindConflictText">偵測到按鍵重複！已自動交換或覆蓋。</span>
+      </div>
+
+      <!-- 9 個打擊項目清單 -->
+      <div id="keybindList" class="p-6 grid grid-cols-1 sm:grid-cols-2 gap-3 max-h-[62vh] overflow-y-auto">
+        <!-- 由 JavaScript 動態渲染 -->
+      </div>
+
+      <!-- Modal 底部按鈕 -->
+      <div class="flex items-center justify-between px-6 py-4 border-t border-white/15 bg-white/[0.02]">
+        <button
+          id="resetKeybindsBtn"
+          class="px-4 py-2 rounded-xl border border-white/25 text-xs font-semibold text-white/80 hover:text-white hover:border-white transition"
+        >
+          恢復預設鍵位
+        </button>
+        <button
+          id="doneKeybindsBtn"
+          class="px-5 py-2 rounded-xl bg-white text-black text-xs font-extrabold hover:bg-white/90 transition"
+        >
+          完成設定
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== 核心音訊引擎與互動邏輯 ==================== -->
+  <script>
+    /**
+     * 1. 鼓組項目與預設鍵位定義
+     */
+    const DRUM_ITEMS = [
+      { id: 'crash',       name: 'Crash（碎音鈸）',      shortName: 'Crash',     padId: 'pad-crash',    defaultCode: 'KeyR' },
+      { id: 'tom1',        name: 'Tom 1（高音筒鼓）',    shortName: 'Tom 1',     padId: 'pad-tom1',     defaultCode: 'KeyT' },
+      { id: 'tom2',        name: 'Tom 2（中音筒鼓）',    shortName: 'Tom 2',     padId: 'pad-tom2',     defaultCode: 'KeyY' },
+      { id: 'ride',        name: 'Ride（疊音鈸）',       shortName: 'Ride',      padId: 'pad-ride',     defaultCode: 'KeyU' },
+      { id: 'hihatClosed', name: 'Hi-Hat 閉鈸（Closed）', shortName: 'Hi-Hat 閉', padId: 'pad-hihat',    defaultCode: 'KeyF' },
+      { id: 'hihatOpen',   name: 'Hi-Hat 開鈸（Open）',   shortName: 'Hi-Hat 開', padId: 'pad-hihat',    defaultCode: 'KeyG' },
+      { id: 'snare',       name: 'Snare（小鼓）',        shortName: 'Snare',     padId: 'pad-snare',    defaultCode: 'KeyJ' },
+      { id: 'kick',        name: 'Bass Drum（大鼓）',    shortName: 'Bass Drum', padId: 'pad-kick',     defaultCode: 'Space' },
+      { id: 'floortom',    name: 'Floor Tom（落地鼓）',  shortName: 'Floor Tom', padId: 'pad-floortom', defaultCode: 'KeyK' }
+    ];
+
+    const STORAGE_KEY_BINDS = 'monochrome_drums_keybinds_v1';
+    const STORAGE_KEY_VOL   = 'monochrome_drums_volume_v1';
+
+    let keybinds = {};
+    let listeningDrumId = null;
+
+    // 將 KeyboardEvent.code 轉換為簡潔美觀的顯示標籤
+    function formatKeyCode(code) {
+      if (!code) return '---';
+      if (code === 'Space') return 'SPACE';
+      if (code.startsWith('Key')) return code.slice(3);
+      if (code.startsWith('Digit')) return code.slice(5);
+      if (code.startsWith('Numpad')) return 'NUM ' + code.slice(6);
+      const map = {
+        'ShiftLeft': 'L-SHIFT', 'ShiftRight': 'R-SHIFT',
+        'ControlLeft': 'L-CTRL', 'ControlRight': 'R-CTRL',
+        'AltLeft': 'L-ALT', 'AltRight': 'R-ALT',
+        'Enter': 'ENTER', 'Backspace': 'BKSP', 'Tab': 'TAB',
+        'Comma': ',', 'Period': '.', 'Slash': '/', 'Semicolon': ';',
+        'Quote': "'", 'BracketLeft': '[', 'BracketRight': ']',
+        'Backslash': '\\', 'Minus': '-', 'Equal': '=', 'Backquote': '`',
+        'ArrowUp': '↑', 'ArrowDown': '↓', 'ArrowLeft': '←', 'ArrowRight': '→'
+      };
+      return map[code] || code.toUpperCase();
+    }
+
+    function loadKeybinds() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY_BINDS));
+        DRUM_ITEMS.forEach(item => {
+          keybinds[item.id] = (saved && saved[item.id]) ? saved[item.id] : item.defaultCode;
+        });
+      } catch (e) {
+        DRUM_ITEMS.forEach(item => { keybinds[item.id] = item.defaultCode; });
+      }
+    }
+
+    function saveKeybinds() {
+      try {
+        localStorage.setItem(STORAGE_KEY_BINDS, JSON.stringify(keybinds));
+      } catch (e) {}
+    }
+
+    function updateDrumFaceLabels() {
+      DRUM_ITEMS.forEach(item => {
+        const el = document.getElementById(`key-label-${item.id}`);
+        if (el) {
+          el.textContent = formatKeyCode(keybinds[item.id]);
+        }
+      });
+    }
+
+    /**
+     * 2. Web Audio API 擬真爵士鼓物理合成引擎
+     * 無需外部音檔，具備動態壓縮器保護（支援 0%~150% 增益不破音）
+     */
+    class DrumSynthEngine {
+      constructor() {
+        this.ctx = null;
+        this.masterGain = null;
+        this.compressor = null;
+        this.noiseBuffer = null;
+        this.activeOpenHihatNodes = null; // 用於實現閉鈸切斷開鈸延音 (Choke)
+        this.volumePercent = 100;
+        this.isMuted = false;
+      }
+
+      init() {
+        if (this.ctx) {
+          if (this.ctx.state === 'suspended') this.ctx.resume();
+          return;
+        }
+        const AudioCtx = window.AudioContext || window.webkitAudioContext;
+        this.ctx = new AudioCtx();
+
+        // 主增益節點 (支援 0% ~ 150%)
+        this.masterGain = this.ctx.createGain();
+        this.applyVolume();
+
+        // 動態壓縮器防止多鼓齊發或 150% 增益時削波破音
+        this.compressor = this.ctx.createDynamicsCompressor();
+        this.compressor.threshold.setValueAtTime(-10, this.ctx.currentTime);
+        this.compressor.knee.setValueAtTime(12, this.ctx.currentTime);
+        this.compressor.ratio.setValueAtTime(6, this.ctx.currentTime);
+        this.compressor.attack.setValueAtTime(0.002, this.ctx.currentTime);
+        this.compressor.release.setValueAtTime(0.15, this.ctx.currentTime);
+
+        this.masterGain.connect(this.compressor);
+        this.compressor.connect(this.ctx.destination);
+
+        // 預先生成 2.5 秒白噪音緩衝區供響弦與鈸片使用
+        const bufferSize = this.ctx.sampleRate * 2.5;
+        this.noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+        const data = this.noiseBuffer.getChannelData(0);
+        for (let i = 0; i < bufferSize; i++) {
+          data[i] = Math.random() * 2 - 1;
+        }
+      }
+
+      setVolume(percent) {
+        this.volumePercent = Math.max(0, Math.min(150, Number(percent)));
+        this.applyVolume();
+      }
+
+      setMute(muted) {
+        this.isMuted = muted;
+        this.applyVolume();
+      }
+
+      applyVolume() {
+        if (!this.masterGain || !this.ctx) return;
+        // 100% -> 1.0, 150% -> 1.65 (提供更強勁的動態推力)
+        const linear = this.isMuted ? 0 : (this.volumePercent <= 100
+          ? this.volumePercent / 100
+          : 1 + ((this.volumePercent - 100) / 50) * 0.65);
+        this.masterGain.gain.setTargetAtTime(linear, this.ctx.currentTime, 0.01);
+      }
+
+      // 輔助建立金屬泛音群（用於 Hi-Hat / Crash / Ride）
+      createMetallicBank(ratios, baseFreq, duration, filterFreq, filterType, gainLevel) {
+        const now = this.ctx.currentTime;
+        const mixGain = this.ctx.createGain();
+        mixGain.gain.setValueAtTime(0.0001, now);
+        mixGain.gain.exponentialRampToValueAtTime(gainLevel, now + 0.003);
+        mixGain.gain.exponentialRampToValueAtTime(0.0001, now + duration);
+
+        const filter = this.ctx.createBiquadFilter();
+        filter.type = filterType;
+        filter.frequency.setValueAtTime(filterFreq, now);
+        filter.Q.setValueAtTime(1.4, now);
+
+        const oscs = ratios.map(ratio => {
+          const osc = this.ctx.createOscillator();
+          osc.type = 'square';
+          osc.frequency.setValueAtTime(baseFreq * ratio, now);
+          osc.connect(filter);
+          osc.start(now);
+          osc.stop(now + duration + 0.02);
+          return osc;
+        });
+
+        filter.connect(mixGain);
+        mixGain.connect(this.masterGain);
+        return { mixGain, oscs };
+      }
+
+      play(drumId) {
+        this.init();
+        const now = this.ctx.currentTime;
+
+        switch (drumId) {
+          case 'kick': {
+            // 渾厚有衝擊力的大鼓 (Pitch Envelope + Sub Body + Beater Click)
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(155, now);
+            osc.frequency.exponentialRampToValueAtTime(52, now + 0.065);
+            osc.frequency.exponentialRampToValueAtTime(34, now + 0.36);
+
+            gain.gain.setValueAtTime(1.35, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.42);
+
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.43);
+
+            // 鼓槌敲擊鼓皮瞬間的脆響
+            const clickOsc = this.ctx.createOscillator();
+            const clickGain = this.ctx.createGain();
+            clickOsc.type = 'triangle';
+            clickOsc.frequency.setValueAtTime(950, now);
+            clickOsc.frequency.exponentialRampToValueAtTime(120, now + 0.025);
+            clickGain.gain.setValueAtTime(0.45, now);
+            clickGain.gain.exponentialRampToValueAtTime(0.001, now + 0.03);
+            clickOsc.connect(clickGain);
+            clickGain.connect(this.masterGain);
+            clickOsc.start(now);
+            clickOsc.stop(now + 0.035);
+            break;
+          }
+
+          case 'snare': {
+            // 鼓腔基頻共鳴 + 響弦白噪音
+            const bodyOsc = this.ctx.createOscillator();
+            const bodyGain = this.ctx.createGain();
+            bodyOsc.type = 'triangle';
+            bodyOsc.frequency.setValueAtTime(240, now);
+            bodyOsc.frequency.exponentialRampToValueAtTime(135, now + 0.11);
+            bodyGain.gain.setValueAtTime(0.85, now);
+            bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+            bodyOsc.connect(bodyGain);
+            bodyGain.connect(this.masterGain);
+            bodyOsc.start(now);
+            bodyOsc.stop(now + 0.19);
+
+            // 響弦沙沙聲
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = this.noiseBuffer;
+            const highpass = this.ctx.createBiquadFilter();
+            highpass.type = 'highpass';
+            highpass.frequency.setValueAtTime(1100, now);
+
+            const bandpass = this.ctx.createBiquadFilter();
+            bandpass.type = 'peaking';
+            bandpass.frequency.setValueAtTime(3200, now);
+            bandpass.gain.setValueAtTime(6, now);
+
+            const noiseGain = this.ctx.createGain();
+            noiseGain.gain.setValueAtTime(0.95, now);
+            noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.24);
+
+            noise.connect(highpass);
+            highpass.connect(bandpass);
+            bandpass.connect(noiseGain);
+            noiseGain.connect(this.masterGain);
+            noise.start(now);
+            noise.stop(now + 0.25);
+            break;
+          }
+
+          case 'tom1': {
+            // 中高音筒鼓
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(215, now);
+            osc.frequency.exponentialRampToValueAtTime(128, now + 0.28);
+            gain.gain.setValueAtTime(0.95, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.34);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.35);
+            break;
+          }
+
+          case 'tom2': {
+            // 中低音筒鼓
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(168, now);
+            osc.frequency.exponentialRampToValueAtTime(96, now + 0.34);
+            gain.gain.setValueAtTime(1.0, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.40);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.41);
+            break;
+          }
+
+          case 'floortom': {
+            // 深沉共鳴落地鼓
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(118, now);
+            osc.frequency.exponentialRampToValueAtTime(62, now + 0.45);
+            gain.gain.setValueAtTime(1.15, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.54);
+            osc.connect(gain);
+            gain.connect(this.masterGain);
+            osc.start(now);
+            osc.stop(now + 0.55);
+            break;
+          }
+
+          case 'hihatClosed': {
+            // 物理特性：敲擊閉鈸時，立即切斷正在發聲的開鈸延音 (Choke)
+            if (this.activeOpenHihatNodes) {
+              try {
+                this.activeOpenHihatNodes.gainNode.gain.cancelScheduledValues(now);
+                this.activeOpenHihatNodes.gainNode.gain.setTargetAtTime(0.0001, now, 0.012);
+              } catch (e) {}
+              this.activeOpenHihatNodes = null;
+            }
+
+            const ratios = [2, 3, 4.16, 5.43, 6.79, 8.21];
+            this.createMetallicBank(ratios, 420, 0.068, 7200, 'highpass', 0.42);
+
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = this.noiseBuffer;
+            const hp = this.ctx.createBiquadFilter();
+            hp.type = 'highpass';
+            hp.frequency.setValueAtTime(8000, now);
+            const nGain = this.ctx.createGain();
+            nGain.gain.setValueAtTime(0.32, now);
+            nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.055);
+            noise.connect(hp);
+            hp.connect(nGain);
+            nGain.connect(this.masterGain);
+            noise.start(now);
+            noise.stop(now + 0.06);
+            break;
+          }
+
+          case 'hihatOpen': {
+            // 若已有開鈸聲先平滑收束
+            if (this.activeOpenHihatNodes) {
+              try {
+                this.activeOpenHihatNodes.gainNode.gain.cancelScheduledValues(now);
+                this.activeOpenHihatNodes.gainNode.gain.setTargetAtTime(0.0001, now, 0.02);
+              } catch (e) {}
+            }
+
+            const ratios = [2, 3, 4.16, 5.43, 6.79, 8.21];
+            const metal = this.createMetallicBank(ratios, 415, 0.72, 6200, 'highpass', 0.36);
+
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = this.noiseBuffer;
+            const bp = this.ctx.createBiquadFilter();
+            bp.type = 'bandpass';
+            bp.frequency.setValueAtTime(9200, now);
+            bp.Q.setValueAtTime(0.8, now);
+
+            const masterOpenGain = this.ctx.createGain();
+            masterOpenGain.gain.setValueAtTime(0.45, now);
+            masterOpenGain.gain.exponentialRampToValueAtTime(0.001, now + 0.78);
+
+            noise.connect(bp);
+            bp.connect(masterOpenGain);
+            metal.mixGain.disconnect();
+            metal.mixGain.connect(masterOpenGain);
+            masterOpenGain.connect(this.masterGain);
+
+            noise.start(now);
+            noise.stop(now + 0.8);
+
+            this.activeOpenHihatNodes = { gainNode: masterOpenGain };
+            break;
+          }
+
+          case 'crash': {
+            // 清亮爆發且長延音的碎音鈸
+            const ratios = [2.0, 2.98, 4.12, 5.38, 6.84, 8.45];
+            this.createMetallicBank(ratios, 340, 1.65, 3800, 'highpass', 0.38);
+
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = this.noiseBuffer;
+            const hp = this.ctx.createBiquadFilter();
+            hp.type = 'highpass';
+            hp.frequency.setValueAtTime(4200, now);
+
+            const nGain = this.ctx.createGain();
+            nGain.gain.setValueAtTime(0.68, now);
+            nGain.gain.exponentialRampToValueAtTime(0.001, now + 1.75);
+
+            noise.connect(hp);
+            hp.connect(nGain);
+            nGain.connect(this.masterGain);
+            noise.start(now);
+            noise.stop(now + 1.8);
+            break;
+          }
+
+          case 'ride': {
+            // 清脆帶有金屬鐘心叮聲 (Bell Ping) 的疊音鈸
+            const ratios = [2.0, 3.01, 4.18, 5.45, 6.82];
+            this.createMetallicBank(ratios, 510, 1.15, 5200, 'highpass', 0.32);
+
+            // Bell Ping 清脆泛音
+            const pingOsc = this.ctx.createOscillator();
+            const pingGain = this.ctx.createGain();
+            pingOsc.type = 'sine';
+            pingOsc.frequency.setValueAtTime(2840, now);
+            pingGain.gain.setValueAtTime(0.28, now);
+            pingGain.gain.exponentialRampToValueAtTime(0.0008, now + 0.65);
+            pingOsc.connect(pingGain);
+            pingGain.connect(this.masterGain);
+            pingOsc.start(now);
+            pingOsc.stop(now + 0.66);
+
+            const noise = this.ctx.createBufferSource();
+            noise.buffer = this.noiseBuffer;
+            const hp = this.ctx.createBiquadFilter();
+            hp.type = 'highpass';
+            hp.frequency.setValueAtTime(6800, now);
+            const nGain = this.ctx.createGain();
+            nGain.gain.setValueAtTime(0.26, now);
+            nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.95);
+            noise.connect(hp);
+            hp.connect(nGain);
+            nGain.connect(this.masterGain);
+            noise.start(now);
+            noise.stop(now + 0.96);
+            break;
+          }
+        }
+      }
+    }
+
+    const synth = new DrumSynthEngine();
+
+    /**
+     * 3. 視覺回饋與打擊觸發控制器
+     */
+    function triggerDrumHit(drumId) {
+      // 1. 立即播放聲音 (零延遲)
+      synth.play(drumId);
+
+      // 2. 尋找對應的視覺鼓面元素
+      const item = DRUM_ITEMS.find(d => d.id === drumId);
+      if (!item) return;
+      const padEl = document.getElementById(item.padId);
+      if (!padEl) return;
+
+      // 3. 觸發黑白反轉閃光
+      padEl.classList.remove('is-hit');
+      void padEl.offsetWidth; // 強制 reflow 讓連擊時閃光能重新觸發
+      padEl.classList.add('is-hit');
+
+      clearTimeout(padEl._hitTimer);
+      padEl._hitTimer = setTimeout(() => {
+        padEl.classList.remove('is-hit');
+      }, 85);
+
+      // 4. 鈸片加入微妙物理搖晃
+      if (padEl.classList.contains('cymbal-surface')) {
+        padEl.classList.remove('cymbal-wobble');
+        void padEl.offsetWidth;
+        padEl.classList.add('cymbal-wobble');
+      }
+
+      // 5. 生成擴散波紋 (Ripple)
+      const ripple = document.createElement('div');
+      ripple.className = 'hit-ripple';
+      padEl.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 380);
+    }
+
+    /**
+     * 4. 綁定滑鼠 / 觸控與鍵盤事件
+     */
+    function bindStageInteractions() {
+      // 一般鼓面點擊/觸控
+      document.querySelectorAll('.drum-piece').forEach(pad => {
+        const handlePointerDown = (e) => {
+          // 若點擊的是 Hi-hat 上的獨立小按鈕，交由子按鈕處理
+          const subTrigger = e.target.closest('[data-drum-trigger]');
+          if (subTrigger) {
+            e.stopPropagation();
+            triggerDrumHit(subTrigger.dataset.drumTrigger);
+            return;
+          }
+          const drumId = pad.dataset.drum;
+          if (drumId) {
+            triggerDrumHit(drumId);
+          }
+        };
+
+        pad.addEventListener('pointerdown', handlePointerDown);
+      });
+
+      // 全域鍵盤監聽
+      window.addEventListener('keydown', (e) => {
+        // 如果正在鍵位設定模式，攔截按鍵進行綁定
+        if (listeningDrumId) {
+          e.preventDefault();
+          e.stopPropagation();
+          assignNewKeybind(listeningDrumId, e.code);
+          return;
+        }
+
+        // 若焦點在輸入框（如 YouTube 網址欄）或設定視窗開啟中，不觸發打鼓
+        const activeTag = document.activeElement ? document.activeElement.tagName : '';
+        if (activeTag === 'INPUT' || activeTag === 'TEXTAREA') return;
+        if (!document.getElementById('keybindModal').classList.contains('hidden')) return;
+
+        // 防止長按按鍵連發機關槍音效
+        if (e.repeat) return;
+
+        // 比對目前綁定的鍵位
+        const matchedItem = DRUM_ITEMS.find(item => keybinds[item.id] === e.code);
+        if (matchedItem) {
+          e.preventDefault(); // 防止 Space 捲動頁面或觸發按鈕
+          triggerDrumHit(matchedItem.id);
+        }
+      });
+    }
+
+    /**
+     * 5. 主音量控制 (0% ~ 150%)
+     */
+    function initVolumeControls() {
+      const slider = document.getElementById('masterVolumeSlider');
+      const label = document.getElementById('masterVolumeValue');
+      const muteBtn = document.getElementById('muteToggleBtn');
+      const iconNormal = document.getElementById('volIconNormal');
+      const iconMuted = document.getElementById('volIconMuted');
+
+      // 讀取記憶音量
+      const savedVol = localStorage.getItem(STORAGE_KEY_VOL);
+      if (savedVol !== null) {
+        slider.value = savedVol;
+        synth.setVolume(savedVol);
+        label.textContent = `${savedVol}%`;
+      }
+
+      slider.addEventListener('input', (e) => {
+        const val = e.target.value;
+        label.textContent = `${val}%`;
+        synth.setVolume(val);
+        localStorage.setItem(STORAGE_KEY_VOL, val);
+
+        if (Number(val) === 0) {
+          iconNormal.classList.add('hidden');
+          iconMuted.classList.remove('hidden');
+        } else if (!synth.isMuted) {
+          iconNormal.classList.remove('hidden');
+          iconMuted.classList.add('hidden');
+        }
+      });
+
+      muteBtn.addEventListener('click', () => {
+        const nextMute = !synth.isMuted;
+        synth.setMute(nextMute);
+        if (nextMute) {
+          iconNormal.classList.add('hidden');
+          iconMuted.classList.remove('hidden');
+          label.classList.add('opacity-40');
+        } else {
+          iconNormal.classList.remove('hidden');
+          iconMuted.classList.add('hidden');
+          label.classList.remove('opacity-40');
+        }
+      });
+    }
+
+    /**
+     * 6. 自由鍵位自訂系統 Modal 邏輯
+     */
+    function renderKeybindList() {
+      const container = document.getElementById('keybindList');
+      container.innerHTML = '';
+
+      DRUM_ITEMS.forEach(item => {
+        const isListening = listeningDrumId === item.id;
+        const row = document.createElement('div');
+        row.className = `flex items-center justify-between p-3 rounded-xl border transition ${
+          isListening
+            ? 'border-white bg-white/15'
+            : 'border-white/15 bg-white/[0.03] hover:border-white/40'
+        }`;
+
+        row.innerHTML = `
+          <span class="text-xs sm:text-sm font-semibold text-white/90">${item.name}</span>
+          <button
+            type="button"
+            data-bind-id="${item.id}"
+            class="px-3 py-1.5 min-w-[92px] rounded-lg font-mono-tech text-xs font-extrabold transition ${
+              isListening
+                ? 'bg-white text-black animate-pulse'
+                : 'bg-black border border-white/35 text-white hover:bg-white hover:text-black'
+            }"
+          >
+            ${isListening ? '請按下按鍵...' : formatKeyCode(keybinds[item.id])}
+          </button>
+        `;
+
+        row.querySelector('button').addEventListener('click', () => {
+          listeningDrumId = (listeningDrumId === item.id) ? null : item.id;
+          document.getElementById('keybindConflictBanner').classList.add('hidden');
+          renderKeybindList();
+        });
+
+        container.appendChild(row);
+      });
+    }
+
+    function assignNewKeybind(drumId, newCode) {
+      const conflictBanner = document.getElementById('keybindConflictBanner');
+      const conflictText = document.getElementById('keybindConflictText');
+
+      // 檢查是否有其他鼓已經使用此按鍵，若有則自動交換鍵位避免衝突
+      const existingDrum = DRUM_ITEMS.find(item => item.id !== drumId && keybinds[item.id] === newCode);
+      if (existingDrum) {
+        const oldCode = keybinds[drumId];
+        keybinds[existingDrum.id] = oldCode;
+        conflictText.textContent = `按鍵 [${formatKeyCode(newCode)}] 原屬於「${existingDrum.shortName}」，已為您自動互換鍵位！`;
+        conflictBanner.classList.remove('hidden');
+      } else {
+        conflictBanner.classList.add('hidden');
+      }
+
+      keybinds[drumId] = newCode;
+      listeningDrumId = null;
+      saveKeybinds();
+      updateDrumFaceLabels();
+      renderKeybindList();
+    }
+
+    function initKeybindModal() {
+      const modal = document.getElementById('keybindModal');
+      const openBtn = document.getElementById('openKeybindModalBtn');
+      const closeBtn = document.getElementById('closeKeybindModalBtn');
+      const doneBtn = document.getElementById('doneKeybindsBtn');
+      const resetBtn = document.getElementById('resetKeybindsBtn');
+
+      const closeModal = () => {
+        listeningDrumId = null;
+        modal.classList.add('hidden');
+      };
+
+      openBtn.addEventListener('click', () => {
+        listeningDrumId = null;
+        document.getElementById('keybindConflictBanner').classList.add('hidden');
+        renderKeybindList();
+        modal.classList.remove('hidden');
+      });
+
+      closeBtn.addEventListener('click', closeModal);
+      doneBtn.addEventListener('click', closeModal);
+
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) closeModal();
+      });
+
+      resetBtn.addEventListener('click', () => {
+        DRUM_ITEMS.forEach(item => { keybinds[item.id] = item.defaultCode; });
+        listeningDrumId = null;
+        saveKeybinds();
+        updateDrumFaceLabels();
+        renderKeybindList();
+        const banner = document.getElementById('keybindConflictBanner');
+        document.getElementById('keybindConflictText').textContent = '已恢復所有鼓組為預設鍵位。';
+        banner.classList.remove('hidden');
+      });
+    }
+
+    /**
+     * 7. 右下角 YouTube IFrame API 音樂跟練面板
+     */
+    let ytPlayer = null;
+    let isYtReady = false;
+    let pendingVideoId = '5qap5aO4i9A'; // 預設載入 Lo-Fi 節拍供練習
+
+    // 解析各種格式的 YouTube 網址或直接輸入 11 碼影片 ID
+    function extractYouTubeId(input) {
+      const trimmed = (input || '').trim();
+      if (!trimmed) return null;
+      if (/^[a-zA-Z0-9_-]{11}$/.test(trimmed)) return trimmed;
+
+      const patterns = [
+        /(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/|youtube\.com\/shorts\/)([a-zA-Z0-9_-]{11})/,
+        /[?&]v=([a-zA-Z0-9_-]{11})/
+      ];
+      for (const regex of patterns) {
+        const match = trimmed.match(regex);
+        if (match && match[1]) return match[1];
+      }
+      return null;
+    }
+
+    // YouTube IFrame API 全域回呼函式
+    window.onYouTubeIframeAPIReady = function () {
+      try {
+        ytPlayer = new YT.Player('ytPlayerContainer', {
+          videoId: pendingVideoId,
+          playerVars: {
+            playsinline: 1,
+            rel: 0,
+            modestbranding: 1,
+            origin: window.location.origin
+          },
+          events: {
+            onReady: (event) => {
+              isYtReady = true;
+              event.target.setVolume(65);
+            },
+            onError: () => {
+              document.getElementById('ytFallbackMsg').classList.remove('hidden');
+            }
+          }
+        });
+      } catch (err) {
+        document.getElementById('ytFallbackMsg').classList.remove('hidden');
+      }
+    };
+
+    function loadYouTubeVideo(videoId) {
+      if (!videoId) return;
+      document.getElementById('ytFallbackMsg').classList.add('hidden');
+      pendingVideoId = videoId;
+      if (isYtReady && ytPlayer && typeof ytPlayer.loadVideoById === 'function') {
+        ytPlayer.loadVideoById(videoId);
+      }
+    }
+
+    function initYouTubePanel() {
+      // 動態載入 YouTube IFrame API
+      const tag = document.createElement('script');
+      tag.src = 'https://www.youtube.com/iframe_api';
+      tag.onerror = () => {
+        document.getElementById('ytFallbackMsg').classList.remove('hidden');
+      };
+      document.head.appendChild(tag);
+
+      const urlInput = document.getElementById('ytUrlInput');
+      const loadBtn = document.getElementById('loadYtBtn');
+      const playPauseBtn = document.getElementById('ytPlayPauseBtn');
+      const volSlider = document.getElementById('ytVolumeSlider');
+      const volValue = document.getElementById('ytVolumeValue');
+      const togglePanelBtn = document.getElementById('toggleYtPanelBtn');
+      const panelBody = document.getElementById('ytPanelBody');
+      const chevron = document.getElementById('ytChevronIcon');
+
+      // 載入按鈕與 Enter 鍵支援
+      const handleLoad = () => {
+        const id = extractYouTubeId(urlInput.value);
+        if (id) {
+          loadYouTubeVideo(id);
+        } else {
+          urlInput.classList.add('border-white');
+          urlInput.placeholder = '無效的 YouTube 網址或 ID';
+          urlInput.value = '';
+        }
+      };
+
+      loadBtn.addEventListener('click', handleLoad);
+      urlInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') handleLoad();
+      });
+
+      // 快速預設伴奏按鈕
+      document.querySelectorAll('.yt-preset-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const vid = btn.dataset.ytPreset;
+          urlInput.value = `https://youtu.be/${vid}`;
+          loadYouTubeVideo(vid);
+        });
+      });
+
+      // 播放 / 暫停切換
+      playPauseBtn.addEventListener('click', () => {
+        if (!isYtReady || !ytPlayer) return;
+        const state = ytPlayer.getPlayerState();
+        if (state === YT.PlayerState.PLAYING) {
+          ytPlayer.pauseVideo();
+        } else {
+          ytPlayer.playVideo();
+        }
+      });
+
+      // YouTube 伴奏獨立音量調整
+      volSlider.addEventListener('input', (e) => {
+        const val = Number(e.target.value);
+        volValue.textContent = `${val}%`;
+        if (isYtReady && ytPlayer && typeof ytPlayer.setVolume === 'function') {
+          ytPlayer.setVolume(val);
+        }
+      });
+
+      // 右下角面板折疊 / 展開（避免遮擋 Floor Tom）
+      let isCollapsed = false;
+      togglePanelBtn.addEventListener('click', () => {
+        isCollapsed = !isCollapsed;
+        if (isCollapsed) {
+          panelBody.classList.add('hidden');
+          chevron.style.transform = 'rotate(180deg)';
+        } else {
+          panelBody.classList.remove('hidden');
+          chevron.style.transform = 'rotate(0deg)';
+        }
+      });
+    }
+
+    /**
+     * 8. 應用程式初始化
+     */
+    window.addEventListener('DOMContentLoaded', () => {
+      loadKeybinds();
+      updateDrumFaceLabels();
+      bindStageInteractions();
+      initVolumeControls();
+      initKeybindModal();
+      initYouTubePanel();
+    });
+  </script>
+</body>
+</html>
